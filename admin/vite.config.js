@@ -1,12 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import path from 'path';
+
+// Automatically detect Netlify, GitHub Pages, or Custom Domain
+const getBasePath = () => {
+  if (process.env.VITE_BASE_PATH) return process.env.VITE_BASE_PATH;
+  if (process.env.NETLIFY) return '/';
+  if (process.env.GITHUB_ACTIONS) return '/og-admin/';
+  return './';
+};
 
 // https://vite.dev/config/
 export default defineConfig({
-  root: path.resolve(__dirname, '.'),
-  base: process.env.NODE_ENV === 'production' ? '/og-admin/' : '/',
+  base: getBasePath(),
   plugins: [react(), tailwindcss()],
   server: {
     port: 5174,
@@ -26,7 +32,6 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: path.resolve(__dirname, '../dist-admin'),
-    emptyOutDir: true,
+    outDir: 'dist',
   },
 });
