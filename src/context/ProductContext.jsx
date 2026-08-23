@@ -2,12 +2,13 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 import { useToast } from './ToastContext';
+import { initialProducts } from '../data/seedProducts';
 
 const ProductContext = createContext();
 
 export const ProductProvider = ({ children }) => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(initialProducts);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedBrand, setSelectedBrand] = useState('All');
@@ -19,18 +20,15 @@ export const ProductProvider = ({ children }) => {
   // Fetch initial product catalog from API
   const fetchProducts = useCallback(async () => {
     try {
-      setLoading(true);
       const data = await api.getProducts();
-      if (data && data.products) {
+      if (data && data.products && data.products.length > 0) {
         setProducts(data.products);
       }
     } catch (error) {
-      console.error('[Fetch Products Error]', error);
-      addToast('Failed to load products from server', 'error');
-    } finally {
-      setLoading(false);
+      // Keep initialProducts fallback silently without spamming error toasts
+      console.warn('[Fetch Products Notice] Using offline product catalog fallback');
     }
-  }, [addToast]);
+  }, []);
 
   useEffect(() => {
     fetchProducts();
@@ -60,7 +58,6 @@ export const ProductProvider = ({ children }) => {
         prev.map((p) => ((p._id || p.id) === targetId ? { ...p, ...updatedProduct } : p))
       );
 
-      // Also update quick view product if currently open
       setQuickViewProduct((prev) =>
         prev && (prev._id || prev.id) === targetId ? { ...prev, ...updatedProduct } : prev
       );
@@ -130,17 +127,14 @@ export const ProductProvider = ({ children }) => {
 
   // Client-side filtering and sorting for instant UI response
   const filteredProducts = products.filter((p) => {
-    // Category filter
     if (selectedCategory !== 'All' && p.category.toLowerCase() !== selectedCategory.toLowerCase()) {
       return false;
     }
 
-    // Brand filter
     if (selectedBrand !== 'All' && p.brand.toLowerCase() !== selectedBrand.toLowerCase()) {
       return false;
     }
 
-    // Dynamic Search across title, brand, category, keywords, description, flavours
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       const matchName = p.name.toLowerCase().includes(q);
@@ -159,10 +153,9 @@ export const ProductProvider = ({ children }) => {
     if (sortOption === 'price_desc') return b.discountPrice - a.discountPrice;
     if (sortOption === 'rating') return b.rating - a.rating;
     if (sortOption === 'discount') return (b.discountPercentage || 0) - (a.discountPercentage || 0);
-    return 0; // featured/default
+    return 0;
   });
 
-  // Extract unique categories & brands from live catalog
   const categories = ['All', 'Protein', 'Mass Gainer', 'Creatine', 'Pre-Workout', 'Supplements', 'Vitamins', 'Protein Bars'];
   const brands = ['All', ...new Set(products.map((p) => p.brand).filter(Boolean))];
 
