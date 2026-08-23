@@ -2,6 +2,10 @@
   publish = "dist"
   command = "npm run build"
 
+[build.environment]
+  NETLIFY = "true"
+  VITE_BASE_PATH = "/"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
