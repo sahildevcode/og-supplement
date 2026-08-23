@@ -1,12 +1,5 @@
-const getApiBaseUrl = () => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return window.location.port === '5174' ? '/api' : 'http://localhost:5000/api';
-  }
-  return 'https://og-supplement-api.onrender.com/api';
-};
-
-const BASE_URL = getApiBaseUrl();
+// Central 24/7 Render Cloud API endpoint
+export const BASE_URL = import.meta.env.VITE_API_URL || 'https://og-supplement-api.onrender.com/api';
 
 export const apiRequest = async (endpoint, options = {}) => {
   const token = localStorage.getItem('og_admin_token');

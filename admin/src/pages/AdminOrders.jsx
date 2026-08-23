@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Eye, RefreshCw, Filter, Search, Clock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ShoppingCart, Eye, RefreshCw, Filter, Search, Clock, XCircle } from 'lucide-react';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 import { useAdminToast } from '../context/AdminToastContext';
@@ -13,17 +13,21 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addToast } = useAdminToast();
+  const isFirstLoad = useRef(true);
 
   const fetchOrders = async () => {
     try {
-      setLoading(true);
+      if (isFirstLoad.current) setLoading(true);
       const res = await api.getAllOrders();
       const list = res.orders || (Array.isArray(res) ? res : []);
       setOrders(list);
     } catch (error) {
       console.error('[Fetch Orders Error]', error);
     } finally {
-      setLoading(false);
+      if (isFirstLoad.current) {
+        setLoading(false);
+        isFirstLoad.current = false;
+      }
     }
   };
 
@@ -31,22 +35,31 @@ export default function AdminOrders() {
     fetchOrders();
 
     const handleOrderCreated = (newOrder) => {
-      setOrders((prev) => [newOrder, ...prev]);
+      setOrders((prev) => [newOrder, ...prev.filter(o => o.orderId !== newOrder.orderId)]);
       addToast(`🎉 New order placed! #${newOrder.orderId} (₹${newOrder.totalAmount?.toLocaleString('en-IN')})`, 'success');
+      fetchOrders();
     };
 
     const handleStatusUpdated = ({ orderId, orderStatus }) => {
       setOrders((prev) =>
         prev.map((o) => (o.orderId === orderId ? { ...o, orderStatus } : o))
       );
+      addToast(`Order #${orderId} status changed to "${orderStatus}"!`, 'info');
+      fetchOrders();
     };
 
     socket.on('order:created', handleOrderCreated);
     socket.on('order:statusUpdated', handleStatusUpdated);
 
+    // 3-second High-Frequency Background Polling
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 3000);
+
     return () => {
       socket.off('order:created', handleOrderCreated);
       socket.off('order:statusUpdated', handleStatusUpdated);
+      clearInterval(interval);
     };
   }, [addToast]);
 
@@ -61,7 +74,7 @@ export default function AdminOrders() {
       case 'Delivered':
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Delivered</span>;
       case 'Cancelled':
-        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">Cancelled</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Cancelled</span>;
       default:
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400">{status}</span>;
     }
@@ -84,13 +97,13 @@ export default function AdminOrders() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
         <div>
           <span className="text-xs font-black uppercase tracking-widest text-cyan-400">
-            Fulfillment Center & Real-Time Sync
+            Live Fulfillment Center
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
             Orders Fulfillment
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            Track customer shipments, view delivery addresses, and update tracking timelines
+            Real-time live sync for all customer order placements and cancellations
           </p>
         </div>
 

@@ -1,12 +1,5 @@
-const getApiBaseUrl = () => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return window.location.port === '5173' ? '/api' : 'http://localhost:5000/api';
-  }
-  return 'https://og-supplement-api.onrender.com/api';
-};
-
-const BASE_URL = getApiBaseUrl();
+// Central 24/7 Render Cloud API endpoint
+export const BASE_URL = import.meta.env.VITE_API_URL || 'https://og-supplement-api.onrender.com/api';
 
 // Helper for local offline orders fallback
 const getLocalOrders = () => {
@@ -77,9 +70,15 @@ export const api = {
   // Orders with resilient cloud + offline fallback
   createOrder: async (orderData) => {
     try {
-      return await apiRequest('/orders', { method: 'POST', body: JSON.stringify(orderData) });
+      const res = await apiRequest('/orders', { method: 'POST', body: JSON.stringify(orderData) });
+      if (res && res.order) {
+        // Also sync to local storage for instant access in customer OrderHistory
+        const existingOrders = getLocalOrders();
+        saveLocalOrders([res.order, ...existingOrders.filter(o => o.orderId !== res.order.orderId)]);
+      }
+      return res;
     } catch (error) {
-      console.warn('[Order API Notice] Using resilient local storage fallback for order placement');
+      console.warn('[Order API Notice] Server request failed, saving to local fallback', error.message);
       
       const subtotal = orderData.products.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
       const discount = subtotal > 2000 ? Math.round(subtotal * 0.05) : 0;
@@ -123,14 +122,18 @@ export const api = {
 
   getMyOrders: async (email) => {
     try {
-      return await apiRequest(`/orders/my-orders${email ? `?email=${encodeURIComponent(email)}` : ''}`);
+      const res = await apiRequest(`/orders/my-orders${email ? `?email=${encodeURIComponent(email)}` : ''}`);
+      if (res && res.orders) {
+        return res;
+      }
     } catch (error) {
-      const localOrders = getLocalOrders();
-      const filtered = email
-        ? localOrders.filter(o => o.email?.toLowerCase() === email.toLowerCase())
-        : localOrders;
-      return { success: true, orders: filtered };
+      console.warn('[Get My Orders Notice] Falling back to local storage', error.message);
     }
+    const localOrders = getLocalOrders();
+    const filtered = email
+      ? localOrders.filter(o => o.email?.toLowerCase() === email.toLowerCase())
+      : localOrders;
+    return { success: true, orders: filtered };
   },
 
   getAllOrders: async () => {
@@ -155,8 +158,14 @@ export const api = {
 
   updateOrderStatus: async (id, status) => {
     try {
-      return await apiRequest(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+      const res = await apiRequest(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+      // Update local storage too
+      const localOrders = getLocalOrders();
+      const updated = localOrders.map(o => (o._id === id || o.orderId === id ? { ...o, orderStatus: status, updatedAt: new Date().toISOString() } : o));
+      saveLocalOrders(updated);
+      return res;
     } catch (error) {
+      console.warn('[Update Order Status Notice] Updating local storage', error.message);
       const localOrders = getLocalOrders();
       const updated = localOrders.map(o => (o._id === id || o.orderId === id ? { ...o, orderStatus: status, updatedAt: new Date().toISOString() } : o));
       saveLocalOrders(updated);
