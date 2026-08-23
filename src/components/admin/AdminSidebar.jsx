@@ -48,7 +48,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
             </div>
             <div>
               <span className="text-lg font-black text-white tracking-tight">
-                APEX<span className="text-cyan-400">ADMIN</span>
+                OG-<span className="text-cyan-400">ADMIN</span>
               </span>
               <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
                 Management Suite

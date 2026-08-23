@@ -20,7 +20,7 @@ export default function MegaMenu({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const infoLinks = [
-    { name: 'About ApexNutra', href: '/about', icon: Info, desc: 'Our mission, purity standards & laboratory testing' },
+    { name: 'About OG-Supplement', href: '/about', icon: Info, desc: 'Our mission, purity standards & laboratory testing' },
     { name: 'Licenses & Certifications', href: '/license', icon: Award, desc: 'FSSAI, GMP & Informed-Choice verified licenses' },
     { name: 'Contact & Support', href: '/faq', icon: PhoneCall, desc: 'Get in touch with nutrition advisors' },
   ];

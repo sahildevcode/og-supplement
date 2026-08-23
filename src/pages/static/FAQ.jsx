@@ -1,87 +1,103 @@
 import React, { useState } from 'react';
-import { ChevronDown, HelpCircle, Mail, PhoneCall } from 'lucide-react';
-
-const faqs = [
-  {
-    q: "How do I verify the authenticity of my supplement?",
-    a: "Every product shipped by ApexNutra carries a tamper-proof holographic brand seal and a scratch-off authentication code. You can verify the code on the manufacturer's official portal (e.g., Optimum Nutrition Authenticate app, MuscleBlaze SMS verification)."
-  },
-  {
-    q: "How fast is delivery and dispatch?",
-    a: "All confirmed orders are packed and dispatched from our fulfillment center within 24 hours. Metro cities typically receive delivery within 24-48 hours, while other regional locations take 2-4 business days."
-  },
-  {
-    q: "What is your return and replacement policy?",
-    a: "We offer a 7-day hassle-free replacement or full refund if you receive a damaged package, broken seal, expired batch, or incorrect flavor. Simply contact us with your order ID and unboxing photo."
-  },
-  {
-    q: "Are all products tested for banned substances?",
-    a: "Yes. Our proteins, pre-workouts, and amino formulations are compliant with FSSAI regulations and Informed-Choice certifications, free from anabolic steroids or unlisted stims."
-  },
-  {
-    q: "What are the shipping charges?",
-    a: "We offer FREE Express Shipping on all orders above ₹999 across India. For orders below ₹999, a nominal shipping fee of ₹99 is applied at checkout."
-  },
-  {
-    q: "Can I cancel my order after placing it?",
-    a: "Yes, orders can be cancelled directly before they are dispatched for shipping. Once cancelled, your refund will be processed immediately."
-  }
-];
+import { ChevronDown, HelpCircle, Mail, MessageSquare } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function FAQ() {
-  const [openIdx, setOpenIdx] = useState(0);
+  const { isDark } = useTheme();
+  const [openIndex, setOpenIndex] = useState(0);
+
+  const faqs = [
+    {
+      q: "How can I verify the authenticity of my supplement?",
+      a: "Every product shipped by OG-Supplement carries a tamper-proof holographic brand seal and a scratch-off authentication code. You can verify the code on the manufacturer's official portal (e.g., Optimum Nutrition Authenticate app, MuscleBlaze SMS verification)."
+    },
+    {
+      q: "How fast is shipping and order dispatch?",
+      a: "All orders placed before 3:00 PM IST are packed and dispatched on the same business day. Delivery takes 24-48 hours for metro cities and 2-4 business days for other regional pincodes across India."
+    },
+    {
+      q: "What is your return and refund policy?",
+      a: "We offer a 7-Day Hassle-Free Return Policy. If your package arrives damaged, unsealed, or mismatched, contact us immediately and we will arrange a free reverse pickup and 100% replacement or refund."
+    },
+    {
+      q: "Do you offer Cash on Delivery (COD)?",
+      a: "Yes, Cash on Delivery is available across 18,000+ pincodes in India with zero extra handling charges for orders above ₹999."
+    },
+    {
+      q: "How does real-time stock and price synchronization work?",
+      a: "OG-Supplement features a live WebSocket state engine. When our warehouse updates available inventory batches or price drops, your browser automatically updates without requiring a manual page refresh."
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-950 py-12 sm:py-16">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className={`min-h-screen py-12 sm:py-16 transition-colors duration-300 ${
+      isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+    }`}>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
+        {/* Header */}
         <div className="text-center space-y-3">
-          <span className="text-xs font-black uppercase tracking-widest text-emerald-400">Help & Support</span>
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">Frequently Asked Questions</h1>
-          <p className="text-sm text-slate-400 max-w-xl mx-auto">
-            Find answers to common questions regarding supplement authenticity, shipping times, returns, and dosage.
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto border border-amber-500/20">
+            <HelpCircle className="w-6 h-6" />
+          </div>
+          <h1 className={`text-3xl sm:text-4xl font-black tracking-tight ${
+            isDark ? 'text-white' : 'text-slate-900'
+          }`}>
+            Frequently Asked Questions
+          </h1>
+          <p className="text-sm text-slate-400">
+            Answers to common questions about authenticity, shipping, returns and nutrition stacks
           </p>
         </div>
 
-        {/* Accordions */}
+        {/* FAQ Accordion */}
         <div className="space-y-4">
-          {faqs.map((faq, idx) => (
-            <div
-              key={idx}
-              className="rounded-2xl bg-slate-900/80 border border-slate-800 overflow-hidden transition-colors"
-            >
-              <button
-                onClick={() => setOpenIdx(openIdx === idx ? -1 : idx)}
-                className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-slate-100 hover:text-emerald-400 transition-colors"
+          {faqs.map((faq, idx) => {
+            const isOpen = openIndex === idx;
+            return (
+              <div
+                key={idx}
+                className={`border rounded-2xl overflow-hidden transition-all ${
+                  isOpen
+                    ? 'border-emerald-500/50 bg-emerald-500/5'
+                    : isDark ? 'border-slate-800 bg-slate-900/60' : 'border-slate-200 bg-white shadow-sm'
+                }`}
               >
-                <span className="text-sm sm:text-base flex items-center gap-3">
-                  <HelpCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                  {faq.q}
-                </span>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${openIdx === idx ? 'rotate-180 text-emerald-400' : ''}`} />
-              </button>
-              {openIdx === idx && (
-                <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 animate-in fade-in duration-200">
-                  {faq.a}
-                </div>
-              )}
-            </div>
-          ))}
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : idx)}
+                  className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base transition-colors"
+                >
+                  <span className={isDark ? 'text-slate-100' : 'text-slate-900'}>{faq.q}</span>
+                  <ChevronDown className={`w-4 h-4 text-emerald-500 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isOpen && (
+                  <div className={`px-5 pb-5 text-xs sm:text-sm leading-relaxed border-t pt-3 ${
+                    isDark ? 'text-slate-300 border-slate-800/80' : 'text-slate-600 border-slate-100'
+                  }`}>
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Contact Strip */}
-        <div className="p-8 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
-          <div>
-            <h3 className="text-lg font-bold text-white">Still have questions?</h3>
-            <p className="text-xs text-slate-400 mt-1">Our certified sports nutrition specialists are ready to assist you.</p>
-          </div>
-          <div className="flex items-center gap-3">
+        {/* Still Have Questions Box */}
+        <div className={`p-6 rounded-3xl border text-center space-y-3 ${
+          isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
+        }`}>
+          <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Still need assistance?</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            Our certified nutritionists and customer support agents are ready to help you 7 days a week.
+          </p>
+          <div className="pt-2 flex justify-center">
             <a
-              href="mailto:support@apexnutra.com"
-              className="px-5 py-3 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-white flex items-center gap-2 border border-slate-700 transition-colors"
+              href="mailto:support@ogsupplement.com"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs bg-emerald-500 text-black shadow-lg shadow-emerald-950/40"
             >
-              <Mail className="w-4 h-4 text-emerald-400" />
-              support@apexnutra.com
+              <Mail className="w-3.5 h-3.5" />
+              support@ogsupplement.com
             </a>
           </div>
         </div>

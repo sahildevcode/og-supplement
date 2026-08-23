@@ -68,7 +68,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 gap-4">
           
-          {/* Brand Logo */}
+          {/* Brand Logo - OG-SUPPLEMENT */}
           <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform">
               <Sparkles className="w-6 h-6 text-black" />
@@ -77,10 +77,10 @@ export default function Navbar() {
               <span className={`text-xl font-extrabold tracking-tight flex items-center gap-1 ${
                 isDark ? 'text-white' : 'text-slate-900'
               }`}>
-                APEX<span className="gradient-text font-black">NUTRA</span>
+                OG-<span className="gradient-text font-black">SUPPLEMENT</span>
               </span>
               <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-500 -mt-1">
-                Elite Performance
+                Authentic Performance
               </span>
             </div>
           </Link>

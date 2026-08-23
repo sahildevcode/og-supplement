@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, Mail, Shield, User, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, Shield, User, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ export default function Login() {
   const [error, setError] = useState('');
 
   const { login, demoLogin } = useAuth();
+  const { isDark } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -53,7 +55,9 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center bg-slate-950 py-12 px-4">
+    <div className={`min-h-[85vh] flex items-center justify-center py-12 px-4 transition-colors duration-300 ${
+      isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+    }`}>
       <div className="max-w-md w-full space-y-6">
         
         {/* Header & Logo */}
@@ -61,8 +65,10 @@ export default function Login() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-xl shadow-emerald-950/60 mx-auto">
             <Sparkles className="w-7 h-7 text-black" />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Sign In to ApexNutra
+          <h2 className={`text-2xl sm:text-3xl font-black tracking-tight ${
+            isDark ? 'text-white' : 'text-slate-900'
+          }`}>
+            Sign In to OG-Supplement
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
             Access your orders, personalized nutrition stacks, and profile
@@ -70,7 +76,9 @@ export default function Login() {
         </div>
 
         {/* Demo Fast Login Switchers */}
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+        <div className={`p-4 rounded-2xl border space-y-2 ${
+          isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
+        }`}>
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400 text-center">
             🚀 1-Click Fast Demo Login
           </p>
@@ -78,7 +86,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => handleDemo('admin')}
-              className="px-3 py-2 rounded-xl text-xs font-bold bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 border border-cyan-500/30 flex items-center justify-center gap-1.5 transition-colors"
+              className="px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-500 border border-cyan-500/30 flex items-center justify-center gap-1.5 transition-colors"
             >
               <Shield className="w-3.5 h-3.5" />
               Demo Admin
@@ -86,7 +94,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => handleDemo('customer')}
-              className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 flex items-center justify-center gap-1.5 transition-colors"
+              className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 border border-emerald-500/30 flex items-center justify-center gap-1.5 transition-colors"
             >
               <User className="w-3.5 h-3.5" />
               Demo Customer
@@ -95,16 +103,18 @@ export default function Login() {
         </div>
 
         {/* Main Login Card */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl space-y-6">
+        <div className={`p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 ${
+          isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
+        }`}>
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold">
+            <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-500 text-xs font-semibold">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Email Address</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Email Address</label>
               <div className="relative">
                 <input
                   type="email"
@@ -112,7 +122,11 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                  className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none ${
+                    isDark
+                      ? 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600'
+                  }`}
                 />
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               </div>
@@ -120,8 +134,8 @@ export default function Login() {
 
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Password</label>
-                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Password reset link sent to demo registered email.'); }} className="text-[11px] font-semibold text-emerald-400 hover:underline">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Password</label>
+                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Password reset link sent to demo registered email.'); }} className="text-[11px] font-semibold text-emerald-500 hover:underline">
                   Forgot Password?
                 </a>
               </div>
@@ -132,7 +146,11 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                  className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none ${
+                    isDark
+                      ? 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600'
+                  }`}
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               </div>
@@ -161,7 +179,7 @@ export default function Login() {
 
           <div className="pt-2 text-center text-xs text-slate-400">
             Don't have an account yet?{' '}
-            <Link to="/signup" className="text-emerald-400 font-bold hover:underline">
+            <Link to="/signup" className="text-emerald-500 font-bold hover:underline">
               Create an account
             </Link>
           </div>

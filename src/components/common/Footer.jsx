@@ -15,7 +15,7 @@ export default function Footer() {
           isDark ? 'border-slate-800/80' : 'border-slate-200'
         }`}>
           
-          {/* Brand Col */}
+          {/* Brand Col - OG-SUPPLEMENT */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-2.5 group inline-flex">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-950/40">
@@ -24,7 +24,7 @@ export default function Footer() {
               <span className={`text-xl font-extrabold tracking-tight ${
                 isDark ? 'text-white' : 'text-slate-900'
               }`}>
-                APEX<span className="gradient-text font-black">NUTRA</span>
+                OG-<span className="gradient-text font-black">SUPPLEMENT</span>
               </span>
             </Link>
             <p className="text-sm max-w-sm leading-relaxed">
@@ -42,13 +42,13 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="hover:text-emerald-500 transition-colors">Home</Link></li>
               <li><Link to="/products" className="hover:text-emerald-500 transition-colors">All Supplements</Link></li>
-              <li><Link to="/about" className="hover:text-emerald-500 transition-colors">About ApexNutra</Link></li>
+              <li><Link to="/about" className="hover:text-emerald-500 transition-colors">About OG-Supplement</Link></li>
               <li><Link to="/license" className="hover:text-emerald-500 transition-colors">Licenses & Lab Reports</Link></li>
               <li><Link to="/orders" className="hover:text-emerald-500 transition-colors">Track Order</Link></li>
             </ul>
           </div>
 
-          {/* Customer Support */}
+          {/* Customer Care */}
           <div className="space-y-3">
             <h4 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Customer Care</h4>
             <ul className="space-y-2 text-sm">
@@ -56,7 +56,7 @@ export default function Footer() {
               <li><Link to="/shipping-policy" className="hover:text-emerald-500 transition-colors">Shipping & Delivery</Link></li>
               <li><Link to="/return-policy" className="hover:text-emerald-500 transition-colors">Returns & Refunds</Link></li>
               <li><Link to="/cancellation-policy" className="hover:text-emerald-500 transition-colors">Cancellation Policy</Link></li>
-              <li><a href="mailto:support@apexnutra.com" className="hover:text-emerald-500 transition-colors">support@apexnutra.com</a></li>
+              <li><a href="mailto:support@ogsupplement.com" className="hover:text-emerald-500 transition-colors">support@ogsupplement.com</a></li>
             </ul>
           </div>
 
@@ -75,7 +75,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>© {new Date().getFullYear()} ApexNutra Sports Nutrition Pvt. Ltd. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} OG-Supplement Sports Nutrition Pvt. Ltd. All rights reserved.</p>
           <div className="flex items-center gap-1">
             <span>Crafted for Peak Human Performance</span>
           </div>

@@ -86,16 +86,16 @@ const seedDatabase = async () => {
     }
 
     // Seed default admin & test customer
-    const existingAdmin = await User.findOne({ email: 'admin@apexnutra.com' });
+    const existingAdmin = await User.findOne({ email: 'admin@ogsupplement.com' });
     if (!existingAdmin) {
       await User.create({
         name: 'Super Admin',
-        email: 'admin@apexnutra.com',
+        email: 'admin@ogsupplement.com',
         password: 'adminpassword123',
         role: 'admin',
         phone: '+91 98765 43210'
       });
-      console.log('\x1b[32m[Auth Seeded]\x1b[0m Created Admin Account: admin@apexnutra.com (Pass: adminpassword123)');
+      console.log('\x1b[32m[Auth Seeded]\x1b[0m Created Admin Account: admin@ogsupplement.com (Pass: adminpassword123)');
     }
 
     const existingCustomer = await User.findOne({ email: 'john@example.com' });
@@ -125,7 +125,7 @@ const PORT = process.env.PORT || 5000;
     console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
-║   🚀  \x1b[1m\x1b[32mAPEXNUTRA SUPPLEMENT REAL-TIME SERVER IS RUNNING\x1b[0m        ║
+║   🚀  \x1b[1m\x1b[32mOG-SUPPLEMENT REAL-TIME SERVER IS RUNNING\x1b[0m               ║
 ║                                                               ║
 ║   📡  API URL:       \x1b[36mhttp://localhost:${PORT}/api\x1b[0m                     ║
 ║   ⚡  Socket.IO:     \x1b[35mhttp://localhost:${PORT}\x1b[0m                         ║
