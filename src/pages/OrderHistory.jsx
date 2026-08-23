@@ -5,7 +5,12 @@ import {
   Clock,
   CheckCircle2,
   Truck,
-  ShoppingBag
+  ShoppingBag,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  HelpCircle,
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -20,6 +25,11 @@ export default function OrderHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchEmail, setSearchEmail] = useState(user?.email || '');
+  
+  // Cancel Order Modal State
+  const [cancellingOrder, setCancellingOrder] = useState(null);
+  const [cancelReason, setCancelReason] = useState('Ordered by mistake');
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const fetchOrders = async (emailToUse) => {
     try {
@@ -64,6 +74,28 @@ export default function OrderHistory() {
     }
   };
 
+  const handleConfirmCancel = async () => {
+    if (!cancellingOrder) return;
+    setIsCancelling(true);
+
+    try {
+      const id = cancellingOrder._id || cancellingOrder.orderId;
+      await api.updateOrderStatus(id, 'Cancelled');
+      
+      // Update local orders list state
+      setOrders((prev) =>
+        prev.map((o) => (o.orderId === cancellingOrder.orderId || o._id === id ? { ...o, orderStatus: 'Cancelled' } : o))
+      );
+
+      addToast(`Order #${cancellingOrder.orderId} has been successfully cancelled.`, 'info');
+      setCancellingOrder(null);
+    } catch (error) {
+      addToast(error.message || 'Failed to cancel order', 'error');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Order Placed':
@@ -75,7 +107,7 @@ export default function OrderHistory() {
       case 'Delivered':
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">Delivered</span>;
       case 'Cancelled':
-        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-500 border border-rose-500/30">Cancelled</span>;
+        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Cancelled</span>;
       default:
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400">{status}</span>;
     }
@@ -86,6 +118,14 @@ export default function OrderHistory() {
     const currentIdx = steps.indexOf(status);
     return { steps, currentIdx: currentIdx === -1 ? 0 : currentIdx };
   };
+
+  const cancelReasons = [
+    'Ordered by mistake / wrong quantity',
+    'Found a better supplement or deal',
+    'Incorrect shipping address entered',
+    'Delivery taking too long',
+    'Other reason'
+  ];
 
   return (
     <div className={`min-h-screen py-10 sm:py-14 transition-colors duration-300 ${
@@ -125,7 +165,7 @@ export default function OrderHistory() {
             />
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 hover:bg-emerald-500 hover:text-black transition-all"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 hover:bg-emerald-500 hover:text-black transition-all cursor-pointer"
             >
               Lookup
             </button>
@@ -166,12 +206,15 @@ export default function OrderHistory() {
           <div className="space-y-6">
             {orders.map((order) => {
               const { steps, currentIdx } = getStepProgress(order.orderStatus);
+              const canCancel = order.orderStatus === 'Order Placed' || order.orderStatus === 'Processing';
 
               return (
                 <div
                   key={order.orderId || order._id}
-                  className={`p-6 sm:p-8 rounded-3xl border space-y-6 shadow-xl ${
-                    isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
+                  className={`p-6 sm:p-8 rounded-3xl border space-y-6 shadow-xl transition-all ${
+                    order.orderStatus === 'Cancelled'
+                      ? isDark ? 'bg-slate-900/40 border-rose-900/30 opacity-80' : 'bg-rose-50/40 border-rose-200'
+                      : isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
                   }`}
                 >
                   {/* Order Top Bar */}
@@ -179,7 +222,7 @@ export default function OrderHistory() {
                     isDark ? 'border-slate-800/80' : 'border-slate-100'
                   }`}>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-black text-emerald-500 text-base">
                           {order.orderId}
                         </span>
@@ -196,18 +239,32 @@ export default function OrderHistory() {
                       </p>
                     </div>
 
-                    <div className="text-right">
-                      <p className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        ₹{order.totalAmount?.toLocaleString('en-IN')}
-                      </p>
-                      <p className="text-[11px] text-slate-400">
-                        {order.paymentMethod} • {order.paymentStatus || 'Pending'}
-                      </p>
+                    <div className="flex items-center gap-4 text-right">
+                      <div>
+                        <p className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          ₹{order.totalAmount?.toLocaleString('en-IN')}
+                        </p>
+                        <p className="text-[11px] text-slate-400">
+                          {order.paymentMethod} • {order.paymentStatus || 'Pending'}
+                        </p>
+                      </div>
+
+                      {/* Cancel Order Action Button */}
+                      {canCancel && (
+                        <button
+                          onClick={() => setCancellingOrder(order)}
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-500 border border-rose-500/30 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-sm"
+                          title="Cancel this order"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          <span>Cancel Order</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  {/* Step Tracker (Only if not cancelled) */}
-                  {order.orderStatus !== 'Cancelled' && (
+                  {/* Step Tracker (If not cancelled) */}
+                  {order.orderStatus !== 'Cancelled' ? (
                     <div className="py-2">
                       <div className="relative flex items-center justify-between">
                         {/* Connecting Line */}
@@ -242,6 +299,17 @@ export default function OrderHistory() {
                             </div>
                           );
                         })}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Cancelled Order Notice */
+                    <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
+                      isDark ? 'bg-rose-950/20 border-rose-900/40 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-700'
+                    }`}>
+                      <AlertTriangle className="w-5 h-5 flex-shrink-0 text-rose-500" />
+                      <div className="text-xs">
+                        <p className="font-bold">This order has been cancelled.</p>
+                        <p className="opacity-80">Reserved items have been returned to warehouse inventory.</p>
                       </div>
                     </div>
                   )}
@@ -284,9 +352,11 @@ export default function OrderHistory() {
                       <span className={`font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Delivery Address: </span>
                       <span>{order.address}, {order.city}, {order.state} - {order.pincode} ({order.customerName} - {order.phone})</span>
                     </div>
-                    <span className="text-emerald-500 flex items-center gap-1">
-                      <Truck className="w-3.5 h-3.5" /> Fast Dispatch
-                    </span>
+                    {order.orderStatus !== 'Cancelled' && (
+                      <span className="text-emerald-500 flex items-center gap-1 font-semibold">
+                        <Truck className="w-3.5 h-3.5" /> Fast Dispatch
+                      </span>
+                    )}
                   </div>
 
                 </div>
@@ -296,6 +366,81 @@ export default function OrderHistory() {
         )}
 
       </div>
+
+      {/* Confirmation Modal for Order Cancellation */}
+      {cancellingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className={`max-w-md w-full p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 ${
+            isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            
+            <div className="flex items-start justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <button
+                onClick={() => setCancellingOrder(null)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg sm:text-xl font-black">
+                Cancel Order #{cancellingOrder.orderId}?
+              </h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Are you sure you wish to cancel this order? Once cancelled, the items will be returned to store stock.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Reason for cancellation:
+              </label>
+              <select
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className={`w-full p-3 rounded-xl border text-xs font-medium focus:outline-none ${
+                  isDark
+                    ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-rose-500'
+                    : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-rose-600'
+                }`}
+              >
+                {cancelReasons.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setCancellingOrder(null)}
+                disabled={isCancelling}
+                className={`px-4 py-2.5 rounded-xl font-bold text-xs ${
+                  isDark ? 'bg-slate-800 hover:bg-slate-750 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                Keep My Order
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmCancel}
+                disabled={isCancelling}
+                className="px-5 py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-950/50 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <XCircle className="w-4 h-4" />
+                {isCancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
