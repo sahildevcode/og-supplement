@@ -1,4 +1,12 @@
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return window.location.port === '5174' ? '/api' : 'http://localhost:5000/api';
+  }
+  return 'https://og-supplement-api.onrender.com/api';
+};
+
+const BASE_URL = getApiBaseUrl();
 
 export const apiRequest = async (endpoint, options = {}) => {
   const token = localStorage.getItem('og_admin_token');
@@ -20,6 +28,11 @@ export const apiRequest = async (endpoint, options = {}) => {
     ...options,
     headers,
   });
+
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    throw new Error('BACKEND_OFFLINE');
+  }
 
   const data = await response.json();
 

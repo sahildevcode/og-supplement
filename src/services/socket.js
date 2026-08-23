@@ -1,11 +1,14 @@
 import { io } from 'socket.io-client';
 
-// Connect to configured URL, or window origin, or fallback to localhost:5000 in dev
-const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL ||
-  (window.location.port === '5173' ? 'http://localhost:5000' : '/');
+const getSocketUrl = () => {
+  if (import.meta.env.VITE_SOCKET_URL) return import.meta.env.VITE_SOCKET_URL;
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:5000';
+  }
+  return 'https://og-supplement-api.onrender.com';
+};
 
-export const socket = io(SOCKET_URL, {
+export const socket = io(getSocketUrl(), {
   autoConnect: true,
   reconnection: true,
   reconnectionAttempts: Infinity,
@@ -23,5 +26,5 @@ socket.on('disconnect', (reason) => {
 });
 
 socket.on('connect_error', (error) => {
-  console.warn('[Socket.IO Connection Warning]', error.message);
+  console.warn('[Socket.IO Connection Notice]', error.message);
 });

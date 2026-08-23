@@ -1,4 +1,12 @@
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return window.location.port === '5173' ? '/api' : 'http://localhost:5000/api';
+  }
+  return 'https://og-supplement-api.onrender.com/api';
+};
+
+const BASE_URL = getApiBaseUrl();
 
 // Helper for local offline orders fallback
 const getLocalOrders = () => {
@@ -66,7 +74,7 @@ export const api = {
   updateStock: (id, stockData) => apiRequest(`/products/${id}/stock`, { method: 'PATCH', body: JSON.stringify(stockData) }),
   deleteProduct: (id) => apiRequest(`/products/${id}`, { method: 'DELETE' }),
 
-  // Orders with resilient offline fallback
+  // Orders with resilient cloud + offline fallback
   createOrder: async (orderData) => {
     try {
       return await apiRequest('/orders', { method: 'POST', body: JSON.stringify(orderData) });
