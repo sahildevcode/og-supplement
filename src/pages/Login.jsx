@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, Mail, Shield, User, ArrowRight, Sparkles } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Sparkles, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -11,7 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { login, demoLogin } = useAuth();
+  const { login } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,30 +25,14 @@ export default function Login() {
 
     try {
       const data = await login(email, password);
+      // If customer logs in, navigate to store/orders
       if (data.user.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
         navigate(from);
       }
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDemo = async (role) => {
-    setError('');
-    setLoading(true);
-    try {
-      const data = await demoLogin(role);
-      if (data.user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate(from);
-      }
-    } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Login failed. Please check your email and password.');
     } finally {
       setLoading(false);
     }
@@ -68,41 +52,14 @@ export default function Login() {
           <h2 className={`text-2xl sm:text-3xl font-black tracking-tight ${
             isDark ? 'text-white' : 'text-slate-900'
           }`}>
-            Sign In to OG-Supplement
+            Customer Sign In
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
-            Access your orders, personalized nutrition stacks, and profile
+            Sign in to access your orders, saved stack, and faster checkout
           </p>
         </div>
 
-        {/* Demo Fast Login Switchers */}
-        <div className={`p-4 rounded-2xl border space-y-2 ${
-          isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
-        }`}>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 text-center">
-            🚀 1-Click Fast Demo Login
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleDemo('admin')}
-              className="px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-500 border border-cyan-500/30 flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              Demo Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemo('customer')}
-              className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 border border-emerald-500/30 flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <User className="w-3.5 h-3.5" />
-              Demo Customer
-            </button>
-          </div>
-        </div>
-
-        {/* Main Login Card */}
+        {/* Main Customer Login Card */}
         <div className={`p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 ${
           isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
         }`}>
@@ -121,7 +78,7 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder="yourname@gmail.com"
                   className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none ${
                     isDark
                       ? 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
@@ -135,7 +92,7 @@ export default function Login() {
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Password</label>
-                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Password reset link sent to demo registered email.'); }} className="text-[11px] font-semibold text-emerald-500 hover:underline">
+                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Password reset link sent to your registered email.'); }} className="text-[11px] font-semibold text-emerald-500 hover:underline">
                   Forgot Password?
                 </a>
               </div>
@@ -173,14 +130,14 @@ export default function Login() {
               disabled={loading}
               className="w-full py-3.5 rounded-2xl font-black text-sm text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-xl shadow-emerald-950/60 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
             >
-              {loading ? 'Authenticating...' : 'Sign In'} <ArrowRight className="w-4 h-4" />
+              {loading ? 'Signing In...' : 'Sign In'} <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
           <div className="pt-2 text-center text-xs text-slate-400">
-            Don't have an account yet?{' '}
+            New to OG-Supplement?{' '}
             <Link to="/signup" className="text-emerald-500 font-bold hover:underline">
-              Create an account
+              Create a free customer account
             </Link>
           </div>
         </div>
