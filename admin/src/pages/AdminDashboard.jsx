@@ -25,8 +25,10 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const data = await api.getAdminStats();
-      setStats(data);
+      const res = await api.getAdminStats();
+      // Handle { success: true, stats: { ... } } or direct { totalRevenue: ... }
+      const actualStats = res.stats || res;
+      setStats(actualStats);
     } catch (error) {
       console.error('[Fetch Stats Error]', error);
     } finally {
@@ -38,7 +40,7 @@ export default function AdminDashboard() {
     fetchStats();
 
     const handleOrderCreated = (order) => {
-      addToast(`New live customer order received! #${order.orderId} (₹${order.totalAmount})`, 'success');
+      addToast(`🎉 Live Order Received! #${order.orderId} (₹${order.totalAmount?.toLocaleString('en-IN')}) from ${order.customerName}`, 'success');
       fetchStats();
     };
 
@@ -66,6 +68,9 @@ export default function AdminDashboard() {
     }
   };
 
+  const lowStockList = stats?.lowStockAlerts || stats?.lowStockProducts || [];
+  const recentOrdersList = stats?.recentOrders || [];
+
   return (
     <div className="space-y-8">
       
@@ -85,7 +90,7 @@ export default function AdminDashboard() {
 
         <button
           onClick={() => setIsProductModalOpen(true)}
-          className="px-5 py-3 rounded-2xl font-black text-xs text-black bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300 shadow-xl shadow-cyan-950/50 flex items-center gap-2 self-start sm:self-auto transition-transform active:scale-95"
+          className="px-5 py-3 rounded-2xl font-black text-xs text-black bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300 shadow-xl shadow-cyan-950/50 flex items-center gap-2 self-start sm:self-auto transition-transform active:scale-95 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Add Supplement Product</span>
@@ -107,7 +112,7 @@ export default function AdminDashboard() {
             <h3 className="text-2xl sm:text-3xl font-black text-white">
               ₹{stats?.totalRevenue ? stats.totalRevenue.toLocaleString('en-IN') : '0'}
             </h3>
-            <p className="text-[11px] text-emerald-400 mt-1">Paid customer orders</p>
+            <p className="text-[11px] text-emerald-400 mt-1">Paid & placed customer orders</p>
           </div>
         </div>
 
@@ -177,12 +182,12 @@ export default function AdminDashboard() {
           </div>
 
           <div className="space-y-3">
-            {stats?.lowStockProducts?.length === 0 ? (
+            {lowStockList.length === 0 ? (
               <p className="text-xs text-slate-400 py-6 text-center">
                 🎉 All supplements are sufficiently stocked in the warehouse!
               </p>
             ) : (
-              stats?.lowStockProducts?.map((item) => (
+              lowStockList.map((item) => (
                 <div
                   key={item._id || item.id}
                   className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs"
@@ -215,30 +220,32 @@ export default function AdminDashboard() {
               Incoming Customer Orders
             </h3>
             <Link to="/orders" className="text-xs font-bold text-cyan-400 hover:underline">
-              Manage Orders
+              Manage All Orders
             </Link>
           </div>
 
           <div className="space-y-3">
-            {stats?.recentOrders?.length === 0 ? (
+            {recentOrdersList.length === 0 ? (
               <p className="text-xs text-slate-400 py-6 text-center">
                 No orders placed yet. Real-time notifications will appear here instantly.
               </p>
             ) : (
-              stats?.recentOrders?.map((ord) => (
+              recentOrdersList.map((ord) => (
                 <div
                   key={ord.orderId || ord._id}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs"
+                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs hover:border-cyan-500/30 transition-colors"
                 >
                   <div>
                     <span className="font-mono font-bold text-cyan-400">{ord.orderId}</span>
-                    <p className="text-slate-300 font-medium">{ord.customerName}</p>
-                    <span className="text-[10px] text-slate-400">{new Date(ord.createdAt).toLocaleTimeString()}</span>
+                    <p className="text-slate-200 font-bold">{ord.customerName}</p>
+                    <span className="text-[10px] text-slate-400">
+                      {new Date(ord.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {ord.products?.length || 1} item(s)
+                    </span>
                   </div>
 
                   <div className="text-right">
                     <p className="font-black text-white">₹{ord.totalAmount?.toLocaleString('en-IN')}</p>
-                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-400">
+                    <span className="inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
                       {ord.orderStatus}
                     </span>
                   </div>

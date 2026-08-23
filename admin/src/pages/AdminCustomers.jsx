@@ -10,10 +10,9 @@ export default function AdminCustomers() {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const data = await api.getAllOrders();
-      if (data && data.orders) {
-        setOrders(data.orders);
-      }
+      const res = await api.getAllOrders();
+      const list = res.orders || (Array.isArray(res) ? res : []);
+      setOrders(list);
     } catch (error) {
       console.error('[Fetch Customers Error]', error);
     } finally {
@@ -73,7 +72,7 @@ export default function AdminCustomers() {
 
         <button
           onClick={fetchCustomers}
-          className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-slate-300 hover:text-white flex items-center gap-2 transition-colors self-start sm:self-auto"
+          className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-slate-300 hover:text-white flex items-center gap-2 transition-colors self-start sm:self-auto cursor-pointer"
         >
           <RefreshCw className="w-4 h-4" />
           <span>Refresh Directory</span>

@@ -17,10 +17,9 @@ export default function AdminOrders() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const data = await api.getAllOrders();
-      if (data && data.orders) {
-        setOrders(data.orders);
-      }
+      const res = await api.getAllOrders();
+      const list = res.orders || (Array.isArray(res) ? res : []);
+      setOrders(list);
     } catch (error) {
       console.error('[Fetch Orders Error]', error);
     } finally {
@@ -33,7 +32,7 @@ export default function AdminOrders() {
 
     const handleOrderCreated = (newOrder) => {
       setOrders((prev) => [newOrder, ...prev]);
-      addToast(`New order placed! #${newOrder.orderId} (₹${newOrder.totalAmount})`, 'success');
+      addToast(`🎉 New order placed! #${newOrder.orderId} (₹${newOrder.totalAmount?.toLocaleString('en-IN')})`, 'success');
     };
 
     const handleStatusUpdated = ({ orderId, orderStatus }) => {
@@ -97,7 +96,7 @@ export default function AdminOrders() {
 
         <button
           onClick={fetchOrders}
-          className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-slate-300 hover:text-white flex items-center gap-2 transition-colors self-start sm:self-auto"
+          className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-slate-300 hover:text-white flex items-center gap-2 transition-colors self-start sm:self-auto cursor-pointer"
         >
           <RefreshCw className="w-4 h-4" />
           <span>Refresh Orders</span>
@@ -195,7 +194,7 @@ export default function AdminOrders() {
                           setSelectedOrder(ord);
                           setIsModalOpen(true);
                         }}
-                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-cyan-400 hover:text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors"
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-cyan-400 hover:text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>Manage</span>
