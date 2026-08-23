@@ -1,14 +1,15 @@
 {
-  "name": "og-supplement",
+  "name": "og-supplement-monorepo",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev:all": "concurrently -n \"SERVER,CLIENT,ADMIN\" -c \"cyan,green,magenta\" \"node server/index.js\" \"vite --port 5173\" \"vite --config admin/vite.config.js --port 5174\"",
     "server": "node server/index.js",
-    "dev:all": "concurrently -n \"API,APP\" -c \"cyan,green\" \"node server/index.js\" \"vite\"",
+    "dev:client": "vite --port 5173",
+    "dev:admin": "vite --config admin/vite.config.js --port 5174",
     "build": "vite build",
-    "preview": "vite preview"
+    "build:admin": "vite build --config admin/vite.config.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.0",

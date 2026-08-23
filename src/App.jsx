@@ -34,16 +34,7 @@ import ReturnPolicy from './pages/static/ReturnPolicy';
 import ShippingPolicy from './pages/static/ShippingPolicy';
 import CancellationPolicy from './pages/static/CancellationPolicy';
 
-// Admin Components & Pages
-import AdminPortalLogin from './pages/admin/AdminPortalLogin';
-import AdminLayout from './components/admin/AdminLayout';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminProducts from './pages/admin/AdminProducts';
-import AdminStock from './pages/admin/AdminStock';
-import AdminOrders from './pages/admin/AdminOrders';
-import AdminCustomers from './pages/admin/AdminCustomers';
-
-// Customer Layout Wrapper (Navbar + Content + Footer)
+// Customer Layout Wrapper
 function CustomerLayout() {
   const { isDark } = useTheme();
 
@@ -92,19 +83,6 @@ export default function App() {
                     <Route path="/return-policy" element={<ReturnPolicy />} />
                     <Route path="/shipping-policy" element={<ShippingPolicy />} />
                     <Route path="/cancellation-policy" element={<CancellationPolicy />} />
-                  </Route>
-
-                  {/* Secret Admin Portal Login */}
-                  <Route path="/admin-portal" element={<AdminPortalLogin />} />
-
-                  {/* Protected Admin Management Suite Routes */}
-                  <Route path="/admin" element={<AdminLayout />}>
-                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="products" element={<AdminProducts />} />
-                    <Route path="stock" element={<AdminStock />} />
-                    <Route path="orders" element={<AdminOrders />} />
-                    <Route path="customers" element={<AdminCustomers />} />
                   </Route>
 
                   {/* 404 Catch-All */}

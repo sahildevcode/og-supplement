@@ -4,7 +4,6 @@ import {
   ShoppingBag,
   Search,
   User,
-  Shield,
   Menu,
   X,
   ChevronDown,
@@ -24,7 +23,7 @@ import { useTheme } from '../../context/ThemeContext';
 import MegaMenu from './MegaMenu';
 
 export default function Navbar() {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { totalItems } = useCart();
   const { searchQuery, setSearchQuery, setSelectedCategory } = useProducts();
   const { theme, toggleTheme, isDark } = useTheme();
@@ -180,17 +179,6 @@ export default function Navbar() {
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMegaMenuOpen ? 'rotate-180 text-emerald-500' : 'text-slate-400'}`} />
               </button>
             </div>
-
-            {/* Admin Direct Quick Access */}
-            {isAdmin && (
-              <Link
-                to="/admin/dashboard"
-                className="px-3.5 py-1.5 ml-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white flex items-center gap-1.5 shadow-md shadow-cyan-950/50"
-              >
-                <Shield className="w-3.5 h-3.5" />
-                Admin Panel
-              </Link>
-            )}
           </nav>
 
           {/* Right Action Icons (Theme, Cart, Auth, Mobile toggle) */}
@@ -255,22 +243,9 @@ export default function Navbar() {
                     <div className={`px-3 py-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
                       <p className="text-xs text-slate-400">Signed in as</p>
                       <p className={`text-sm font-bold truncate ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{user?.name}</p>
-                      <span className={`inline-block mt-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${user?.role === 'admin' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-emerald-500/20 text-emerald-500'}`}>
-                        {user?.role}
-                      </span>
                     </div>
 
                     <div className="py-1">
-                      {isAdmin && (
-                        <Link
-                          to="/admin/dashboard"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-cyan-500 hover:bg-cyan-500/10 rounded-lg transition-colors"
-                        >
-                          <Shield className="w-4 h-4" />
-                          Admin Dashboard
-                        </Link>
-                      )}
                       <Link
                         to="/orders"
                         onClick={() => setIsProfileDropdownOpen(false)}
@@ -398,16 +373,6 @@ export default function Navbar() {
               <Clock className="w-4 h-4 text-amber-500" />
               Order History
             </Link>
-            {isAdmin && (
-              <Link
-                to="/admin/dashboard"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-cyan-400 bg-cyan-950/40 border border-cyan-500/20"
-              >
-                <Shield className="w-4 h-4" />
-                Admin Dashboard
-              </Link>
-            )}
           </nav>
 
           <div className={`pt-3 border-t space-y-1 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>

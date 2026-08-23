@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>OG-Admin</title>
+    <script type="text/javascript">
+      var l = window.location;
+      var path = l.pathname.replace(/^\/og-admin\/?/, '');
+      var newUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + '/og-admin/#/' + path + (l.search ? l.search : '') + (l.hash ? l.hash : '');
+      window.location.replace(newUrl);
+    </script>
+  </head>
+  <body style="background:#030712; color:#fff; font-family:sans-serif; text-align:center; padding-top:50px;">
+    <h2>Redirecting to OG-Admin...</h2>
+  </body>
+</html>

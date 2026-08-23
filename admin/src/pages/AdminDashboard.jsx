@@ -1,0 +1,261 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  TrendingUp,
+  ShoppingCart,
+  Boxes,
+  Users,
+  AlertTriangle,
+  ArrowRight,
+  Package,
+  Plus
+} from 'lucide-react';
+import { api } from '../services/api';
+import { socket } from '../services/socket';
+import { useAdminToast } from '../context/AdminToastContext';
+import StockBadge from '../components/StockBadge';
+import ProductFormModal from '../components/ProductFormModal';
+
+export default function AdminDashboard() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const { addToast } = useAdminToast();
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getAdminStats();
+      setStats(data);
+    } catch (error) {
+      console.error('[Fetch Stats Error]', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+
+    const handleOrderCreated = (order) => {
+      addToast(`New live customer order received! #${order.orderId} (₹${order.totalAmount})`, 'success');
+      fetchStats();
+    };
+
+    const handleStockUpdated = () => {
+      fetchStats();
+    };
+
+    socket.on('order:created', handleOrderCreated);
+    socket.on('product:stockUpdated', handleStockUpdated);
+
+    return () => {
+      socket.off('order:created', handleOrderCreated);
+      socket.off('product:stockUpdated', handleStockUpdated);
+    };
+  }, [addToast]);
+
+  const handleQuickRestock = async (productId, currentStock) => {
+    try {
+      const newStock = Number(currentStock || 0) + 20;
+      await api.updateStock(productId, { stock: newStock });
+      addToast(`Restocked +20 units successfully!`, 'success');
+      fetchStats();
+    } catch (err) {
+      addToast(err.message || 'Restock failed', 'error');
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div>
+          <span className="text-xs font-black uppercase tracking-widest text-cyan-400">
+            Real-Time Telemetry & Management
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
+            Executive Dashboard
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            Monitor sales, inventory levels, and live synchronized store events
+          </p>
+        </div>
+
+        <button
+          onClick={() => setIsProductModalOpen(true)}
+          className="px-5 py-3 rounded-2xl font-black text-xs text-black bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300 shadow-xl shadow-cyan-950/50 flex items-center gap-2 self-start sm:self-auto transition-transform active:scale-95"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Supplement Product</span>
+        </button>
+      </div>
+
+      {/* KPI Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        {/* Total Revenue */}
+        <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Revenue</span>
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white">
+              ₹{stats?.totalRevenue ? stats.totalRevenue.toLocaleString('en-IN') : '0'}
+            </h3>
+            <p className="text-[11px] text-emerald-400 mt-1">Paid customer orders</p>
+          </div>
+        </div>
+
+        {/* Total Orders */}
+        <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Orders</span>
+            <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400">
+              <ShoppingCart className="w-5 h-5" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white">
+              {stats?.totalOrders || 0}
+            </h3>
+            <p className="text-[11px] text-cyan-400 mt-1">Order placements</p>
+          </div>
+        </div>
+
+        {/* Active Products */}
+        <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Active Catalog</span>
+            <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+              <Boxes className="w-5 h-5" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white">
+              {stats?.totalProducts || 0}
+            </h3>
+            <p className="text-[11px] text-purple-400 mt-1">Live supplements</p>
+          </div>
+        </div>
+
+        {/* Low Stock Alert */}
+        <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Low Stock Alerts</span>
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white">
+              {stats?.lowStockCount || 0}
+            </h3>
+            <p className="text-[11px] text-amber-400 mt-1">Require immediate restock</p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Two Column Section: Urgent Stock & Recent Orders */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Urgent Low Stock Table (Left 6) */}
+        <div className="lg:col-span-6 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              Low Stock & Out of Stock Products
+            </h3>
+            <Link to="/stock" className="text-xs font-bold text-cyan-400 hover:underline">
+              View All
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {stats?.lowStockProducts?.length === 0 ? (
+              <p className="text-xs text-slate-400 py-6 text-center">
+                🎉 All supplements are sufficiently stocked in the warehouse!
+              </p>
+            ) : (
+              stats?.lowStockProducts?.map((item) => (
+                <div
+                  key={item._id || item.id}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs"
+                >
+                  <div className="space-y-0.5 max-w-[60%]">
+                    <p className="font-bold text-slate-200 truncate">{item.name}</p>
+                    <div className="flex items-center gap-2">
+                      <StockBadge stock={item.stock} lowStockThreshold={item.lowStockThreshold} />
+                      <span className="text-[10px] text-slate-400 font-mono">₹{item.discountPrice}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleQuickRestock(item._id || item.id, item.stock)}
+                    className="px-3 py-1.5 rounded-xl font-bold text-[11px] bg-cyan-500/15 hover:bg-cyan-500 text-cyan-400 hover:text-black border border-cyan-500/30 transition-all whitespace-nowrap"
+                  >
+                    +20 Restock
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Recent Orders Stream (Right 6) */}
+        <div className="lg:col-span-6 p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <ShoppingCart className="w-4 h-4 text-cyan-400" />
+              Incoming Customer Orders
+            </h3>
+            <Link to="/orders" className="text-xs font-bold text-cyan-400 hover:underline">
+              Manage Orders
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {stats?.recentOrders?.length === 0 ? (
+              <p className="text-xs text-slate-400 py-6 text-center">
+                No orders placed yet. Real-time notifications will appear here instantly.
+              </p>
+            ) : (
+              stats?.recentOrders?.map((ord) => (
+                <div
+                  key={ord.orderId || ord._id}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs"
+                >
+                  <div>
+                    <span className="font-mono font-bold text-cyan-400">{ord.orderId}</span>
+                    <p className="text-slate-300 font-medium">{ord.customerName}</p>
+                    <span className="text-[10px] text-slate-400">{new Date(ord.createdAt).toLocaleTimeString()}</span>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="font-black text-white">₹{ord.totalAmount?.toLocaleString('en-IN')}</p>
+                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-400">
+                      {ord.orderStatus}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      <ProductFormModal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        onSave={() => fetchStats()}
+      />
+
+    </div>
+  );
+}
