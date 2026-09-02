@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, Mail, User, Phone, ArrowRight, Sparkles } from 'lucide-react';
+import { Lock, Mail, User, Phone, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -9,6 +9,7 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -133,19 +134,36 @@ export default function Signup() {
               <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Password</label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 6 characters"
-                  className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none ${
+                  className={`w-full border rounded-xl pl-10 pr-11 py-3 text-sm focus:outline-none transition-all ${
                     isDark
                       ? 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
                       : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600'
                   }`}
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 p-1 transition-colors cursor-pointer"
+                  title={showPassword ? 'Hide Password' : 'Show Password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
+              <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-400 pt-1">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  className="accent-emerald-500 rounded w-3.5 h-3.5 cursor-pointer"
+                />
+                <span>Show Password</span>
+              </label>
             </div>
 
             <p className="text-[11px] text-slate-400 leading-relaxed">

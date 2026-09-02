@@ -18,7 +18,7 @@ export default function Checkout() {
   const [formData, setFormData] = useState({
     customerName: user?.name || '',
     email: user?.email || '',
-    phone: user?.phone || '',
+    phone: '',
     address: user?.address || '',
     city: '',
     state: '',
@@ -163,7 +163,7 @@ export default function Checkout() {
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="e.g. +91 98765 43210"
+                    placeholder="Enter 10-digit mobile number"
                     className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${
                       isDark ? 'bg-slate-950 border-slate-700 text-slate-100 focus:border-emerald-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-600'
                     }`}

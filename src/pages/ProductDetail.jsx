@@ -72,6 +72,16 @@ export default function ProductDetail() {
   const isOutOfStock = Number(product.stock) <= 0;
   const currentStock = Number(product.stock || 0);
 
+  const productImages = Array.isArray(product.images) ? product.images.filter(Boolean) : [];
+  const galleryImages = productImages.length >= 2
+    ? productImages
+    : [
+        productImages[0] || 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80'
+      ];
+
   const handleAddToCart = () => {
     if (isOutOfStock) return;
     addToCart(product, quantity, selectedVariant, selectedFlavour);
@@ -124,30 +134,32 @@ export default function ProductDetail() {
                 <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
               </button>
               <img
-                src={product.images?.[activeImage] || product.images?.[0] || 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80'}
+                src={galleryImages[activeImage] || galleryImages[0]}
                 alt={product.name}
                 className={`max-h-96 object-contain filter drop-shadow-2xl transition-transform duration-300 hover:scale-105 ${isOutOfStock ? 'opacity-40 grayscale' : ''}`}
               />
             </div>
 
-            {/* Thumbnail selector if multiple images */}
-            {product.images && product.images.length > 1 && (
-              <div className="flex items-center gap-3">
-                {product.images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImage(idx)}
-                    className={`w-20 h-20 rounded-2xl p-2 border transition-all ${
-                      activeImage === idx
-                        ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-500/5'
-                        : isDark ? 'bg-slate-900 border-slate-800 opacity-60' : 'bg-white border-slate-200 opacity-70'
-                    }`}
-                  >
-                    <img src={img} alt="thumb" className="w-full h-full object-contain" />
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Interactive Multi-Image Thumbnail Gallery (At least 4 images) */}
+            <div className="flex items-center gap-3 overflow-x-auto pb-2">
+              {galleryImages.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImage(idx)}
+                  onMouseEnter={() => setActiveImage(idx)}
+                  className={`relative w-20 h-20 rounded-2xl p-2 border transition-all duration-200 flex-shrink-0 cursor-pointer ${
+                    activeImage === idx
+                      ? 'border-emerald-500 ring-2 ring-emerald-500/30 bg-emerald-500/10 scale-105 shadow-md shadow-emerald-950/30'
+                      : isDark ? 'bg-slate-900 border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-600' : 'bg-white border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-300'
+                  }`}
+                >
+                  <img src={img} alt={`Angle ${idx + 1}`} className="w-full h-full object-contain" />
+                  <span className="absolute bottom-1 right-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/60 text-white backdrop-blur-xs">
+                    {idx + 1}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Right Column: Product Info & Actions */}

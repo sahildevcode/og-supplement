@@ -15,7 +15,9 @@ export const initialProducts = [
     reviews: 1420,
     images: [
       "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80"
+      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80"
     ],
     variants: ["2 lbs (907g)", "5 lbs (2.27kg)", "10 lbs (4.54kg)"],
     flavours: ["Double Rich Chocolate", "Delicious Strawberry", "Vanilla Ice Cream", "Mocha Cappuccino"],
@@ -45,7 +47,10 @@ export const initialProducts = [
     rating: 4.8,
     reviews: 950,
     images: [
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80"
+      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80"
     ],
     variants: ["1 kg (2.2 lbs)", "2 kg (4.4 lbs)", "4 kg (8.8 lbs)"],
     flavours: ["Rich Chocolate", "Magical Mango", "Cafe Mocha", "Kesar Pista"],
@@ -75,7 +80,10 @@ export const initialProducts = [
     rating: 4.9,
     reviews: 620,
     images: [
-      "https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80"
+      "https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80"
     ],
     variants: ["250g (83 Servings)", "400g (133 Servings)"],
     flavours: ["Unflavoured"],
@@ -102,7 +110,10 @@ export const initialProducts = [
     rating: 4.7,
     reviews: 480,
     images: [
-      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80"
+      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80"
     ],
     variants: ["30 Servings (180g)", "60 Servings (390g)"],
     flavours: ["Icy Blue Razz", "Fruit Punch", "Watermelon", "Cherry Limenade"],
@@ -130,7 +141,10 @@ export const initialProducts = [
     rating: 4.8,
     reviews: 1100,
     images: [
-      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80"
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80"
     ],
     variants: ["3 lbs (1.36kg)", "6 lbs (2.72kg)", "12 lbs (5.44kg)"],
     flavours: ["Chocolate", "Banana", "Vanilla", "Chocolate Peanut Butter"],
@@ -158,7 +172,10 @@ export const initialProducts = [
     rating: 4.95,
     reviews: 820,
     images: [
-      "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80"
+      "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80"
     ],
     variants: ["5 lbs (2.3kg)"],
     flavours: ["Gourmet Chocolate", "Fudge Brownie", "Cookies & Cream", "Peanut Butter"],
