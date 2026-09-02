@@ -29,6 +29,23 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
+  /* Universal Tactile Button Click Micro-Interaction */
+  button, 
+  [role="button"],
+  .btn-interactive {
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.2s ease, 
+                background-color 0.2s ease, 
+                border-color 0.2s ease;
+    cursor: pointer;
+  }
+
+  button:active, 
+  [role="button"]:active,
+  .btn-interactive:active {
+    transform: scale(0.95);
+  }
+
   /* Glassmorphism classes */
   .glass {
     background: var(--glass-bg);
@@ -74,62 +91,79 @@
   }
 }
 
-/* Scroll Reveal Animations */
-.scroll-reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+/* Page Transition & Load Fade-In */
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: pageEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: opacity, transform;
 }
 
-.scroll-reveal-left {
-  opacity: 0;
-  transform: translateX(-40px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+/* Left and Right Slide-In Keyframes */
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.scroll-reveal-right {
-  opacity: 0;
-  transform: translateX(40px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.scroll-reveal-scale {
-  opacity: 0;
-  transform: scale(0.92);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+.animate-slide-left {
+  animation: slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.reveal-active {
-  opacity: 1 !important;
-  transform: translate(0, 0) scale(1) !important;
+.animate-slide-right {
+  animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Stagger delay helper classes */
-.delay-100 { transition-delay: 100ms; }
-.delay-200 { transition-delay: 200ms; }
-.delay-300 { transition-delay: 300ms; }
-.delay-400 { transition-delay: 400ms; }
-.delay-500 { transition-delay: 500ms; }
+.delay-100 { animation-delay: 100ms; transition-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; transition-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; transition-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; transition-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; transition-delay: 500ms; }
 
-/* Enhanced Product Card Hover & Glow */
+/* Enhanced Product Card Hover & Scale */
 .product-card-hover {
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.35s ease,
+              border-color 0.3s ease;
+  will-change: transform, box-shadow;
   position: relative;
 }
 
 .product-card-hover:hover {
-  transform: translateY(-8px) scale(1.015);
-  box-shadow: 0 20px 40px -15px rgba(16, 185, 129, 0.25);
-  border-color: rgba(16, 185, 129, 0.5);
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 22px 45px -12px rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.55);
 }
 
 html.light .product-card-hover:hover {
-  box-shadow: 0 20px 40px -15px rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 22px 45px -12px rgba(16, 185, 129, 0.22);
+  border-color: rgba(16, 185, 129, 0.45);
 }
 
 /* Shimmer shine effect */

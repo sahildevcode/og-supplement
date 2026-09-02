@@ -84,7 +84,7 @@ export default function CategorySection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 scroll-reveal reveal-active">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 animate-page-enter">
           <div>
             <span className="text-xs font-black uppercase tracking-widest text-emerald-500">
               Browse Collections
@@ -97,7 +97,7 @@ export default function CategorySection() {
           </div>
           <button
             onClick={() => handleCategoryClick('All')}
-            className={`text-xs sm:text-sm font-bold flex items-center gap-1 transition-colors self-start sm:self-auto ${
+            className={`text-xs sm:text-sm font-bold flex items-center gap-1 transition-all active:scale-95 self-start sm:self-auto cursor-pointer ${
               isDark ? 'text-slate-300 hover:text-emerald-400' : 'text-slate-600 hover:text-emerald-600'
             }`}
           >
@@ -105,53 +105,59 @@ export default function CategorySection() {
           </button>
         </div>
 
-        {/* Categories Grid with Scroll Reveal Staggers */}
+        {/* Categories Grid with Left/Right Staggered Motion */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categoriesList.map((cat, idx) => (
-            <div
-              key={cat.name}
-              onClick={() => handleCategoryClick(cat.name)}
-              className={`group relative cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br ${
-                isDark ? cat.colorDark : cat.colorLight
-              } border ${
-                isDark ? cat.borderDark : cat.borderLight
-              } p-6 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between min-h-[220px] scroll-reveal reveal-active delay-${(idx % 3 + 1) * 100}`}
-            >
-              <div className="relative z-10 space-y-2">
-                <span className={`inline-block text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
-                  isDark ? 'bg-slate-900/90 text-emerald-400 border-slate-700' : 'bg-white/90 text-emerald-700 border-slate-200 shadow-sm'
-                }`}>
-                  {cat.name}
-                </span>
-                <h3 className={`text-xl font-extrabold transition-colors ${
-                  isDark ? 'text-white group-hover:text-emerald-300' : 'text-slate-900 group-hover:text-emerald-700'
-                }`}>
-                  {cat.title}
-                </h3>
-                <p className={`text-xs max-w-[200px] ${
-                  isDark ? 'text-slate-400' : 'text-slate-600'
-                }`}>
-                  {cat.desc}
-                </p>
-              </div>
+          {categoriesList.map((cat, idx) => {
+            const isEven = idx % 2 === 0;
+            const slideAnim = isEven ? 'animate-slide-left' : 'animate-slide-right';
+            const delayClass = `delay-${(idx % 3 + 1) * 100}`;
 
-              {/* Floating Product Render Preview */}
-              <div className="absolute -right-4 -bottom-4 w-36 h-36 opacity-85 group-hover:opacity-100 transition-all duration-500 group-hover:scale-115 group-hover:-translate-x-2 group-hover:-translate-y-2 pointer-events-none">
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="w-full h-full object-contain filter drop-shadow-2xl"
-                  loading="lazy"
-                />
-              </div>
+            return (
+              <div
+                key={cat.name}
+                onClick={() => handleCategoryClick(cat.name)}
+                className={`group relative cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br ${
+                  isDark ? cat.colorDark : cat.colorLight
+                } border ${
+                  isDark ? cat.borderDark : cat.borderLight
+                } p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-[1.025] active:scale-95 flex flex-col justify-between min-h-[220px] shadow-lg hover:shadow-2xl ${slideAnim} ${delayClass}`}
+              >
+                <div className="relative z-10 space-y-2">
+                  <span className={`inline-block text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border transition-transform duration-200 group-hover:scale-105 ${
+                    isDark ? 'bg-slate-900/90 text-emerald-400 border-slate-700' : 'bg-white/90 text-emerald-700 border-slate-200 shadow-sm'
+                  }`}>
+                    {cat.name}
+                  </span>
+                  <h3 className={`text-xl font-extrabold transition-colors ${
+                    isDark ? 'text-white group-hover:text-emerald-300' : 'text-slate-900 group-hover:text-emerald-700'
+                  }`}>
+                    {cat.title}
+                  </h3>
+                  <p className={`text-xs max-w-[200px] ${
+                    isDark ? 'text-slate-400' : 'text-slate-600'
+                  }`}>
+                    {cat.desc}
+                  </p>
+                </div>
 
-              {/* Action Link */}
-              <div className="relative z-10 pt-4 flex items-center gap-1.5 text-xs font-bold text-emerald-500 group-hover:text-emerald-600">
-                <span>View Products</span>
-                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                {/* Floating Product Render Preview */}
+                <div className="absolute -right-4 -bottom-4 w-36 h-36 opacity-85 group-hover:opacity-100 transition-all duration-500 group-hover:scale-115 group-hover:-translate-x-2 group-hover:-translate-y-2 pointer-events-none">
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-contain filter drop-shadow-2xl"
+                    loading="lazy"
+                  />
+                </div>
+
+                {/* Action Link */}
+                <div className="relative z-10 pt-4 flex items-center gap-1.5 text-xs font-bold text-emerald-500 group-hover:text-emerald-600">
+                  <span>View Products</span>
+                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1.5 transition-transform" />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>

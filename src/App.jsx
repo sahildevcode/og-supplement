@@ -1,5 +1,5 @@
-import React from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 // Providers
 import { ThemeProvider, useTheme } from './context/ThemeContext';
@@ -34,16 +34,32 @@ import ReturnPolicy from './pages/static/ReturnPolicy';
 import ShippingPolicy from './pages/static/ShippingPolicy';
 import CancellationPolicy from './pages/static/CancellationPolicy';
 
-// Customer Layout Wrapper
+// Legacy Hash URL Cleaner (/ # / path -> /path)
+function HashCleaner() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (window.location.hash && window.location.hash.startsWith('#/')) {
+      const cleanPath = window.location.hash.replace(/^#/, '');
+      window.history.replaceState(null, '', cleanPath);
+      navigate(cleanPath, { replace: true });
+    }
+  }, [navigate]);
+
+  return null;
+}
+
+// Customer Layout Wrapper with Smooth Page Transition
 function CustomerLayout() {
   const { isDark } = useTheme();
+  const location = useLocation();
 
   return (
     <div className={`flex flex-col min-h-screen transition-colors duration-300 selection:bg-emerald-500 selection:text-black ${
       isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
     }`}>
       <Navbar />
-      <main className="flex-1">
+      <main key={location.pathname} className="flex-1 animate-page-enter">
         <Outlet />
       </main>
       <Footer />
@@ -55,6 +71,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <Router>
+        <HashCleaner />
         <ToastProvider>
           <AuthProvider>
             <ProductProvider>
@@ -62,7 +79,7 @@ export default function App() {
                 <ScrollToTop />
                 <Routes>
                   
-                  {/* Customer Storefront Routes */}
+                  {/* Customer Storefront Clean Routes */}
                   <Route element={<CustomerLayout />}>
                     <Route path="/" element={<Home />} />
                     <Route path="/products" element={<Products />} />
