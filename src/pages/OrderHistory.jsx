@@ -172,6 +172,28 @@ export default function OrderHistory() {
           </form>
         </div>
 
+        {/* Sign In Reminder Banner for Guest Viewers */}
+        {!user && (
+          <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 ${
+            isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-4 h-4" />
+              </div>
+              <p className="text-xs sm:text-sm text-slate-300">
+                Want to sync and track all your orders across any phone or laptop? <span className="font-bold text-white">Sign in to your account</span>.
+              </p>
+            </div>
+            <Link
+              to="/login?redirect=/orders"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-black hover:bg-emerald-400 active:scale-95 transition-all whitespace-nowrap"
+            >
+              Sign In to Account
+            </Link>
+          </div>
+        )}
+
         {/* Orders Listing */}
         {loading ? (
           <div className="space-y-4">

@@ -16,7 +16,8 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/';
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTarget = searchParams.get('redirect') || location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,11 +26,11 @@ export default function Login() {
 
     try {
       const data = await login(email, password);
-      // If customer logs in, navigate to store/orders
+      // If customer logs in, navigate to destination or store/orders
       if (data.user.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
-        navigate(from);
+        navigate(redirectTarget);
       }
     } catch (err) {
       setError(err.message || 'Login failed. Please check your email and password.');
@@ -136,7 +137,7 @@ export default function Login() {
 
           <div className="pt-2 text-center text-xs text-slate-400">
             New to OG-Supplement?{' '}
-            <Link to="/signup" className="text-emerald-500 font-bold hover:underline">
+            <Link to={`/signup${location.search}`} className="text-emerald-500 font-bold hover:underline">
               Create a free customer account
             </Link>
           </div>

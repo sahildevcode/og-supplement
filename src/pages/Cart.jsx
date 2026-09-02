@@ -4,6 +4,7 @@ import { Trash2, ShoppingBag, ArrowRight, Truck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Cart() {
   const {
@@ -22,6 +23,7 @@ export default function Cart() {
 
   const { products } = useProducts();
   const { isDark } = useTheme();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   if (cartItems.length === 0) {
@@ -266,8 +268,14 @@ export default function Cart() {
 
               {/* Checkout Button */}
               <button
-                onClick={() => navigate('/checkout')}
-                className="w-full py-4 rounded-2xl font-black text-sm text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-xl shadow-emerald-950/40 transition-all flex items-center justify-center gap-2 active:scale-98"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate('/login?redirect=/checkout');
+                  } else {
+                    navigate('/checkout');
+                  }
+                }}
+                className="w-full py-4 rounded-2xl font-black text-sm text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-xl shadow-emerald-950/40 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 Proceed to Checkout <ArrowRight className="w-4 h-4" />
               </button>

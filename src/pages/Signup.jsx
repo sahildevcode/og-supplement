@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, User, Phone, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -15,6 +15,10 @@ export default function Signup() {
   const { register } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTarget = searchParams.get('redirect') || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,7 +32,7 @@ export default function Signup() {
     setLoading(true);
     try {
       await register({ name, email, phone, password });
-      navigate('/');
+      navigate(redirectTarget);
     } catch (err) {
       setError(err.message || 'Registration failed. Try again.');
     } finally {
@@ -161,7 +165,7 @@ export default function Signup() {
 
           <div className="pt-2 text-center text-xs text-slate-400">
             Already have an account?{' '}
-            <Link to="/login" className="text-emerald-500 font-bold hover:underline">
+            <Link to={`/login${location.search}`} className="text-emerald-500 font-bold hover:underline">
               Sign In
             </Link>
           </div>

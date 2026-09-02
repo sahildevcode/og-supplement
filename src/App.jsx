@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation, 
 // Providers
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
 
@@ -34,6 +34,21 @@ import ReturnPolicy from './pages/static/ReturnPolicy';
 import ShippingPolicy from './pages/static/ShippingPolicy';
 import CancellationPolicy from './pages/static/CancellationPolicy';
 
+// Google Analytics 4 Route Change Tracker
+function AnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('config', 'G-BRJC314CRF', {
+        page_path: location.pathname + location.search,
+      });
+    }
+  }, [location]);
+
+  return null;
+}
+
 // Legacy Hash URL Cleaner (/ # / path -> /path)
 function HashCleaner() {
   const navigate = useNavigate();
@@ -47,6 +62,26 @@ function HashCleaner() {
   }, [navigate]);
 
   return null;
+}
+
+// Protected Route for Mandatory Login at Checkout
+function RequireAuth({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  }
+
+  return children;
 }
 
 // Customer Layout Wrapper with Smooth Page Transition
@@ -71,6 +106,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <Router>
+        <AnalyticsTracker />
         <HashCleaner />
         <ToastProvider>
           <AuthProvider>
@@ -85,7 +121,17 @@ export default function App() {
                     <Route path="/products" element={<Products />} />
                     <Route path="/products/:id" element={<ProductDetail />} />
                     <Route path="/cart" element={<Cart />} />
-                    <Route path="/checkout" element={<Checkout />} />
+                    
+                    {/* Mandatory Login at Checkout */}
+                    <Route
+                      path="/checkout"
+                      element={
+                        <RequireAuth>
+                          <Checkout />
+                        </RequireAuth>
+                      }
+                    />
+                    
                     <Route path="/order-success/:id" element={<OrderSuccess />} />
                     <Route path="/orders" element={<OrderHistory />} />
                     <Route path="/login" element={<Login />} />
