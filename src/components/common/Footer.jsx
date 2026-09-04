@@ -73,6 +73,31 @@ export default function Footer() {
 
         </div>
 
+        {/* Popular Trending Supplement Searches for Google Search Indexing */}
+        <div className={`py-6 border-b text-xs space-y-2 leading-relaxed ${
+          isDark ? 'border-slate-800/80 text-slate-500' : 'border-slate-200 text-slate-500'
+        }`}>
+          <div className="flex items-center gap-2">
+            <span className={`font-bold uppercase tracking-wider text-[11px] ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              Popular Searches & Trending Brands:
+            </span>
+          </div>
+          <p className="flex flex-wrap gap-x-2 gap-y-1">
+            <Link to="/products?category=Protein" className="hover:text-emerald-500 transition-colors">Whey Protein Powder</Link> •
+            <Link to="/products?search=MuscleBlaze" className="hover:text-emerald-500 transition-colors">MuscleBlaze Creatine</Link> •
+            <Link to="/products?search=Optimum+Nutrition" className="hover:text-emerald-500 transition-colors">ON Mass Gainer</Link> •
+            <Link to="/products?category=Creatine" className="hover:text-emerald-500 transition-colors">Creatine Monohydrate</Link> •
+            <Link to="/products?category=Pre-Workout" className="hover:text-emerald-500 transition-colors">Cellucor C4 Pre Workout</Link> •
+            <Link to="/products?search=Gold+Standard" className="hover:text-emerald-500 transition-colors">ON Gold Standard 100% Whey</Link> •
+            <Link to="/products?search=Dymatize" className="hover:text-emerald-500 transition-colors">Dymatize ISO 100 Whey Isolate</Link> •
+            <Link to="/products?search=MuscleTech" className="hover:text-emerald-500 transition-colors">MuscleTech Platinum Creatine</Link> •
+            <Link to="/products?category=Mass+Gainer" className="hover:text-emerald-500 transition-colors">Original Mass Gainer</Link> •
+            <Link to="/products" className="hover:text-emerald-500 transition-colors">Original Supplement Store India</Link> •
+            <Link to="/products?category=Vitamins" className="hover:text-emerald-500 transition-colors">Opti-Men Daily Multivitamins</Link> •
+            <Link to="/products" className="hover:text-emerald-500 transition-colors">Authentic Gym Nutrition</Link>
+          </p>
+        </div>
+
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <p>© {new Date().getFullYear()} OG-Supplement Sports Nutrition Pvt. Ltd. All rights reserved.</p>
