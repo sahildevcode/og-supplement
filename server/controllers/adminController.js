@@ -18,7 +18,7 @@ export const getAdminStats = async (req, res) => {
       .filter(o => o.orderStatus !== 'Cancelled')
       .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
-    const pendingOrders = orders.filter(o => o.orderStatus === 'Order Placed' || o.orderStatus === 'Processing');
+    const pendingOrders = orders.filter(o => o.orderStatus !== 'Delivered' && o.orderStatus !== 'Cancelled');
 
     // Category breakdown
     const categoryCounts = {};
