@@ -5,7 +5,7 @@ const paymentSettingsSchema = new mongoose.Schema(
   {
     qrCodeImage: {
       type: String,
-      default: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3Dogsupplement%40okaxis%26pn%3DOG%2BSupplement%26cu%3DINR'
+      default: '/uploads/merchant_qr.jpg'
     },
     upiId: {
       type: String,
@@ -34,7 +34,7 @@ const paymentSettingsSchema = new mongoose.Schema(
 const MongoosePaymentSettings = mongoose.models.PaymentSettings || mongoose.model('PaymentSettings', paymentSettingsSchema);
 
 export const defaultSettings = {
-  qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3Dogsupplement%40okaxis%26pn%3DOG%2BSupplement%26cu%3DINR',
+  qrCodeImage: '/uploads/merchant_qr.jpg',
   upiId: 'ogsupplement@okaxis',
   merchantName: 'OG Supplement Store',
   isUpiEnabled: true,

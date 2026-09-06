@@ -17,6 +17,7 @@ import { useTheme } from '../context/ThemeContext';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 import { useToast } from '../context/ToastContext';
+import OrderTrackerTimeline from '../components/common/OrderTrackerTimeline';
 
 export default function OrderHistory() {
   const { user } = useAuth();
@@ -100,10 +101,14 @@ export default function OrderHistory() {
     switch (status) {
       case 'Order Placed':
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-500 border border-blue-500/30">Order Placed</span>;
+      case 'Packed':
+        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">Packed</span>;
       case 'Processing':
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">Processing & Packing</span>;
       case 'Shipped':
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/15 text-purple-500 border border-purple-500/30">In Transit / Shipped</span>;
+      case 'Out for Delivery':
+        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">Out for Delivery</span>;
       case 'Delivered':
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">Delivered</span>;
       case 'Cancelled':
@@ -111,12 +116,6 @@ export default function OrderHistory() {
       default:
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400">{status}</span>;
     }
-  };
-
-  const getStepProgress = (status) => {
-    const steps = ['Order Placed', 'Processing', 'Shipped', 'Delivered'];
-    const currentIdx = steps.indexOf(status);
-    return { steps, currentIdx: currentIdx === -1 ? 0 : currentIdx };
   };
 
   const cancelReasons = [
@@ -227,8 +226,7 @@ export default function OrderHistory() {
         ) : (
           <div className="space-y-6">
             {orders.map((order) => {
-              const { steps, currentIdx } = getStepProgress(order.orderStatus);
-              const canCancel = order.orderStatus === 'Order Placed' || order.orderStatus === 'Processing';
+              const canCancel = order.orderStatus === 'Order Placed';
 
               return (
                 <div
@@ -290,56 +288,8 @@ export default function OrderHistory() {
                     </div>
                   </div>
 
-                  {/* Step Tracker (If not cancelled) */}
-                  {order.orderStatus !== 'Cancelled' ? (
-                    <div className="py-2">
-                      <div className="relative flex items-center justify-between">
-                        {/* Connecting Line */}
-                        <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 -z-0 ${
-                          isDark ? 'bg-slate-800' : 'bg-slate-200'
-                        }`} />
-                        <div
-                          className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-700 -z-0"
-                          style={{ width: `${(currentIdx / (steps.length - 1)) * 100}%` }}
-                        />
-
-                        {steps.map((step, idx) => {
-                          const isDone = idx <= currentIdx;
-                          const isCurrent = idx === currentIdx;
-
-                          return (
-                            <div key={step} className="flex flex-col items-center relative z-10">
-                              <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                                  isDone
-                                    ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
-                                    : isDark ? 'bg-slate-800 text-slate-500 border border-slate-700' : 'bg-slate-100 text-slate-400 border border-slate-300'
-                                } ${isCurrent ? 'ring-4 ring-emerald-500/20' : ''}`}
-                              >
-                                {isDone ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
-                              </div>
-                              <span className={`text-[10px] sm:text-xs font-bold mt-2 whitespace-nowrap ${
-                                isDone ? 'text-emerald-500' : 'text-slate-400'
-                              }`}>
-                                {step}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : (
-                    /* Cancelled Order Notice */
-                    <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
-                      isDark ? 'bg-rose-950/20 border-rose-900/40 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-700'
-                    }`}>
-                      <AlertTriangle className="w-5 h-5 flex-shrink-0 text-rose-500" />
-                      <div className="text-xs">
-                        <p className="font-bold">This order has been cancelled.</p>
-                        <p className="opacity-80">Reserved items have been returned to warehouse inventory.</p>
-                      </div>
-                    </div>
-                  )}
+                  {/* Flipkart 4-Stage Tracker Component */}
+                  <OrderTrackerTimeline order={order} isDark={isDark} />
 
                   {/* Products list in order */}
                   <div className="space-y-3 pt-2">

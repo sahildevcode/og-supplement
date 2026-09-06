@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Eye, RefreshCw, Filter, Search, Clock, XCircle } from 'lucide-react';
+import { ShoppingCart, Eye, RefreshCw, Filter, Search, Clock, XCircle, CheckCircle, Truck, PackageCheck } from 'lucide-react';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 import { useAdminToast } from '../context/AdminToastContext';
@@ -12,6 +12,7 @@ export default function AdminOrders() {
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [updatingId, setUpdatingId] = useState(null);
   const { addToast } = useAdminToast();
   const isFirstLoad = useRef(true);
 
@@ -28,6 +29,20 @@ export default function AdminOrders() {
         setLoading(false);
         isFirstLoad.current = false;
       }
+    }
+  };
+
+  const handleQuickUpdateStatus = async (ord, newStatus) => {
+    const id = ord.orderId || ord._id;
+    setUpdatingId(id);
+    try {
+      await api.updateOrderStatus(id, newStatus);
+      addToast(`Order #${id} updated to "${newStatus}"!`, 'success');
+      fetchOrders();
+    } catch (err) {
+      addToast(err.message || 'Failed to update status', 'error');
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -67,12 +82,16 @@ export default function AdminOrders() {
     switch (status) {
       case 'Order Placed':
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">Order Placed</span>;
+      case 'Packed':
+        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1"><PackageCheck className="w-3.5 h-3.5" /> Packed</span>;
       case 'Processing':
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">Processing</span>;
       case 'Shipped':
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">Shipped</span>;
+      case 'Out for Delivery':
+        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1"><Truck className="w-3.5 h-3.5" /> Out for Delivery</span>;
       case 'Delivered':
-        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Delivered</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Delivered</span>;
       case 'Cancelled':
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Cancelled</span>;
       default:
@@ -136,8 +155,10 @@ export default function AdminOrders() {
         >
           <option value="All">All Statuses</option>
           <option value="Order Placed">Order Placed</option>
+          <option value="Packed">Packed</option>
           <option value="Processing">Processing</option>
           <option value="Shipped">Shipped</option>
+          <option value="Out for Delivery">Out for Delivery</option>
           <option value="Delivered">Delivered</option>
           <option value="Cancelled">Cancelled</option>
         </select>
@@ -152,9 +173,9 @@ export default function AdminOrders() {
                 <th className="p-4 sm:p-5">Order ID</th>
                 <th className="p-4 sm:p-5">Customer</th>
                 <th className="p-4 sm:p-5">Date & Time</th>
-                <th className="p-4 sm:p-5">Amount / Payment</th>
+                <th className="p-4 sm:p-5">Payment & Type</th>
                 <th className="p-4 sm:p-5">Status</th>
-                <th className="p-4 sm:p-5 text-right">View Details</th>
+                <th className="p-4 sm:p-5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -171,55 +192,106 @@ export default function AdminOrders() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((ord) => (
-                  <tr key={ord.orderId || ord._id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="p-4 sm:p-5 font-mono font-bold text-cyan-400">
-                      {ord.orderId}
-                    </td>
+                filtered.map((ord) => {
+                  const isPrepaid = ord.paymentMethod === 'Online / UPI' || !!ord.transactionId;
+                  const isUpdating = updatingId === (ord.orderId || ord._id);
+                  return (
+                    <tr key={ord.orderId || ord._id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="p-4 sm:p-5 font-mono font-bold text-cyan-400">
+                        {ord.orderId}
+                      </td>
 
-                    <td className="p-4 sm:p-5">
-                      <div>
-                        <p className="font-bold text-white">{ord.customerName}</p>
-                        <p className="text-[11px] text-slate-400">{ord.email}</p>
-                      </div>
-                    </td>
+                      <td className="p-4 sm:p-5">
+                        <div>
+                          <p className="font-bold text-white">{ord.customerName}</p>
+                          <p className="text-[11px] text-slate-400">{ord.email}</p>
+                        </div>
+                      </td>
 
-                    <td className="p-4 sm:p-5 text-slate-300 text-xs">
-                      {new Date(ord.createdAt).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </td>
+                      <td className="p-4 sm:p-5 text-slate-300 text-xs">
+                        {new Date(ord.createdAt).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </td>
 
-                    <td className="p-4 sm:p-5">
-                      <p className="font-mono font-bold text-white">₹{ord.totalAmount?.toLocaleString('en-IN')}</p>
-                      <span className="text-[10px] text-slate-400 block">{ord.paymentMethod}</span>
-                      {ord.transactionId && (
-                        <span className="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 inline-block mt-0.5">
-                          UTR: {ord.transactionId}
-                        </span>
-                      )}
-                    </td>
+                      <td className="p-4 sm:p-5">
+                        <p className="font-mono font-bold text-white">₹{ord.totalAmount?.toLocaleString('en-IN')}</p>
+                        {isPrepaid ? (
+                          <div className="mt-1 flex flex-col gap-1 items-start">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                              ⚡ PREPAID (ONLINE UPI)
+                            </span>
+                            {ord.transactionId && (
+                              <span className="text-[10px] text-emerald-300 font-mono font-bold bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/30 inline-block">
+                                UTR: {ord.transactionId}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="mt-1">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
+                              💵 CASH ON DELIVERY (COD)
+                            </span>
+                          </div>
+                        )}
+                      </td>
 
-                    <td className="p-4 sm:p-5">
-                      {getStatusBadge(ord.orderStatus)}
-                    </td>
+                      <td className="p-4 sm:p-5">
+                        {getStatusBadge(ord.orderStatus)}
+                      </td>
 
-                    <td className="p-4 sm:p-5 text-right">
-                      <button
-                        onClick={() => {
-                          setSelectedOrder(ord);
-                          setIsModalOpen(true);
-                        }}
-                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-cyan-400 hover:text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Manage</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      <td className="p-4 sm:p-5 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {ord.orderStatus === 'Order Placed' && (
+                            <button
+                              onClick={() => handleQuickUpdateStatus(ord, 'Packed')}
+                              disabled={isUpdating}
+                              title="Accept order and mark packed"
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black flex items-center gap-1 shadow transition-all cursor-pointer"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Accept & Pack</span>
+                            </button>
+                          )}
+                          {ord.orderStatus === 'Packed' && (
+                            <button
+                              onClick={() => handleQuickUpdateStatus(ord, 'Out for Delivery')}
+                              disabled={isUpdating}
+                              title="Dispatch with courier"
+                              className="px-2.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-black flex items-center gap-1 shadow transition-all cursor-pointer"
+                            >
+                              <Truck className="w-3.5 h-3.5" />
+                              <span>Out for Delivery</span>
+                            </button>
+                          )}
+                          {ord.orderStatus === 'Out for Delivery' && (
+                            <button
+                              onClick={() => handleQuickUpdateStatus(ord, 'Delivered')}
+                              disabled={isUpdating}
+                              title="Confirm delivery to customer"
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1 shadow transition-all cursor-pointer"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Mark Delivered</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setSelectedOrder(ord);
+                              setIsModalOpen(true);
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Details</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

@@ -25,7 +25,7 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
     }
   };
 
-  const statuses = ['Order Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+  const statuses = ['Order Placed', 'Packed', 'Out for Delivery', 'Delivered', 'Cancelled'];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
@@ -37,26 +37,82 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-400">Order ID:</span>
               <span className="font-mono font-black text-cyan-400 text-lg">{order.orderId}</span>
+              {order.paymentMethod === 'Online / UPI' || order.transactionId ? (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  ⚡ PREPAID (ONLINE UPI)
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
+                  💵 CASH ON DELIVERY
+                </span>
+              )}
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Placed on {new Date(order.createdAt).toLocaleString('en-IN')}
+            <p className="text-xs text-slate-400 mt-1">
+              Placed on {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Live Status Switcher */}
+        {/* Quick Lifecycle Action Banner */}
+        <div className="p-4 rounded-2xl bg-slate-950 border border-cyan-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-cyan-400 block">Next Lifecycle Action:</span>
+            <p className="text-xs text-slate-300 font-bold mt-0.5">
+              {currentStatus === 'Order Placed' && 'Customer order received. Click Accept & Pack to notify customer.'}
+              {currentStatus === 'Packed' && 'Package is packed and ready for courier dispatch.'}
+              {currentStatus === 'Out for Delivery' && 'Package is out with courier partner. Mark Delivered when received.'}
+              {currentStatus === 'Delivered' && 'Order successfully delivered to customer!'}
+              {currentStatus === 'Cancelled' && 'This order is cancelled.'}
+            </p>
+          </div>
+          {currentStatus === 'Order Placed' && (
+            <button
+              onClick={() => handleUpdateStatus('Packed')}
+              disabled={updating}
+              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-950/50 transition-all active:scale-95 cursor-pointer shrink-0"
+            >
+              <CheckCircle className="w-4 h-4" />
+              <span>Accept & Pack Order</span>
+            </button>
+          )}
+          {currentStatus === 'Packed' && (
+            <button
+              onClick={() => handleUpdateStatus('Out for Delivery')}
+              disabled={updating}
+              className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-black text-xs flex items-center gap-1.5 shadow-lg shadow-cyan-950/50 transition-all active:scale-95 cursor-pointer shrink-0"
+            >
+              <Truck className="w-4 h-4" />
+              <span>Mark Out for Delivery</span>
+            </button>
+          )}
+          {currentStatus === 'Out for Delivery' && (
+            <button
+              onClick={() => handleUpdateStatus('Delivered')}
+              disabled={updating}
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-950/50 transition-all active:scale-95 cursor-pointer shrink-0"
+            >
+              <CheckCircle className="w-4 h-4" />
+              <span>Mark as Delivered</span>
+            </button>
+          )}
+        </div>
+
+        {/* Live Status Switcher Chips */}
         <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Update Real-Time Order Status:</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">All Order Status Options:</p>
           <div className="flex flex-wrap gap-2">
             {statuses.map((st) => (
               <button
                 key={st}
                 onClick={() => handleUpdateStatus(st)}
                 disabled={updating || currentStatus === st}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   currentStatus === st
                     ? st === 'Delivered'
                       ? 'bg-emerald-500 text-black shadow-md shadow-emerald-950/40'
