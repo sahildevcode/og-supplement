@@ -54,8 +54,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link to="/faq" className="hover:text-emerald-500 transition-colors">Help Center & FAQ</Link></li>
               <li><Link to="/shipping-policy" className="hover:text-emerald-500 transition-colors">Shipping & Delivery</Link></li>
-              <li><Link to="/return-policy" className="hover:text-emerald-500 transition-colors">Returns & Refunds</Link></li>
-              <li><Link to="/cancellation-policy" className="hover:text-emerald-500 transition-colors">Cancellation Policy</Link></li>
+              <li><Link to="/return-policy" className="hover:text-emerald-500 transition-colors">Return & Replacement Policy</Link></li>
               <li><a href="mailto:support@ogsupplement.com" className="hover:text-emerald-500 transition-colors">support@ogsupplement.com</a></li>
             </ul>
           </div>

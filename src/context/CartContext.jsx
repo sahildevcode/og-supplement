@@ -119,7 +119,7 @@ export const CartProvider = ({ children }) => {
   const totalMRP = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountOnMRP = totalMRP - subtotal;
   const bulkDiscount = subtotal >= 2000 ? Math.round(subtotal * 0.05) : 0; // 5% extra discount over 2000
-  const deliveryCharge = subtotal >= 999 || subtotal === 0 ? 0 : 99; // Free above 999
+  const deliveryCharge = 0; // Always 100% Free Express Shipping on all orders
   const totalAmount = Math.max(0, subtotal - bulkDiscount + deliveryCharge);
 
   return (

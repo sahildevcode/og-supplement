@@ -17,9 +17,9 @@ export default function ShippingPolicy() {
 
         <div className="p-8 rounded-3xl bg-slate-900/70 border border-slate-800 space-y-6">
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-white">1. Shipping Charges & Free Delivery Threshold</h2>
+            <h2 className="text-lg font-bold text-white">1. Always 100% Free Express Shipping</h2>
             <p>
-              We provide <strong>FREE Express Shipping</strong> across India on all orders of ₹999 or higher. For orders below ₹999, a flat delivery fee of ₹99 applies.
+              We provide <strong>100% FREE Express Shipping</strong> across all 20,000+ pin codes in India on <strong>every order</strong>. There is absolutely no minimum order value required—delivery is always ₹0 FREE!
             </p>
           </section>
 

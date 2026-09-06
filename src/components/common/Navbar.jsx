@@ -36,10 +36,27 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const megaMenuTimeoutRef = useRef(null);
+  const megaMenuContainerRef = useRef(null);
+  const triggerRef = useRef(null);
 
   useEffect(() => {
     setLocalSearch(searchQuery);
   }, [searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        megaMenuContainerRef.current &&
+        !megaMenuContainerRef.current.contains(e.target) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target)
+      ) {
+        setIsMegaMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -55,9 +72,10 @@ export default function Navbar() {
   };
 
   const handleMegaMenuLeave = () => {
+    if (megaMenuTimeoutRef.current) clearTimeout(megaMenuTimeoutRef.current);
     megaMenuTimeoutRef.current = setTimeout(() => {
       setIsMegaMenuOpen(false);
-    }, 200);
+    }, 300);
   };
 
   return (
@@ -160,14 +178,17 @@ export default function Navbar() {
               Order History
             </Link>
 
-            {/* Hidden Dropdown / Mega Menu Trigger */}
+            {/* Information & Policies Dropdown Trigger */}
             <div
+              ref={triggerRef}
               className="relative"
               onMouseEnter={handleMegaMenuEnter}
               onMouseLeave={handleMegaMenuLeave}
             >
               <button
-                className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 ${
+                type="button"
+                onClick={() => setIsMegaMenuOpen((prev) => !prev)}
+                className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer select-none ${
                   isMegaMenuOpen
                     ? 'text-emerald-500 bg-slate-800/40'
                     : isDark
@@ -329,10 +350,14 @@ export default function Navbar() {
       </div>
 
       {/* MegaMenu Dropdown (Desktop) */}
-      <MegaMenu
-        isOpen={isMegaMenuOpen}
-        onClose={() => setIsMegaMenuOpen(false)}
-      />
+      <div ref={megaMenuContainerRef}>
+        <MegaMenu
+          isOpen={isMegaMenuOpen}
+          onClose={() => setIsMegaMenuOpen(false)}
+          onMouseEnter={handleMegaMenuEnter}
+          onMouseLeave={handleMegaMenuLeave}
+        />
+      </div>
 
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
@@ -384,7 +409,6 @@ export default function Navbar() {
               <Link to="/terms" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Terms & Conditions</Link>
               <Link to="/return-policy" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Return Policy</Link>
               <Link to="/shipping-policy" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Shipping Policy</Link>
-              <Link to="/cancellation-policy" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Cancellation Policy</Link>
               <Link to="/faq" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Help & FAQ</Link>
             </div>
           </div>

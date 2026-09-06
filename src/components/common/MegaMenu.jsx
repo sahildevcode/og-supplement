@@ -6,7 +6,6 @@ import {
   FileText,
   RotateCcw,
   Truck,
-  XCircle,
   HelpCircle,
   Award,
   PhoneCall,
@@ -15,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
-export default function MegaMenu({ isOpen, onClose }) {
+export default function MegaMenu({ isOpen, onClose, onMouseEnter, onMouseLeave }) {
   const { isDark } = useTheme();
   if (!isOpen) return null;
 
@@ -28,28 +27,29 @@ export default function MegaMenu({ isOpen, onClose }) {
   const policyLinks = [
     { name: 'Privacy Policy', href: '/privacy-policy', icon: ShieldCheck },
     { name: 'Terms & Conditions', href: '/terms', icon: FileText },
-    { name: 'Return & Refund Policy', href: '/return-policy', icon: RotateCcw },
+    { name: 'Return & Replacement Policy', href: '/return-policy', icon: RotateCcw },
     { name: 'Shipping & Delivery', href: '/shipping-policy', icon: Truck },
-    { name: 'Cancellation Policy', href: '/cancellation-policy', icon: XCircle },
   ];
 
   const supportLinks = [
     { name: 'Frequently Asked Questions (FAQ)', href: '/faq', icon: HelpCircle },
-    { name: 'Authenticity Verification', href: '/license', icon: Sparkles },
     { name: 'Track Existing Order', href: '/orders', icon: Truck },
   ];
 
   return (
     <div
-      onMouseEnter={() => {}}
-      onMouseLeave={onClose}
-      className="absolute top-full left-0 w-full z-50 transition-all duration-300 transform origin-top animate-in fade-in slide-in-from-top-2"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className="absolute top-full left-0 w-full z-50 transition-all duration-200 transform origin-top animate-in fade-in slide-in-from-top-1"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3">
+      {/* Invisible hover bridge to prevent premature closing when moving mouse */}
+      <div className="absolute -top-3 left-0 w-full h-4 bg-transparent pointer-events-auto" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-1 pb-4">
         <div className={`backdrop-blur-2xl border rounded-3xl shadow-2xl p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-8 ${
           isDark
-            ? 'bg-slate-900/95 border-slate-700/60 ring-1 ring-emerald-500/10'
-            : 'bg-white/95 border-slate-200 shadow-slate-300/60 ring-1 ring-emerald-500/20'
+            ? 'bg-slate-900/98 border-slate-700/80 ring-1 ring-emerald-500/10 shadow-black/80'
+            : 'bg-white/98 border-slate-200 shadow-slate-300/60 ring-1 ring-emerald-500/20'
         }`}>
           
           {/* Column 1: Brand & Information */}
@@ -90,7 +90,7 @@ export default function MegaMenu({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Column 2: Legal & Store Policies */}
+          {/* Column 2: Legal & Store Policies (Cancellation Policy Removed) */}
           <div className="space-y-4">
             <div className={`flex items-center gap-2 pb-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
               <ShieldCheck className="w-5 h-5 text-cyan-500" />
@@ -121,7 +121,7 @@ export default function MegaMenu({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Column 3: Help & Support */}
+          {/* Column 3: Help & Support (Only FAQ and Track Existing Order) */}
           <div className="space-y-4">
             <div className={`flex items-center gap-2 pb-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
               <HelpCircle className="w-5 h-5 text-amber-500" />
@@ -150,14 +150,15 @@ export default function MegaMenu({ isOpen, onClose }) {
                 );
               })}
 
-              <div className={`p-4 mt-2 rounded-2xl border ${
+              {/* Free Shipping Always Card */}
+              <div className={`p-4 mt-3 rounded-2xl border ${
                 isDark
                   ? 'bg-gradient-to-br from-emerald-950/40 to-slate-900 border-emerald-500/20'
                   : 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200'
               }`}>
-                <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Free Shipping</p>
+                <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Always 100% Free Shipping</p>
                 <p className={`text-xs mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                  Get free express 24-48h dispatch on all orders above ₹999 across India.
+                  Enjoy 100% free express delivery on all orders across India with zero minimum cart value!
                 </p>
               </div>
             </div>
