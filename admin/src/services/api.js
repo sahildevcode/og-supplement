@@ -63,4 +63,8 @@ export const api = {
   createCategory: (data) => apiRequest('/categories', { method: 'POST', body: JSON.stringify(data) }),
   updateCategory: (id, data) => apiRequest(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteCategory: (id) => apiRequest(`/categories/${id}`, { method: 'DELETE' }),
+
+  // Payment & QR Code Settings
+  getPaymentSettings: () => apiRequest('/settings/payment'),
+  updatePaymentSettings: (data) => apiRequest('/settings/payment', { method: 'PUT', body: JSON.stringify(data) }),
 };

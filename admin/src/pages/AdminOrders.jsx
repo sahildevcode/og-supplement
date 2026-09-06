@@ -194,7 +194,12 @@ export default function AdminOrders() {
 
                     <td className="p-4 sm:p-5">
                       <p className="font-mono font-bold text-white">₹{ord.totalAmount?.toLocaleString('en-IN')}</p>
-                      <span className="text-[10px] text-slate-400">{ord.paymentMethod}</span>
+                      <span className="text-[10px] text-slate-400 block">{ord.paymentMethod}</span>
+                      {ord.transactionId && (
+                        <span className="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 inline-block mt-0.5">
+                          UTR: {ord.transactionId}
+                        </span>
+                      )}
                     </td>
 
                     <td className="p-4 sm:p-5">

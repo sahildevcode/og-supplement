@@ -17,6 +17,8 @@ import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import { PaymentSettings } from './models/PaymentSettings.js';
 
 dotenv.config();
 
@@ -51,6 +53,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health Check API
 app.get('/api/health', (req, res) => {
@@ -123,6 +126,9 @@ const seedDatabase = async () => {
       }
       console.log(`\x1b[32m[DB Seeded]\x1b[0m Successfully loaded ${initialCategories.length} homepage categories!`);
     }
+
+    // Seed default payment and QR settings
+    await PaymentSettings.get();
   } catch (error) {
     console.warn('[Seed Error]', error.message);
   }

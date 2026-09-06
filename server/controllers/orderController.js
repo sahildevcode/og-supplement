@@ -42,7 +42,8 @@ export const createOrder = async (req, res) => {
       pincode,
       landmark = '',
       products,
-      paymentMethod = 'Cash on Delivery'
+      paymentMethod = 'Cash on Delivery',
+      transactionId = ''
     } = req.body;
 
     if (!customerName || !email || !phone || !address || !city || !state || !pincode || !products || !products.length) {
@@ -116,7 +117,8 @@ export const createOrder = async (req, res) => {
       shipping,
       totalAmount,
       paymentMethod,
-      paymentStatus: paymentMethod === 'Online / UPI' ? 'Paid' : 'Pending',
+      paymentStatus: paymentMethod === 'Online / UPI' ? 'Verification Pending' : 'Pending',
+      transactionId: transactionId || '',
       orderStatus: 'Order Placed'
     });
 

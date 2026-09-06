@@ -113,14 +113,19 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
         </div>
 
         {/* Order Payment Summary */}
-        <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/20 flex items-center justify-between">
-          <div>
+        <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
             <p className="text-xs text-slate-400">Payment Mode: <span className="font-bold text-white">{order.paymentMethod}</span></p>
             <p className="text-xs text-slate-400">Status: <span className="font-bold text-cyan-400">{order.paymentStatus || 'Pending'}</span></p>
+            {order.transactionId && (
+              <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-lg inline-flex mt-1">
+                <span>UTR / Ref: {order.transactionId}</span>
+              </div>
+            )}
           </div>
-          <div className="text-right">
-            <span className="text-xs text-slate-400">Total Charged:</span>
-            <p className="text-xl font-black text-white">₹{order.totalAmount?.toLocaleString('en-IN')}</p>
+          <div className="text-left sm:text-right">
+            <p className="text-[10px] uppercase font-bold text-slate-400">Grand Total</p>
+            <p className="text-xl font-black text-white font-mono">₹{order.totalAmount?.toLocaleString('en-IN')}</p>
           </div>
         </div>
 

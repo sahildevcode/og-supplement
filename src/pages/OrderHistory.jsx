@@ -269,6 +269,11 @@ export default function OrderHistory() {
                         <p className="text-[11px] text-slate-400">
                           {order.paymentMethod} • {order.paymentStatus || 'Pending'}
                         </p>
+                        {order.transactionId && (
+                          <span className="inline-block text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 mt-0.5">
+                            UTR: {order.transactionId}
+                          </span>
+                        )}
                       </div>
 
                       {/* Cancel Order Action Button */}

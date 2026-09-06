@@ -7,6 +7,7 @@ import {
   ShoppingCart,
   Users,
   Layers,
+  QrCode,
   Shield,
   LogOut,
   ChevronRight
@@ -20,6 +21,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Products Catalog', path: '/products', icon: Package },
     { name: 'Homepage Categories', path: '/categories', icon: Layers },
+    { name: 'Payment & QR Code', path: '/payment-settings', icon: QrCode },
     { name: 'Live Stock Control', path: '/stock', icon: Boxes },
     { name: 'Orders Fulfillment', path: '/orders', icon: ShoppingCart },
     { name: 'Customers Directory', path: '/customers', icon: Users },

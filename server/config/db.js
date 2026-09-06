@@ -16,6 +16,7 @@ export const localStore = {
   orders: [],
   users: [],
   categories: [],
+  paymentSettings: {},
   init() {
     try {
       const dataDir = path.dirname(DB_FILE);
@@ -29,6 +30,7 @@ export const localStore = {
         this.orders = parsed.orders || [];
         this.users = parsed.users || [];
         this.categories = parsed.categories || [];
+        this.paymentSettings = parsed.paymentSettings || {};
       }
     } catch (e) {
       console.warn('[DB] Fallback store init note:', e.message);
@@ -44,7 +46,8 @@ export const localStore = {
         products: this.products,
         orders: this.orders,
         users: this.users,
-        categories: this.categories
+        categories: this.categories,
+        paymentSettings: this.paymentSettings
       }, null, 2));
     } catch (e) {
       console.error('[DB] Fallback save error:', e.message);

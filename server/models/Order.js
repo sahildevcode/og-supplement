@@ -31,7 +31,8 @@ const orderSchema = new mongoose.Schema(
     shipping: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
     paymentMethod: { type: String, default: 'Cash on Delivery' },
-    paymentStatus: { type: String, enum: ['Pending', 'Paid'], default: 'Pending' },
+    paymentStatus: { type: String, enum: ['Pending', 'Paid', 'Verification Pending'], default: 'Pending' },
+    transactionId: { type: String, default: '' },
     orderStatus: {
       type: String,
       enum: ['Order Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],

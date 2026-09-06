@@ -39,7 +39,14 @@ export default function OrderSuccess() {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Payment:</span>
-                <span className="font-semibold text-slate-200">{order.paymentMethod}</span>
+                <div className="text-right">
+                  <span className="font-semibold text-slate-200">{order.paymentMethod}</span>
+                  {order.transactionId && (
+                    <span className="block text-[11px] text-emerald-400 font-mono mt-0.5">
+                      UTR: {order.transactionId}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Total Amount:</span>

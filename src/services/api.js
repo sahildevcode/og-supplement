@@ -103,7 +103,8 @@ export const api = {
         shipping,
         totalAmount,
         paymentMethod: orderData.paymentMethod || 'Cash on Delivery',
-        paymentStatus: orderData.paymentMethod === 'Online / UPI' ? 'Paid' : 'Pending',
+        paymentStatus: orderData.paymentMethod === 'Online / UPI' ? 'Verification Pending' : 'Pending',
+        transactionId: orderData.transactionId || '',
         orderStatus: 'Order Placed',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -202,4 +203,36 @@ export const api = {
   createCategory: (data) => apiRequest('/categories', { method: 'POST', body: JSON.stringify(data) }),
   updateCategory: (id, data) => apiRequest(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteCategory: (id) => apiRequest(`/categories/${id}`, { method: 'DELETE' }),
+
+  // Payment & QR Code Settings
+  getPaymentSettings: async () => {
+    try {
+      const res = await apiRequest('/settings/payment');
+      if (res && res.settings) {
+        try {
+          localStorage.setItem('og_payment_settings', JSON.stringify(res.settings));
+        } catch (e) {}
+        return res;
+      }
+    } catch (error) {
+      console.warn('[Get Payment Settings Notice] Using cached storage', error.message);
+    }
+    try {
+      const cached = JSON.parse(localStorage.getItem('og_payment_settings') || 'null');
+      if (cached) {
+        return { success: true, settings: cached };
+      }
+    } catch (e) {}
+    return {
+      success: true,
+      settings: {
+        qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3Dogsupplement%40okaxis%26pn%3DOG%2BSupplement%26cu%3DINR',
+        upiId: 'ogsupplement@okaxis',
+        merchantName: 'OG Supplement Store',
+        isUpiEnabled: true,
+        isCodEnabled: true,
+        instructions: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
+      }
+    };
+  },
 };
