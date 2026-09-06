@@ -34,11 +34,15 @@ export default function AdminPaymentSettings() {
   const [copiedPreview, setCopiedPreview] = useState(false);
 
   const [formData, setFormData] = useState({
-    qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3Dogsupplement%40okaxis%26pn%3DOG%2BSupplement%26cu%3DINR',
+    qrCodeImage: '/uploads/merchant_qr.jpg',
     upiId: 'ogsupplement@okaxis',
     merchantName: 'OG Supplement Store',
     isUpiEnabled: true,
     isCodEnabled: true,
+    isRazorpayEnabled: true,
+    razorpayKeyId: 'rzp_test_5173DemoKey',
+    razorpayKeySecret: '',
+    razorpayMode: 'test',
     instructions: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
   });
 
@@ -55,6 +59,10 @@ export default function AdminPaymentSettings() {
           merchantName: res.settings.merchantName || 'OG Supplement Store',
           isUpiEnabled: res.settings.isUpiEnabled !== undefined ? res.settings.isUpiEnabled : true,
           isCodEnabled: res.settings.isCodEnabled !== undefined ? res.settings.isCodEnabled : true,
+          isRazorpayEnabled: res.settings.isRazorpayEnabled !== undefined ? res.settings.isRazorpayEnabled : true,
+          razorpayKeyId: res.settings.razorpayKeyId || 'rzp_test_5173DemoKey',
+          razorpayKeySecret: res.settings.razorpayKeySecret || '',
+          razorpayMode: res.settings.razorpayMode || 'test',
           instructions: res.settings.instructions || ''
         });
       }
@@ -287,6 +295,79 @@ export default function AdminPaymentSettings() {
                     <span className="text-[11px] text-slate-400">Allow doorstep cash collection on order delivery.</span>
                   </div>
                 </label>
+              </div>
+            </div>
+
+            {/* Razorpay Payment Gateway Card */}
+            <div className="space-y-4 p-5 rounded-2xl bg-slate-950 border border-emerald-500/30">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-black uppercase tracking-wider text-emerald-400">
+                    4. Razorpay Automatic Gateway
+                  </span>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <span className="text-xs font-bold text-slate-300">Enable Razorpay</span>
+                  <input
+                    type="checkbox"
+                    checked={formData.isRazorpayEnabled}
+                    onChange={(e) => setFormData({ ...formData, isRazorpayEnabled: e.target.checked })}
+                    className="accent-emerald-500 w-4 h-4 rounded"
+                  />
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Gateway Mode
+                  </label>
+                  <select
+                    value={formData.razorpayMode}
+                    onChange={(e) => setFormData({ ...formData, razorpayMode: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                  >
+                    <option value="test">🧪 Test Mode (Sandbox Simulation)</option>
+                    <option value="live">🚀 Live Mode (Real Payments & Settlements)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Razorpay Key ID
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.razorpayKeyId}
+                    onChange={(e) => setFormData({ ...formData, razorpayKeyId: e.target.value })}
+                    placeholder="rzp_test_... or rzp_live_..."
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Razorpay Key Secret (Stored Securely)
+                </label>
+                <input
+                  type="password"
+                  value={formData.razorpayKeySecret}
+                  onChange={(e) => setFormData({ ...formData, razorpayKeySecret: e.target.value })}
+                  placeholder="Enter Razorpay Key Secret from dashboard"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs space-y-1">
+                <p className="font-bold flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  Automatic Bank Verification Enabled
+                </p>
+                <p className="text-[11px] text-slate-300 opacity-90">
+                  Customers can pay using Google Pay, PhonePe, Cards, or NetBanking. Order confirms automatically with zero manual UTR verification. Test mode works immediately without real money!
+                </p>
               </div>
             </div>
 

@@ -18,6 +18,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import { PaymentSettings } from './models/PaymentSettings.js';
 
 dotenv.config();
@@ -54,6 +55,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Health Check API
 app.get('/api/health', (req, res) => {

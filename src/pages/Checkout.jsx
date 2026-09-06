@@ -12,7 +12,9 @@ import {
   Smartphone,
   Info,
   Sparkles,
-  HelpCircle
+  HelpCircle,
+  X,
+  CreditCard
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCart } from '../context/CartContext';
@@ -21,6 +23,20 @@ import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export default function Checkout() {
   const { cartItems, totalItems, subtotal, discountOnMRP, bulkDiscount, deliveryCharge, totalAmount, clearCart } = useCart();
@@ -35,16 +51,21 @@ export default function Checkout() {
       if (cached) return cached;
     } catch (e) {}
     return {
-      qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3Dogsupplement%40okaxis%26pn%3DOG%2BSupplement%26cu%3DINR',
+      qrCodeImage: '/uploads/merchant_qr.jpg',
       upiId: 'ogsupplement@okaxis',
       merchantName: 'OG Supplement Store',
       isUpiEnabled: true,
       isCodEnabled: true,
+      isRazorpayEnabled: true,
+      razorpayKeyId: 'rzp_test_5173DemoKey',
+      razorpayMode: 'test',
       instructions: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
     };
   });
 
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [showSandboxModal, setShowSandboxModal] = useState(false);
+  const [sandboxOrderInfo, setSandboxOrderInfo] = useState(null);
 
   const [formData, setFormData] = useState({
     customerName: user?.name || '',
@@ -55,7 +76,7 @@ export default function Checkout() {
     state: '',
     pincode: '',
     landmark: '',
-    paymentMethod: 'Cash on Delivery',
+    paymentMethod: 'Razorpay (Online)',
     transactionId: ''
   });
 
@@ -133,6 +154,61 @@ export default function Checkout() {
 
   const mobileUpiUri = `upi://pay?pa=${encodeURIComponent(paymentSettings.upiId || 'ogsupplement@okaxis')}&pn=${encodeURIComponent(paymentSettings.merchantName || 'OG Supplement')}&am=${totalAmount}&cu=INR&tn=${encodeURIComponent('OG Supplement Order')}`;
 
+  const handleCompleteRazorpayOrder = async (rzpResponse) => {
+    try {
+      setIsSubmitting(true);
+      setShowSandboxModal(false);
+
+      const orderPayload = {
+        userId: user ? (user._id || user.id) : 'guest',
+        customerName: formData.customerName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+        landmark: formData.landmark,
+        paymentMethod: 'Razorpay (Online)',
+        paymentStatus: 'Paid',
+        orderStatus: 'Order Placed',
+        razorpayPaymentId: rzpResponse.razorpay_payment_id || `pay_test_${Date.now().toString(36).toUpperCase()}`,
+        razorpayOrderId: rzpResponse.razorpay_order_id || '',
+        razorpaySignature: rzpResponse.razorpay_signature || '',
+        transactionId: rzpResponse.razorpay_payment_id || `pay_test_${Date.now().toString(36).toUpperCase()}`,
+        products: cartItems.map((item) => ({
+          productId: item.productId || item._id,
+          name: item.name,
+          brand: item.brand,
+          price: item.discountPrice,
+          quantity: item.quantity,
+          variant: item.variant,
+          flavour: item.flavour
+        }))
+      };
+
+      const res = await api.createOrder(orderPayload);
+
+      if (res.success && res.order) {
+        confetti({
+          particleCount: 120,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+
+        addToast('🎉 Payment Verified! Order confirmed automatically.', 'success');
+        clearCart();
+        navigate(`/order-success/${res.order.orderId || res.order._id}`, { state: { order: res.order } });
+      }
+    } catch (error) {
+      console.error('[Razorpay Order Completion Error]', error);
+      setErrorMessage(error.message || 'Failed to place order after payment.');
+      addToast(error.message || 'Failed to place order', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     setErrorMessage('');
@@ -147,7 +223,73 @@ export default function Checkout() {
       return;
     }
 
-    // Validation for Online / UPI payment
+    // 1. Razorpay Automatic Online Payment
+    if (formData.paymentMethod === 'Razorpay (Online)') {
+      try {
+        setIsSubmitting(true);
+        const orderRes = await api.createRazorpayOrder({
+          amount: totalAmount,
+          receipt: `rcpt_${Date.now()}`
+        });
+
+        // If Demo sandbox mode or demo key, open Sandbox Modal simulator immediately
+        if (orderRes.isDemo || orderRes.keyId?.includes('DemoKey')) {
+          setSandboxOrderInfo(orderRes);
+          setShowSandboxModal(true);
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Live or registered test key: load official Razorpay SDK
+        const isLoaded = await loadRazorpayScript();
+        if (!isLoaded || !window.Razorpay) {
+          setSandboxOrderInfo(orderRes);
+          setShowSandboxModal(true);
+          setIsSubmitting(false);
+          return;
+        }
+
+        const options = {
+          key: orderRes.keyId,
+          amount: orderRes.amount,
+          currency: orderRes.currency || 'INR',
+          name: paymentSettings.merchantName || 'OG Supplement Store',
+          description: 'Authentic Supplement Stack Order',
+          image: '/uploads/merchant_qr.jpg',
+          order_id: orderRes.orderId && !orderRes.isDemo ? orderRes.orderId : undefined,
+          prefill: {
+            name: formData.customerName,
+            email: formData.email,
+            contact: formData.phone
+          },
+          theme: {
+            color: '#10b981'
+          },
+          handler: async function (response) {
+            await handleCompleteRazorpayOrder(response);
+          },
+          modal: {
+            ondismiss: function () {
+              setIsSubmitting(false);
+              addToast('Payment cancelled by user', 'info');
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (resp) {
+          setIsSubmitting(false);
+          addToast(resp.error?.description || 'Payment Failed', 'error');
+        });
+        rzp.open();
+      } catch (err) {
+        setIsSubmitting(false);
+        setErrorMessage(err.message || 'Razorpay Gateway initialization failed');
+      }
+      return;
+    }
+
+    // 2. Validation for Online / UPI payment
     if (formData.paymentMethod === 'Online / UPI') {
       const utr = (formData.transactionId || '').trim();
       if (!utr) {
@@ -162,6 +304,7 @@ export default function Checkout() {
       }
     }
 
+    // 3. COD & Manual UPI Order Creation
     try {
       setIsSubmitting(true);
 
@@ -390,14 +533,52 @@ export default function Checkout() {
               </div>
 
               {/* Payment Channel Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3.5">
                 
-                {/* Online / UPI Option */}
+                {/* Option 1: Razorpay Automatic Online Gateway */}
+                {paymentSettings.isRazorpayEnabled !== false && (
+                  <label className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
+                    formData.paymentMethod === 'Razorpay (Online)'
+                      ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-950/20 ring-1 ring-emerald-500/30'
+                      : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Razorpay (Online)"
+                      checked={formData.paymentMethod === 'Razorpay (Online)'}
+                      onChange={handleChange}
+                      className="mt-1 accent-emerald-500 w-4 h-4"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          Instant Online Payment (UPI / Cards / GPay / NetBanking)
+                        </p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            ⚡ 100% Automatic • Recommended
+                          </span>
+                          {paymentSettings.razorpayMode === 'test' && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                              🧪 Sandbox Test Mode
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Pay securely with Google Pay, PhonePe, Paytm, Debit/Credit Card or NetBanking. Order confirms automatically with zero manual UTR input.
+                      </p>
+                    </div>
+                  </label>
+                )}
+
+                {/* Option 2: Manual UPI / QR Code */}
                 {paymentSettings.isUpiEnabled !== false && (
-                  <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                  <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
                     formData.paymentMethod === 'Online / UPI'
                       ? 'border-emerald-500 bg-emerald-500/10 shadow-md shadow-emerald-950/20'
-                      : isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50'
+                      : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
                   }`}>
                     <input
                       type="radio"
@@ -405,26 +586,26 @@ export default function Checkout() {
                       value="Online / UPI"
                       checked={formData.paymentMethod === 'Online / UPI'}
                       onChange={handleChange}
-                      className="mt-1 accent-emerald-500"
+                      className="mt-1 accent-emerald-500 w-4 h-4"
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Instant UPI / QR Code</p>
-                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                          Recommended
+                        <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Manual UPI QR Scanner</p>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                          Manual UTR
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">Google Pay, PhonePe, Paytm, BHIM & UPI Apps.</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Scan static QR code on phone and enter 12-digit UTR reference manually.</p>
                     </div>
                   </label>
                 )}
 
-                {/* Cash on Delivery Option */}
+                {/* Option 3: Cash on Delivery */}
                 {paymentSettings.isCodEnabled !== false && (
-                  <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                  <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
                     formData.paymentMethod === 'Cash on Delivery'
                       ? 'border-emerald-500 bg-emerald-500/10 shadow-md shadow-emerald-950/20'
-                      : isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50'
+                      : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
                   }`}>
                     <input
                       type="radio"
@@ -432,16 +613,47 @@ export default function Checkout() {
                       value="Cash on Delivery"
                       checked={formData.paymentMethod === 'Cash on Delivery'}
                       onChange={handleChange}
-                      className="mt-1 accent-emerald-500"
+                      className="mt-1 accent-emerald-500 w-4 h-4"
                     />
                     <div>
                       <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Cash on Delivery (COD)</p>
-                      <p className="text-xs text-slate-400 mt-1">Pay with cash upon delivery at your doorstep.</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Pay with cash upon delivery at your doorstep.</p>
                     </div>
                   </label>
                 )}
 
               </div>
+
+              {/* Razorpay Information Box (When Razorpay is selected) */}
+              {formData.paymentMethod === 'Razorpay (Online)' && (
+                <div className={`p-5 rounded-2xl border space-y-3 animate-in fade-in zoom-in-95 duration-200 ${
+                  isDark ? 'bg-slate-950/80 border-emerald-500/30' : 'bg-emerald-50/50 border-emerald-200'
+                }`}>
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Instant Payment Gateway Powered by Razorpay</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-300">
+                    <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>1-Click UPI & Card PIN Verification</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>Zero UTR typing required</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>Automated Order Confirmation</span>
+                    </div>
+                  </div>
+                  {paymentSettings.razorpayMode === 'test' && (
+                    <p className="text-[11px] text-cyan-400 bg-cyan-950/40 p-2.5 rounded-xl border border-cyan-500/20 font-medium">
+                      🧪 <strong>Test Mode Active:</strong> You can simulate payment safely. No real money will be charged from your account!
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Interactive UPI QR Scanner Box (Appears when Online / UPI is selected) */}
               {formData.paymentMethod === 'Online / UPI' && (
@@ -688,7 +900,9 @@ export default function Checkout() {
                   <>
                     <ShieldCheck className="w-5 h-5" />
                     <span>
-                      {formData.paymentMethod === 'Online / UPI'
+                      {formData.paymentMethod === 'Razorpay (Online)'
+                        ? `Pay ₹${totalAmount.toLocaleString('en-IN')} with Razorpay`
+                        : formData.paymentMethod === 'Online / UPI'
                         ? `Confirm UPI Order (₹${totalAmount.toLocaleString('en-IN')})`
                         : `Place COD Order (₹${totalAmount.toLocaleString('en-IN')})`}
                     </span>
@@ -706,6 +920,71 @@ export default function Checkout() {
         </div>
 
       </div>
+
+      {/* Razorpay Test Mode / Sandbox Simulation Modal */}
+      {showSandboxModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-lg border border-emerald-500/30">
+                  ₹
+                </div>
+                <div>
+                  <h4 className="text-base font-black text-white">Razorpay Test Gateway</h4>
+                  <p className="text-xs text-emerald-400 font-bold">🧪 Sandbox Payment Simulation</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSandboxModal(false)}
+                className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1 text-center">
+              <span className="text-[11px] text-slate-400 uppercase tracking-widest font-black">Order Amount</span>
+              <p className="text-3xl font-black text-white font-mono">₹{totalAmount.toLocaleString('en-IN')}</p>
+              <span className="inline-block mt-1 text-[11px] text-cyan-400 font-bold bg-cyan-950/60 px-2.5 py-0.5 rounded-full border border-cyan-500/30">
+                Safe Test Mode • No Real Charges
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => handleCompleteRazorpayOrder({
+                  razorpay_payment_id: 'pay_test_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+                  razorpay_order_id: sandboxOrderInfo?.orderId || 'order_test_' + Date.now().toString(36),
+                  razorpay_signature: 'test_sig_' + Date.now()
+                })}
+                disabled={isSubmitting}
+                className="w-full py-4 rounded-2xl font-black text-xs sm:text-sm text-black bg-emerald-500 hover:bg-emerald-400 shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+                <span>Simulate Successful UPI / Card Payment</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSandboxModal(false);
+                  addToast('Payment simulation cancelled', 'info');
+                }}
+                className="w-full py-3 rounded-2xl font-bold text-xs text-slate-300 bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
+              >
+                Cancel Simulation
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-500 text-center leading-relaxed">
+              Once approved by Razorpay, your live Key ID will automatically open the official payment interface with real UPI PIN, GPay, PhonePe, and Card payments.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -37,7 +37,11 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-400">Order ID:</span>
               <span className="font-mono font-black text-cyan-400 text-lg">{order.orderId}</span>
-              {order.paymentMethod === 'Online / UPI' || order.transactionId ? (
+              {(order.paymentMethod?.includes('Razorpay') || order.razorpayPaymentId) ? (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  ⚡ PREPAID (RAZORPAY VERIFIED)
+                </span>
+              ) : (order.paymentMethod === 'Online / UPI' || order.transactionId) ? (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                   ⚡ PREPAID (ONLINE UPI)
                 </span>

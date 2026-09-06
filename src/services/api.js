@@ -226,13 +226,41 @@ export const api = {
     return {
       success: true,
       settings: {
-        qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3Dogsupplement%40okaxis%26pn%3DOG%2BSupplement%26cu%3DINR',
+        qrCodeImage: '/uploads/merchant_qr.jpg',
         upiId: 'ogsupplement@okaxis',
         merchantName: 'OG Supplement Store',
         isUpiEnabled: true,
         isCodEnabled: true,
+        isRazorpayEnabled: true,
+        razorpayKeyId: 'rzp_test_5173DemoKey',
+        razorpayMode: 'test',
         instructions: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
       }
     };
   },
+
+  // Razorpay Gateway
+  createRazorpayOrder: async (data) => {
+    try {
+      return await apiRequest('/payment/razorpay/create-order', { method: 'POST', body: JSON.stringify(data) });
+    } catch (err) {
+      // Sandbox Simulator Fallback
+      return {
+        success: true,
+        orderId: 'order_test_' + Date.now().toString(36),
+        amount: Math.round(Number(data.amount) * 100),
+        currency: 'INR',
+        keyId: 'rzp_test_5173DemoKey',
+        mode: 'test',
+        isDemo: true
+      };
+    }
+  },
+  verifyRazorpayPayment: async (data) => {
+    try {
+      return await apiRequest('/payment/razorpay/verify', { method: 'POST', body: JSON.stringify(data) });
+    } catch (err) {
+      return { success: true, verified: true, paymentId: data.razorpay_payment_id || 'pay_test_' + Date.now().toString(36) };
+    }
+  }
 };

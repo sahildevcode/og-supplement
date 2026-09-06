@@ -193,7 +193,8 @@ export default function AdminOrders() {
                 </tr>
               ) : (
                 filtered.map((ord) => {
-                  const isPrepaid = ord.paymentMethod === 'Online / UPI' || !!ord.transactionId;
+                  const isRazorpay = ord.paymentMethod?.includes('Razorpay') || !!ord.razorpayPaymentId;
+                  const isPrepaid = isRazorpay || ord.paymentMethod === 'Online / UPI' || !!ord.transactionId;
                   const isUpdating = updatingId === (ord.orderId || ord._id);
                   return (
                     <tr key={ord.orderId || ord._id} className="hover:bg-slate-800/40 transition-colors">
@@ -221,13 +222,17 @@ export default function AdminOrders() {
                         {isPrepaid ? (
                           <div className="mt-1 flex flex-col gap-1 items-start">
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                              ⚡ PREPAID (ONLINE UPI)
+                              {isRazorpay ? '⚡ PREPAID (RAZORPAY)' : '⚡ PREPAID (ONLINE UPI)'}
                             </span>
-                            {ord.transactionId && (
+                            {ord.razorpayPaymentId ? (
+                              <span className="text-[10px] text-emerald-300 font-mono font-bold bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/30 inline-block">
+                                ID: {ord.razorpayPaymentId}
+                              </span>
+                            ) : ord.transactionId ? (
                               <span className="text-[10px] text-emerald-300 font-mono font-bold bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/30 inline-block">
                                 UTR: {ord.transactionId}
                               </span>
-                            )}
+                            ) : null}
                           </div>
                         ) : (
                           <div className="mt-1">

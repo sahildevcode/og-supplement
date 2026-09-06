@@ -60,13 +60,15 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
     {
       id: 3,
       title: 'Delivered',
-      desc: activeIndex >= 3 ? 'Delivered to your doorstep' : `Expected by ${formattedDeliveryDate}`,
-      time: activeIndex >= 3 ? 'Delivered' : formattedDeliveryDate,
+      desc: activeIndex >= 3 ? 'Your product has been delivered today' : `Expected by ${formattedDeliveryDate}`,
+      time: activeIndex >= 3 ? 'Delivered Today' : formattedDeliveryDate,
       icon: Home
     }
   ];
 
-  const isPrepaid = order.paymentMethod === 'Online / UPI' || !!order.transactionId;
+  const isRazorpay = order.paymentMethod?.includes('Razorpay') || !!order.razorpayPaymentId;
+  const isPrepaid = isRazorpay || order.paymentMethod === 'Online / UPI' || !!order.transactionId;
+  const paymentRef = order.razorpayPaymentId || order.transactionId;
 
   return (
     <div className={`p-5 sm:p-7 rounded-3xl border transition-all ${
@@ -82,7 +84,7 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
               </span>
             ) : activeIndex === 3 ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Delivered Successfully
+                <CheckCircle2 className="w-3.5 h-3.5" /> Your product has been delivered today
               </span>
             ) : (
               <div className="flex items-center gap-2">
@@ -102,11 +104,11 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
           {isPrepaid ? (
             <div className="text-right">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                ⚡ PREPAID (ONLINE UPI)
+                {isRazorpay ? '⚡ PREPAID (RAZORPAY VERIFIED)' : '⚡ PREPAID (ONLINE UPI)'}
               </span>
-              {order.transactionId && (
+              {paymentRef && (
                 <span className="block text-[10px] text-emerald-300 font-mono mt-0.5">
-                  UTR: {order.transactionId}
+                  {order.razorpayPaymentId ? `ID: ${order.razorpayPaymentId}` : `UTR: ${order.transactionId}`}
                 </span>
               )}
             </div>

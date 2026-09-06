@@ -23,6 +23,23 @@ const paymentSettingsSchema = new mongoose.Schema(
       type: Boolean,
       default: true
     },
+    isRazorpayEnabled: {
+      type: Boolean,
+      default: true
+    },
+    razorpayKeyId: {
+      type: String,
+      default: 'rzp_test_5173DemoKey'
+    },
+    razorpayKeySecret: {
+      type: String,
+      default: ''
+    },
+    razorpayMode: {
+      type: String,
+      enum: ['test', 'live'],
+      default: 'test'
+    },
     instructions: {
       type: String,
       default: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
@@ -39,6 +56,10 @@ export const defaultSettings = {
   merchantName: 'OG Supplement Store',
   isUpiEnabled: true,
   isCodEnabled: true,
+  isRazorpayEnabled: true,
+  razorpayKeyId: 'rzp_test_5173DemoKey',
+  razorpayKeySecret: '',
+  razorpayMode: 'test',
   instructions: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
 };
 
