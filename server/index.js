@@ -9,11 +9,14 @@ import { connectDB, localStore } from './config/db.js';
 import { initialProducts } from './data/seedProducts.js';
 import { Product } from './models/Product.js';
 import { User } from './models/User.js';
+import { Category } from './models/Category.js';
+import { initialCategories } from './data/seedCategories.js';
 
 import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
 
 dotenv.config();
 
@@ -47,6 +50,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Health Check API
 app.get('/api/health', (req, res) => {
@@ -108,6 +112,16 @@ const seedDatabase = async () => {
         phone: '+91 91234 56789'
       });
       console.log('\x1b[32m[Auth Seeded]\x1b[0m Created Customer Account: john@example.com (Pass: customerpassword123)');
+    }
+
+    // Seed default homepage categories
+    const existingCategories = await Category.find();
+    if (existingCategories.length === 0) {
+      console.log('\x1b[36m[DB Seeding]\x1b[0m Populating initial homepage categories...');
+      for (const cat of initialCategories) {
+        await Category.create(cat);
+      }
+      console.log(`\x1b[32m[DB Seeded]\x1b[0m Successfully loaded ${initialCategories.length} homepage categories!`);
     }
   } catch (error) {
     console.warn('[Seed Error]', error.message);

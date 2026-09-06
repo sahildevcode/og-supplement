@@ -8,8 +8,8 @@
     "server": "node server/index.js",
     "dev:client": "vite --port 5173",
     "dev:admin": "vite --config admin/vite.config.js --port 5174",
-    "build": "vite build",
-    "build:admin": "vite build --config admin/vite.config.js"
+    "build": "vite build && vite build admin --base /admin/ --outDir ../dist/admin",
+    "build:admin": "vite build admin --base /admin/ --outDir ../dist/admin"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.0",

@@ -15,6 +15,7 @@ export const localStore = {
   products: [],
   orders: [],
   users: [],
+  categories: [],
   init() {
     try {
       const dataDir = path.dirname(DB_FILE);
@@ -27,6 +28,7 @@ export const localStore = {
         this.products = parsed.products || [];
         this.orders = parsed.orders || [];
         this.users = parsed.users || [];
+        this.categories = parsed.categories || [];
       }
     } catch (e) {
       console.warn('[DB] Fallback store init note:', e.message);
@@ -41,7 +43,8 @@ export const localStore = {
       fs.writeFileSync(DB_FILE, JSON.stringify({
         products: this.products,
         orders: this.orders,
-        users: this.users
+        users: this.users,
+        categories: this.categories
       }, null, 2));
     } catch (e) {
       console.error('[DB] Fallback save error:', e.message);

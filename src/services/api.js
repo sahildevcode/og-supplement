@@ -177,4 +177,29 @@ export const api = {
   // Admin
   getAdminStats: () => apiRequest('/admin/stats'),
   uploadImage: (formData) => apiRequest('/admin/upload', { method: 'POST', body: formData }),
+
+  // Categories & Homepage Management
+  getCategories: async () => {
+    try {
+      const res = await apiRequest('/categories');
+      if (res && res.categories && res.categories.length > 0) {
+        try {
+          localStorage.setItem('og_homepage_categories', JSON.stringify(res.categories));
+        } catch (e) {}
+        return res;
+      }
+    } catch (error) {
+      console.warn('[Get Categories Notice] Backend offline or connecting, falling back to cached storage', error.message);
+    }
+    try {
+      const cached = JSON.parse(localStorage.getItem('og_homepage_categories') || '[]');
+      if (cached.length > 0) {
+        return { success: true, categories: cached };
+      }
+    } catch (e) {}
+    return { success: true, categories: [] };
+  },
+  createCategory: (data) => apiRequest('/categories', { method: 'POST', body: JSON.stringify(data) }),
+  updateCategory: (id, data) => apiRequest(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteCategory: (id) => apiRequest(`/categories/${id}`, { method: 'DELETE' }),
 };

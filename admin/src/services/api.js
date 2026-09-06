@@ -57,4 +57,10 @@ export const api = {
   // Analytics & Stats
   getAdminStats: () => apiRequest('/admin/stats'),
   uploadImage: (formData) => apiRequest('/admin/upload', { method: 'POST', body: formData }),
+
+  // Categories & Homepage Management
+  getCategories: () => apiRequest('/categories/all'),
+  createCategory: (data) => apiRequest('/categories', { method: 'POST', body: JSON.stringify(data) }),
+  updateCategory: (id, data) => apiRequest(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteCategory: (id) => apiRequest(`/categories/${id}`, { method: 'DELETE' }),
 };

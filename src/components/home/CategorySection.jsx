@@ -1,69 +1,116 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
 import { useTheme } from '../../context/ThemeContext';
+import { api } from '../../services/api';
+import { socket } from '../../services/socket';
 
-const categoriesList = [
-  {
-    name: 'Protein',
-    title: 'Whey & Isolate Protein',
-    desc: 'Pure muscle synthesis & fast recovery',
-    image: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80',
+const themePresets = {
+  emerald: {
     colorDark: 'from-emerald-500/20 to-teal-500/5',
     colorLight: 'from-emerald-100 to-teal-50/50',
     borderDark: 'border-slate-800 group-hover:border-emerald-500/50',
     borderLight: 'border-slate-200 group-hover:border-emerald-500/60 shadow-sm hover:shadow-xl',
   },
-  {
-    name: 'Mass Gainer',
-    title: 'High Calorie Mass Gainers',
-    desc: 'Calorie-dense bulking & solid mass',
-    image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&auto=format&fit=crop&q=80',
+  purple: {
     colorDark: 'from-purple-500/20 to-indigo-500/5',
     colorLight: 'from-purple-100 to-indigo-50/50',
     borderDark: 'border-slate-800 group-hover:border-purple-500/50',
     borderLight: 'border-slate-200 group-hover:border-purple-500/60 shadow-sm hover:shadow-xl',
   },
-  {
-    name: 'Creatine',
-    title: 'Micronized Creatine',
-    desc: 'ATP power, explosive strength & size',
-    image: 'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&auto=format&fit=crop&q=80',
+  blue: {
     colorDark: 'from-blue-500/20 to-cyan-500/5',
     colorLight: 'from-blue-100 to-cyan-50/50',
     borderDark: 'border-slate-800 group-hover:border-cyan-500/50',
     borderLight: 'border-slate-200 group-hover:border-cyan-500/60 shadow-sm hover:shadow-xl',
   },
-  {
-    name: 'Pre-Workout',
-    title: 'Energy & Pump Formulas',
-    desc: 'High-stim focus & maximum vasodilation',
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80',
+  amber: {
     colorDark: 'from-amber-500/20 to-orange-500/5',
     colorLight: 'from-amber-100 to-orange-50/50',
     borderDark: 'border-slate-800 group-hover:border-amber-500/50',
     borderLight: 'border-slate-200 group-hover:border-amber-500/60 shadow-sm hover:shadow-xl',
   },
-  {
-    name: 'Supplements',
-    title: 'BCAA & Amino Recovery',
-    desc: 'Intra-workout hydration & endurance',
-    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
+  rose: {
     colorDark: 'from-rose-500/20 to-pink-500/5',
     colorLight: 'from-rose-100 to-pink-50/50',
     borderDark: 'border-slate-800 group-hover:border-rose-500/50',
     borderLight: 'border-slate-200 group-hover:border-rose-500/60 shadow-sm hover:shadow-xl',
   },
-  {
-    name: 'Vitamins',
-    title: 'Daily Multivitamins & Minerals',
-    desc: 'Immunity, joints & performance health',
-    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
+  teal: {
     colorDark: 'from-teal-500/20 to-emerald-500/5',
     colorLight: 'from-teal-100 to-emerald-50/50',
     borderDark: 'border-slate-800 group-hover:border-teal-500/50',
     borderLight: 'border-slate-200 group-hover:border-teal-500/60 shadow-sm hover:shadow-xl',
+  },
+  cyan: {
+    colorDark: 'from-cyan-500/20 to-blue-500/5',
+    colorLight: 'from-cyan-100 to-blue-50/50',
+    borderDark: 'border-slate-800 group-hover:border-cyan-500/50',
+    borderLight: 'border-slate-200 group-hover:border-cyan-500/60 shadow-sm hover:shadow-xl',
+  },
+  orange: {
+    colorDark: 'from-orange-500/20 to-red-500/5',
+    colorLight: 'from-orange-100 to-amber-50/50',
+    borderDark: 'border-slate-800 group-hover:border-orange-500/50',
+    borderLight: 'border-slate-200 group-hover:border-orange-500/60 shadow-sm hover:shadow-xl',
+  }
+};
+
+const defaultCategories = [
+  {
+    _id: 'cat_protein_01',
+    name: 'Protein',
+    title: 'Whey & Isolate Protein',
+    desc: 'Pure muscle synthesis & fast recovery',
+    image: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'emerald',
+    order: 1
+  },
+  {
+    _id: 'cat_mass_02',
+    name: 'Mass Gainer',
+    title: 'High Calorie Mass Gainers',
+    desc: 'Calorie-dense bulking & solid mass',
+    image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'purple',
+    order: 2
+  },
+  {
+    _id: 'cat_creatine_03',
+    name: 'Creatine',
+    title: 'Micronized Creatine',
+    desc: 'ATP power, explosive strength & size',
+    image: 'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'blue',
+    order: 3
+  },
+  {
+    _id: 'cat_preworkout_04',
+    name: 'Pre-Workout',
+    title: 'Energy & Pump Formulas',
+    desc: 'High-stim focus & maximum vasodilation',
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'amber',
+    order: 4
+  },
+  {
+    _id: 'cat_bcaa_05',
+    name: 'Supplements',
+    title: 'BCAA & Amino Recovery',
+    desc: 'Intra-workout hydration & endurance',
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'rose',
+    order: 5
+  },
+  {
+    _id: 'cat_vitamins_06',
+    name: 'Vitamins',
+    title: 'Daily Multivitamins & Minerals',
+    desc: 'Immunity, joints & performance health',
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'teal',
+    order: 6
   }
 ];
 
@@ -71,6 +118,73 @@ export default function CategorySection() {
   const { setSelectedCategory } = useProducts();
   const { isDark } = useTheme();
   const navigate = useNavigate();
+
+  // Instant cached initialization for zero layout shift
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem('og_homepage_categories') || '[]');
+      if (Array.isArray(cached) && cached.length > 0) {
+        return cached;
+      }
+    } catch (e) {}
+    return defaultCategories;
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCategories = async () => {
+      try {
+        const res = await api.getCategories();
+        if (res && res.categories && res.categories.length > 0 && isMounted) {
+          setCategories(res.categories);
+        }
+      } catch (err) {
+        console.warn('[CategorySection Load Notice]', err.message);
+      }
+    };
+
+    fetchCategories();
+
+    // Socket.IO real-time instant synchronizers
+    const handleCreated = (newCat) => {
+      setCategories((prev) => {
+        const next = [...prev.filter((c) => (c._id || c.id) !== (newCat._id || newCat.id)), newCat]
+          .sort((a, b) => (a.order || 0) - (b.order || 0));
+        try { localStorage.setItem('og_homepage_categories', JSON.stringify(next)); } catch (e) {}
+        return next;
+      });
+    };
+
+    const handleUpdated = (updatedCat) => {
+      const targetId = updatedCat._id || updatedCat.id;
+      setCategories((prev) => {
+        const next = prev.map((c) => ((c._id || c.id) === targetId ? updatedCat : c))
+          .sort((a, b) => (a.order || 0) - (b.order || 0));
+        try { localStorage.setItem('og_homepage_categories', JSON.stringify(next)); } catch (e) {}
+        return next;
+      });
+    };
+
+    const handleDeleted = ({ categoryId }) => {
+      setCategories((prev) => {
+        const next = prev.filter((c) => (c._id || c.id) !== categoryId);
+        try { localStorage.setItem('og_homepage_categories', JSON.stringify(next)); } catch (e) {}
+        return next;
+      });
+    };
+
+    socket.on('category:created', handleCreated);
+    socket.on('category:updated', handleUpdated);
+    socket.on('category:deleted', handleDeleted);
+
+    return () => {
+      isMounted = false;
+      socket.off('category:created', handleCreated);
+      socket.off('category:updated', handleUpdated);
+      socket.off('category:deleted', handleDeleted);
+    };
+  }, []);
 
   const handleCategoryClick = (catName) => {
     setSelectedCategory(catName);
@@ -107,26 +221,32 @@ export default function CategorySection() {
 
         {/* Categories Grid with Left/Right Staggered Motion */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categoriesList.map((cat, idx) => {
+          {categories.map((cat, idx) => {
             const isEven = idx % 2 === 0;
             const slideAnim = isEven ? 'animate-slide-left' : 'animate-slide-right';
             const delayClass = `delay-${(idx % 3 + 1) * 100}`;
+            const theme = themePresets[cat.colorTheme] || themePresets.emerald;
+
+            const colorDark = cat.colorDark || theme.colorDark;
+            const colorLight = cat.colorLight || theme.colorLight;
+            const borderDark = cat.borderDark || theme.borderDark;
+            const borderLight = cat.borderLight || theme.borderLight;
 
             return (
               <div
-                key={cat.name}
+                key={cat._id || cat.id || cat.name || idx}
                 onClick={() => handleCategoryClick(cat.name)}
                 className={`group relative cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br ${
-                  isDark ? cat.colorDark : cat.colorLight
+                  isDark ? colorDark : colorLight
                 } border ${
-                  isDark ? cat.borderDark : cat.borderLight
+                  isDark ? borderDark : borderLight
                 } p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-[1.025] active:scale-95 flex flex-col justify-between min-h-[220px] shadow-lg hover:shadow-2xl ${slideAnim} ${delayClass}`}
               >
                 <div className="relative z-10 space-y-2">
                   <span className={`inline-block text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border transition-transform duration-200 group-hover:scale-105 ${
                     isDark ? 'bg-slate-900/90 text-emerald-400 border-slate-700' : 'bg-white/90 text-emerald-700 border-slate-200 shadow-sm'
                   }`}>
-                    {cat.name}
+                    {cat.badge || cat.name}
                   </span>
                   <h3 className={`text-xl font-extrabold transition-colors ${
                     isDark ? 'text-white group-hover:text-emerald-300' : 'text-slate-900 group-hover:text-emerald-700'
@@ -144,9 +264,12 @@ export default function CategorySection() {
                 <div className="absolute -right-4 -bottom-4 w-36 h-36 opacity-85 group-hover:opacity-100 transition-all duration-500 group-hover:scale-115 group-hover:-translate-x-2 group-hover:-translate-y-2 pointer-events-none">
                   <img
                     src={cat.image}
-                    alt={cat.name}
+                    alt={cat.title || cat.name}
                     className="w-full h-full object-contain filter drop-shadow-2xl"
                     loading="lazy"
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80';
+                    }}
                   />
                 </div>
 

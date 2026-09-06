@@ -13,6 +13,7 @@ import AdminLayout from './components/AdminLayout';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminProducts from './pages/AdminProducts';
+import AdminCategories from './pages/AdminCategories';
 import AdminStock from './pages/AdminStock';
 import AdminOrders from './pages/AdminOrders';
 import AdminCustomers from './pages/AdminCustomers';
@@ -33,6 +34,7 @@ export default function App() {
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="products" element={<AdminProducts />} />
+                <Route path="categories" element={<AdminCategories />} />
                 <Route path="stock" element={<AdminStock />} />
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="customers" element={<AdminCustomers />} />

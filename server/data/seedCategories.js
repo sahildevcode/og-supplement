@@ -1,0 +1,80 @@
+export const initialCategories = [
+  {
+    name: 'Protein',
+    title: 'Whey & Isolate Protein',
+    desc: 'Pure muscle synthesis & fast recovery',
+    image: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'emerald',
+    colorDark: 'from-emerald-500/20 to-teal-500/5',
+    colorLight: 'from-emerald-100 to-teal-50/50',
+    borderDark: 'border-slate-800 group-hover:border-emerald-500/50',
+    borderLight: 'border-slate-200 group-hover:border-emerald-500/60 shadow-sm hover:shadow-xl',
+    order: 1,
+    isActive: true
+  },
+  {
+    name: 'Mass Gainer',
+    title: 'High Calorie Mass Gainers',
+    desc: 'Calorie-dense bulking & solid mass',
+    image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'purple',
+    colorDark: 'from-purple-500/20 to-indigo-500/5',
+    colorLight: 'from-purple-100 to-indigo-50/50',
+    borderDark: 'border-slate-800 group-hover:border-purple-500/50',
+    borderLight: 'border-slate-200 group-hover:border-purple-500/60 shadow-sm hover:shadow-xl',
+    order: 2,
+    isActive: true
+  },
+  {
+    name: 'Creatine',
+    title: 'Micronized Creatine',
+    desc: 'ATP power, explosive strength & size',
+    image: 'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'blue',
+    colorDark: 'from-blue-500/20 to-cyan-500/5',
+    colorLight: 'from-blue-100 to-cyan-50/50',
+    borderDark: 'border-slate-800 group-hover:border-cyan-500/50',
+    borderLight: 'border-slate-200 group-hover:border-cyan-500/60 shadow-sm hover:shadow-xl',
+    order: 3,
+    isActive: true
+  },
+  {
+    name: 'Pre-Workout',
+    title: 'Energy & Pump Formulas',
+    desc: 'High-stim focus & maximum vasodilation',
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'amber',
+    colorDark: 'from-amber-500/20 to-orange-500/5',
+    colorLight: 'from-amber-100 to-orange-50/50',
+    borderDark: 'border-slate-800 group-hover:border-amber-500/50',
+    borderLight: 'border-slate-200 group-hover:border-amber-500/60 shadow-sm hover:shadow-xl',
+    order: 4,
+    isActive: true
+  },
+  {
+    name: 'Supplements',
+    title: 'BCAA & Amino Recovery',
+    desc: 'Intra-workout hydration & endurance',
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'rose',
+    colorDark: 'from-rose-500/20 to-pink-500/5',
+    colorLight: 'from-rose-100 to-pink-50/50',
+    borderDark: 'border-slate-800 group-hover:border-rose-500/50',
+    borderLight: 'border-slate-200 group-hover:border-rose-500/60 shadow-sm hover:shadow-xl',
+    order: 5,
+    isActive: true
+  },
+  {
+    name: 'Vitamins',
+    title: 'Daily Multivitamins & Minerals',
+    desc: 'Immunity, joints & performance health',
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
+    colorTheme: 'teal',
+    colorDark: 'from-teal-500/20 to-emerald-500/5',
+    colorLight: 'from-teal-100 to-emerald-50/50',
+    borderDark: 'border-slate-800 group-hover:border-teal-500/50',
+    borderLight: 'border-slate-200 group-hover:border-teal-500/60 shadow-sm hover:shadow-xl',
+    order: 6,
+    isActive: true
+  }
+];
