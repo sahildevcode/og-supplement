@@ -82,16 +82,21 @@ io.on('connection', (socket) => {
   });
 });
 
-// Auto-seed initial catalog & demo accounts
+// Auto-seed initial catalog & demo accounts with seamless Cloud Sync
 const seedDatabase = async () => {
   try {
     const existingProducts = await Product.find();
     if (existingProducts.length === 0) {
-      console.log('\x1b[36m[DB Seeding]\x1b[0m Populating initial premium supplement catalog...');
-      for (const item of initialProducts) {
-        await Product.create(item);
+      const productsToSeed = (localStore.products && localStore.products.length > 0)
+        ? localStore.products
+        : initialProducts;
+
+      console.log(`\x1b[36m[DB Seeding]\x1b[0m Syncing ${productsToSeed.length} supplement products to MongoDB Cloud...`);
+      for (const item of productsToSeed) {
+        const { _id, ...cleanItem } = item;
+        await Product.create(cleanItem);
       }
-      console.log(`\x1b[32m[DB Seeded]\x1b[0m Successfully loaded ${initialProducts.length} supplement products!`);
+      console.log(`\x1b[32m[DB Seeded]\x1b[0m Successfully synchronized products to MongoDB Cloud!`);
     }
 
     // Seed default admin & test customer
@@ -122,15 +127,24 @@ const seedDatabase = async () => {
     // Seed default homepage categories
     const existingCategories = await Category.find();
     if (existingCategories.length === 0) {
-      console.log('\x1b[36m[DB Seeding]\x1b[0m Populating initial homepage categories...');
-      for (const cat of initialCategories) {
-        await Category.create(cat);
+      const catsToSeed = (localStore.categories && localStore.categories.length > 0)
+        ? localStore.categories
+        : initialCategories;
+
+      console.log(`\x1b[36m[DB Seeding]\x1b[0m Syncing ${catsToSeed.length} homepage categories to MongoDB Cloud...`);
+      for (const cat of catsToSeed) {
+        const { _id, ...cleanCat } = cat;
+        await Category.create(cleanCat);
       }
-      console.log(`\x1b[32m[DB Seeded]\x1b[0m Successfully loaded ${initialCategories.length} homepage categories!`);
+      console.log(`\x1b[32m[DB Seeded]\x1b[0m Successfully synchronized homepage categories to MongoDB Cloud!`);
     }
 
-    // Seed default payment and QR settings
-    await PaymentSettings.get();
+    // Seed default payment settings
+    if (localStore.paymentSettings && Object.keys(localStore.paymentSettings).length > 0) {
+      await PaymentSettings.update(localStore.paymentSettings);
+    } else {
+      await PaymentSettings.get();
+    }
   } catch (error) {
     console.warn('[Seed Error]', error.message);
   }

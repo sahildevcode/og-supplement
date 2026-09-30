@@ -2,6 +2,12 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dns from 'dns';
+
+// Fix Windows SRV DNS resolution for MongoDB Atlas
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (e) {}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,14 +68,14 @@ export const connectDB = async () => {
   try {
     mongoose.set('strictQuery', false);
     const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 2000,
+      serverSelectionTimeoutMS: 8000,
     });
     isConnectedToMongo = true;
     console.log(`\x1b[32m[MongoDB Connected]\x1b[0m ${conn.connection.host}`);
     return true;
   } catch (error) {
     isConnectedToMongo = false;
-    console.log(`\x1b[33m[MongoDB Notice]\x1b[0m Could not connect to local MongoDB (${error.message}). Using Resilient Persistent Data Store with Real-Time Socket.IO.`);
+    console.log(`\x1b[33m[MongoDB Notice]\x1b[0m Could not connect to MongoDB (${error.message}). Using Resilient Persistent Data Store with Real-Time Socket.IO.`);
     return false;
   }
 };
