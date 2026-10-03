@@ -163,3 +163,47 @@ export const deleteProduct = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @route   POST /api/products/:id/reviews
+export const addProductReview = async (req, res) => {
+  try {
+    const { name, rating, title, comment, images } = req.body;
+
+    if (!comment || !comment.trim()) {
+      return res.status(400).json({ success: false, message: 'Please write a review comment' });
+    }
+
+    const numRating = Number(rating);
+    if (!numRating || numRating < 1 || numRating > 5) {
+      return res.status(400).json({ success: false, message: 'Please select a star rating between 1 and 5' });
+    }
+
+    const updated = await Product.addReview(req.params.id, {
+      name: name?.trim() || 'Verified Customer',
+      rating: numRating,
+      title: title?.trim() || '',
+      comment: comment?.trim() || '',
+      images: Array.isArray(images) ? images : (images ? [images] : [])
+    });
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const io = getIO(req);
+    if (io) {
+      io.emit('product:updated', updated);
+      io.emit('product:review_added', { productId: req.params.id, product: updated });
+      console.log(`\x1b[36m[Socket.IO Broadcast]\x1b[0m product:review_added => Product ID: ${req.params.id} (${numRating}★ by ${name})`);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Review submitted successfully!',
+      product: updated
+    });
+  } catch (error) {
+    console.error('[Add Product Review Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

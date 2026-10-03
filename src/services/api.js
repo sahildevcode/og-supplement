@@ -66,6 +66,7 @@ export const api = {
   updateProduct: (id, data) => apiRequest(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   updateStock: (id, stockData) => apiRequest(`/products/${id}/stock`, { method: 'PATCH', body: JSON.stringify(stockData) }),
   deleteProduct: (id) => apiRequest(`/products/${id}`, { method: 'DELETE' }),
+  addProductReview: (id, reviewData) => apiRequest(`/products/${id}/reviews`, { method: 'POST', body: JSON.stringify(reviewData) }),
 
   // Orders with resilient cloud + offline fallback
   createOrder: async (orderData) => {

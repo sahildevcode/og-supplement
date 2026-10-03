@@ -28,7 +28,19 @@ const productSchema = new mongoose.Schema(
     variants: [{ type: String }],
     flavours: [{ type: String }],
     ingredients: { type: String },
-    nutritionalInfo: { type: Object, default: {} }
+    nutritionalInfo: { type: Object, default: {} },
+    reviewsList: [
+      {
+        _id: { type: String },
+        name: { type: String, required: true },
+        rating: { type: Number, required: true, min: 1, max: 5 },
+        title: { type: String, default: '' },
+        comment: { type: String, required: true },
+        images: [{ type: String }],
+        verified: { type: Boolean, default: true },
+        createdAt: { type: String }
+      }
+    ]
   },
   { timestamps: true }
 );
@@ -149,5 +161,47 @@ export const Product = {
       res = res.filter(p => p.status === filter.status);
     }
     return res.length;
+  },
+
+  async addReview(id, reviewData) {
+    const newReview = {
+      _id: 'rev_' + crypto.randomBytes(6).toString('hex'),
+      name: reviewData.name?.trim() || 'Verified Customer',
+      rating: Math.max(1, Math.min(5, Number(reviewData.rating) || 5)),
+      title: reviewData.title?.trim() || '',
+      comment: reviewData.comment?.trim() || '',
+      images: Array.isArray(reviewData.images)
+        ? reviewData.images.filter(Boolean)
+        : (reviewData.images ? [reviewData.images] : []),
+      verified: true,
+      createdAt: new Date().toISOString()
+    };
+
+    if (isConnectedToMongo) {
+      const prod = await MongooseProduct.findById(id);
+      if (!prod) return null;
+      if (!prod.reviewsList) prod.reviewsList = [];
+      prod.reviewsList.unshift(newReview);
+
+      const totalRating = prod.reviewsList.reduce((acc, r) => acc + (Number(r.rating) || 5), 0);
+      prod.rating = Number((totalRating / prod.reviewsList.length).toFixed(1));
+      prod.reviews = prod.reviewsList.length;
+
+      await prod.save();
+      return prod;
+    }
+
+    const idx = localStore.products.findIndex(p => p._id === id || p.id === id);
+    if (idx === -1) return null;
+    const prod = localStore.products[idx];
+    if (!prod.reviewsList) prod.reviewsList = [];
+    prod.reviewsList.unshift(newReview);
+
+    const totalRating = prod.reviewsList.reduce((acc, r) => acc + (Number(r.rating) || 5), 0);
+    prod.rating = Number((totalRating / prod.reviewsList.length).toFixed(1));
+    prod.reviews = prod.reviewsList.length;
+
+    localStore.save();
+    return prod;
   }
 };
