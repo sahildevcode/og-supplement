@@ -85,19 +85,7 @@ io.on('connection', (socket) => {
 // Auto-seed initial catalog & demo accounts with seamless Cloud Sync
 const seedDatabase = async () => {
   try {
-    const existingProducts = await Product.find();
-    if (existingProducts.length === 0) {
-      const productsToSeed = (localStore.products && localStore.products.length > 0)
-        ? localStore.products
-        : initialProducts;
-
-      console.log(`\x1b[36m[DB Seeding]\x1b[0m Syncing ${productsToSeed.length} supplement products to MongoDB Cloud...`);
-      for (const item of productsToSeed) {
-        const { _id, ...cleanItem } = item;
-        await Product.create(cleanItem);
-      }
-      console.log(`\x1b[32m[DB Seeded]\x1b[0m Successfully synchronized products to MongoDB Cloud!`);
-    }
+    // Note: Automatic product re-seeding disabled to respect admin's custom catalog and deletions.
 
     // Seed default admin & test customer
     const existingAdmin = await User.findOne({ email: 'admin@ogsupplement.com' });

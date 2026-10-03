@@ -63,8 +63,10 @@ export const localStore = {
 
 localStore.init();
 
+const ATLAS_URI = 'mongodb+srv://sahildevcode_db_user:Sahil12345@cluster0.jt3hxfg.mongodb.net/ogsupplement?retryWrites=true&w=majority';
+
 export const connectDB = async () => {
-  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/supplement_store';
+  const uri = process.env.MONGODB_URI || ATLAS_URI;
   try {
     mongoose.set('strictQuery', false);
     const conn = await mongoose.connect(uri, {
