@@ -5,7 +5,9 @@ import {
   getAllOrders,
   getOrderById,
   updateOrderStatus,
-  refundOrder
+  refundOrder,
+  getCancellationPreview,
+  cancelOrder
 } from '../controllers/orderController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
@@ -17,5 +19,7 @@ router.get('/', getAllOrders);
 router.get('/:id', getOrderById);
 router.patch('/:id/status', updateOrderStatus);
 router.post('/:id/refund', refundOrder);
+router.get('/:id/cancel-preview', getCancellationPreview);
+router.post('/:id/cancel', cancelOrder);
 
 export default router;

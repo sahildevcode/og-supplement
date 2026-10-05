@@ -75,7 +75,10 @@ export const createOrder = async (req, res) => {
         flavour: item.flavour || 'Standard',
         shippingCost: dbProduct ? Number(dbProduct.shippingCost || 0) : Number(item.shippingCost || 0),
         isGstApplicable: dbProduct && dbProduct.isGstApplicable !== undefined ? dbProduct.isGstApplicable : true,
-        gstRate: dbProduct ? Number(dbProduct.gstRate || 18) : 18
+        gstRate: dbProduct ? Number(dbProduct.gstRate || 18) : 18,
+        isCancellationFeeApplicable: dbProduct?.isCancellationFeeApplicable !== undefined ? dbProduct.isCancellationFeeApplicable : true,
+        cancellationFeeType: dbProduct?.cancellationFeeType || 'percentage',
+        cancellationFeeValue: dbProduct?.cancellationFeeValue !== undefined ? Number(dbProduct.cancellationFeeValue) : 5
       });
 
       // Deduct stock if product exists in DB
@@ -392,6 +395,207 @@ export const refundOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('[Refund Order Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const calculateCancellationBreakdown = (order) => {
+  const isPaid = order.paymentStatus === 'Paid' || (order.paymentMethod === 'Razorpay (Online)' && order.transactionId);
+  const totalAmount = Number(order.totalAmount || 0);
+
+  if (!isPaid) {
+    return {
+      isPaid: false,
+      totalAmount,
+      cancellationFee: 0,
+      refundAmount: 0,
+      breakdown: []
+    };
+  }
+
+  let totalFee = 0;
+  const breakdown = [];
+
+  for (const item of (order.products || [])) {
+    const itemPrice = Number(item.price || 0);
+    const qty = Number(item.quantity || 1);
+    const itemTotal = itemPrice * qty;
+
+    let itemFee = 0;
+    if (item.isCancellationFeeApplicable !== false) {
+      const feeType = item.cancellationFeeType || 'percentage';
+      const feeVal = Number(item.cancellationFeeValue !== undefined ? item.cancellationFeeValue : 5);
+      if (feeType === 'percentage') {
+        itemFee = Math.round((itemTotal * feeVal) / 100);
+      } else {
+        itemFee = Math.round(feeVal * qty);
+      }
+    }
+    totalFee += itemFee;
+    breakdown.push({
+      name: item.name,
+      itemTotal,
+      fee: itemFee,
+      feeType: item.cancellationFeeType || 'percentage',
+      feeValue: item.cancellationFeeValue !== undefined ? item.cancellationFeeValue : 5
+    });
+  }
+
+  // Ensure cancellation fee does not exceed total amount, and minimum fee is 0
+  totalFee = Math.min(totalAmount, Math.max(0, totalFee));
+  const refundAmount = Math.max(0, totalAmount - totalFee);
+
+  return {
+    isPaid: true,
+    totalAmount,
+    cancellationFee: totalFee,
+    refundAmount,
+    breakdown
+  };
+};
+
+// @route   GET /api/orders/:id/cancel-preview
+export const getCancellationPreview = async (req, res) => {
+  try {
+    const allOrders = await Order.find();
+    const order = allOrders.find(o => o._id === req.params.id || o.orderId === req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const preview = calculateCancellationBreakdown(order);
+    res.json({
+      success: true,
+      orderId: order.orderId,
+      orderStatus: order.orderStatus,
+      paymentMethod: order.paymentMethod,
+      ...preview
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @route   POST /api/orders/:id/cancel
+export const cancelOrder = async (req, res) => {
+  try {
+    const allOrders = await Order.find();
+    const order = allOrders.find(o => o._id === req.params.id || o.orderId === req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.orderStatus === 'Cancelled' || order.orderStatus === 'Refunded') {
+      return res.status(400).json({ success: false, message: 'This order is already cancelled' });
+    }
+
+    if (['Shipped', 'Out for Delivery', 'Delivered'].includes(order.orderStatus)) {
+      return res.status(400).json({ success: false, message: 'Order has already been dispatched and cannot be cancelled online' });
+    }
+
+    const { reason = 'Customer requested cancellation' } = req.body;
+    const breakdown = calculateCancellationBreakdown(order);
+
+    let refundData = null;
+    const paymentId = order.transactionId || order.razorpayPaymentId;
+    const isRazorpay = order.paymentMethod === 'Razorpay (Online)' || (paymentId && paymentId.startsWith('pay_'));
+
+    if (breakdown.isPaid && breakdown.refundAmount > 0 && isRazorpay && paymentId && paymentId.startsWith('pay_')) {
+      const settings = await PaymentSettings.get();
+      const keyId = settings.razorpayKeyId || process.env.RAZORPAY_KEY_ID;
+      const keySecret = settings.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
+
+      if (keyId && keySecret) {
+        try {
+          const authHeader = 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+          const refundPaise = Math.round(breakdown.refundAmount * 100);
+
+          const rzpResponse = await fetch(`https://api.razorpay.com/v1/payments/${paymentId}/refund`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authHeader
+            },
+            body: JSON.stringify({
+              amount: refundPaise,
+              notes: {
+                orderId: order.orderId,
+                totalPaid: order.totalAmount,
+                cancellationFee: breakdown.cancellationFee,
+                reason
+              }
+            })
+          });
+
+          refundData = await rzpResponse.json();
+          if (!rzpResponse.ok) {
+            console.warn('[Auto-Refund Notice] Razorpay refund failed:', refundData);
+          }
+        } catch (rzpErr) {
+          console.error('[Auto-Refund Error]', rzpErr);
+        }
+      }
+    }
+
+    // Restore inventory stock
+    const io = getIO(req);
+    for (const item of (order.products || [])) {
+      const dbProduct = await findProductInDB(item);
+      if (dbProduct) {
+        const restored = await Product.findByIdAndUpdate(
+          dbProduct._id || dbProduct.id,
+          { stock: dbProduct.stock + item.quantity }
+        );
+        if (io && restored) {
+          io.emit('product:stockUpdated', {
+            productId: restored._id || restored.id,
+            stock: restored.stock,
+            status: restored.status
+          });
+          io.emit('product:updated', restored);
+        }
+      }
+    }
+
+    const targetId = order._id || order.id;
+    const updated = await Order.findByIdAndUpdate(targetId, {
+      orderStatus: 'Cancelled',
+      paymentStatus: breakdown.isPaid ? 'Refunded' : order.paymentStatus,
+      cancellationFee: breakdown.cancellationFee,
+      refundAmount: breakdown.refundAmount,
+      refundId: refundData?.id || (breakdown.isPaid ? `rfnd_auto_${Date.now().toString(36)}` : ''),
+      refundStatus: refundData?.status || (breakdown.isPaid ? 'processed' : ''),
+      cancelReason: reason,
+      cancelledAt: new Date().toISOString()
+    }, { new: true });
+
+    if (io && updated) {
+      io.emit('order:statusUpdated', {
+        orderId: updated.orderId,
+        _id: updated._id || updated.id,
+        orderStatus: updated.orderStatus,
+        paymentStatus: updated.paymentStatus,
+        refundId: updated.refundId,
+        refundAmount: updated.refundAmount,
+        cancellationFee: updated.cancellationFee,
+        updatedAt: updated.updatedAt
+      });
+      io.emit('order:cancelled', updated);
+    }
+
+    res.json({
+      success: true,
+      message: breakdown.isPaid
+        ? `Order cancelled. ₹${breakdown.refundAmount} has been refunded to your payment method (Handling fee: ₹${breakdown.cancellationFee}).`
+        : 'Order cancelled successfully.',
+      order: updated,
+      breakdown,
+      refund: refundData
+    });
+  } catch (error) {
+    console.error('[Cancel Order Error]', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -58,6 +58,9 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         isGstApplicable: product.isGstApplicable !== undefined ? product.isGstApplicable : true,
         gstRate: product.gstRate !== undefined ? product.gstRate : 18,
         taxLabel: product.taxLabel || '18% GST Included',
+        isCancellationFeeApplicable: product.isCancellationFeeApplicable !== undefined ? product.isCancellationFeeApplicable : true,
+        cancellationFeeType: product.cancellationFeeType || 'percentage',
+        cancellationFeeValue: product.cancellationFeeValue !== undefined ? product.cancellationFeeValue : 5,
         description: product.description || '',
         ingredients: product.ingredients || '',
         images: ensureFourImages(product.images),
@@ -78,6 +81,9 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         isGstApplicable: true,
         gstRate: 18,
         taxLabel: '18% GST Included',
+        isCancellationFeeApplicable: true,
+        cancellationFeeType: 'percentage',
+        cancellationFeeValue: 5,
         description: '',
         ingredients: '',
         images: [
@@ -396,6 +402,70 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
               ) : (
                 <p className="text-[11px] text-amber-400/90 bg-amber-950/20 p-2.5 rounded-xl border border-amber-500/20">
                   ⚠️ GST Disabled: Is product par customer ko checkout par "Zero Tax / GST Free" show hoga.
+                </p>
+              )}
+            </div>
+
+            {/* Cancellation Fee Settings */}
+            <div className="sm:col-span-2 p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>Order Cancellation & Handling Fee</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                      Auto Deduction
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    Payment ke baad agar customer order cancel karta hai, to kitna charge cut hokar baaki refund hoga
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isCancellationFeeApplicable"
+                    checked={formData.isCancellationFeeApplicable !== false}
+                    onChange={(e) => setFormData({ ...formData, isCancellationFeeApplicable: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                </label>
+              </div>
+
+              {formData.isCancellationFeeApplicable !== false ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-300">Fee Deduction Type</label>
+                    <select
+                      name="cancellationFeeType"
+                      value={formData.cancellationFeeType || 'percentage'}
+                      onChange={(e) => setFormData({ ...formData, cancellationFeeType: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 text-xs cursor-pointer"
+                    >
+                      <option value="percentage">Percentage (%) of Product Price</option>
+                      <option value="flat">Flat Amount (₹) per item</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-300">
+                      {formData.cancellationFeeType === 'flat' ? 'Deduction Amount (₹)' : 'Deduction Rate (%)'}
+                    </label>
+                    <input
+                      type="number"
+                      name="cancellationFeeValue"
+                      value={formData.cancellationFeeValue !== undefined ? formData.cancellationFeeValue : 5}
+                      onChange={(e) => setFormData({ ...formData, cancellationFeeValue: Number(e.target.value) })}
+                      placeholder={formData.cancellationFeeType === 'flat' ? 'e.g. 50' : 'e.g. 5'}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 text-xs"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-400 sm:col-span-2">
+                    💡 Example: Agar product ₹1,000 ka hai aur aapne <strong>{formData.cancellationFeeType === 'flat' ? `₹${formData.cancellationFeeValue || 50} Flat` : `${formData.cancellationFeeValue || 5}%`}</strong> set kiya, to customer ko cancel karne par <strong>₹{formData.cancellationFeeType === 'flat' ? 1000 - (formData.cancellationFeeValue || 50) : 1000 - Math.round(1000 * ((formData.cancellationFeeValue || 5) / 100))}</strong> refund hoga aur ₹{formData.cancellationFeeType === 'flat' ? (formData.cancellationFeeValue || 50) : Math.round(1000 * ((formData.cancellationFeeValue || 5) / 100))} aapke paas bachega.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-[11px] text-emerald-400/90 bg-emerald-950/20 p-2.5 rounded-xl border border-emerald-500/20">
+                  ✅ Free Cancellation: Is product par cancellation ke waqt koi bhi charge nahi katega (100% Full Refund).
                 </p>
               )}
             </div>

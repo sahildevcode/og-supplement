@@ -10,7 +10,8 @@ import {
   AlertTriangle,
   RefreshCw,
   HelpCircle,
-  X
+  X,
+  RotateCcw
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -75,20 +76,60 @@ export default function OrderHistory() {
     }
   };
 
+  const getOrderCancelBreakdown = (order) => {
+    if (!order) return { isPaid: false, totalAmount: 0, fee: 0, refund: 0 };
+    const isPaid = order.paymentStatus === 'Paid' || (order.paymentMethod?.includes('Razorpay') && order.transactionId);
+    const totalAmount = Number(order.totalAmount || 0);
+    if (!isPaid) {
+      return { isPaid: false, totalAmount, fee: 0, refund: 0 };
+    }
+
+    let totalFee = 0;
+    (order.products || []).forEach((item) => {
+      const itemTotal = Number(item.price || 0) * Number(item.quantity || 1);
+      let itemFee = 0;
+      if (item.isCancellationFeeApplicable !== false) {
+        const type = item.cancellationFeeType || 'percentage';
+        const val = Number(item.cancellationFeeValue !== undefined ? item.cancellationFeeValue : 5);
+        if (type === 'percentage') {
+          itemFee = Math.round((itemTotal * val) / 100);
+        } else {
+          itemFee = Math.round(val * Number(item.quantity || 1));
+        }
+      }
+      totalFee += itemFee;
+    });
+
+    totalFee = Math.min(totalAmount, Math.max(0, totalFee));
+    const refund = Math.max(0, totalAmount - totalFee);
+    return { isPaid: true, totalAmount, fee: totalFee, refund };
+  };
+
   const handleConfirmCancel = async () => {
     if (!cancellingOrder) return;
     setIsCancelling(true);
 
     try {
       const id = cancellingOrder._id || cancellingOrder.orderId;
-      await api.updateOrderStatus(id, 'Cancelled');
+      const res = await api.cancelOrder(id, cancelReason);
       
       // Update local orders list state
       setOrders((prev) =>
-        prev.map((o) => (o.orderId === cancellingOrder.orderId || o._id === id ? { ...o, orderStatus: 'Cancelled' } : o))
+        prev.map((o) =>
+          o.orderId === cancellingOrder.orderId || o._id === id
+            ? {
+                ...o,
+                orderStatus: 'Cancelled',
+                paymentStatus: res.order?.paymentStatus || (cancellingOrder.paymentStatus === 'Paid' ? 'Refunded' : o.paymentStatus),
+                refundAmount: res.order?.refundAmount || res.breakdown?.refundAmount,
+                cancellationFee: res.order?.cancellationFee || res.breakdown?.cancellationFee
+              }
+            : o
+        )
       );
 
-      addToast(`Order #${cancellingOrder.orderId} has been successfully cancelled.`, 'info');
+      const msg = res.message || `Order #${cancellingOrder.orderId} has been successfully cancelled.`;
+      addToast(msg, 'success');
       setCancellingOrder(null);
     } catch (error) {
       addToast(error.message || 'Failed to cancel order', 'error');
@@ -97,7 +138,7 @@ export default function OrderHistory() {
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, order = {}) => {
     switch (status) {
       case 'Order Placed':
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-500 border border-blue-500/30">Order Placed</span>;
@@ -112,7 +153,17 @@ export default function OrderHistory() {
       case 'Delivered':
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">Delivered</span>;
       case 'Cancelled':
-        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Cancelled</span>;
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center gap-1">
+            <XCircle className="w-3.5 h-3.5" /> Cancelled {order?.refundAmount > 0 ? `(Refunded ₹${order.refundAmount})` : ''}
+          </span>
+        );
+      case 'Refunded':
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+            <RotateCcw className="w-3.5 h-3.5" /> Refunded {order?.refundAmount > 0 ? `(₹${order.refundAmount})` : ''}
+          </span>
+        );
       default:
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400">{status}</span>;
     }
@@ -246,7 +297,7 @@ export default function OrderHistory() {
                         <span className="font-mono font-black text-emerald-500 text-base">
                           {order.orderId}
                         </span>
-                        {getStatusBadge(order.orderStatus)}
+                        {getStatusBadge(order.orderStatus, order)}
                       </div>
                       <p className="text-xs text-slate-400 mt-1">
                         Placed on {new Date(order.createdAt).toLocaleDateString('en-IN', {
@@ -368,9 +419,60 @@ export default function OrderHistory() {
                 Cancel Order #{cancellingOrder.orderId}?
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Are you sure you wish to cancel this order? Once cancelled, the items will be returned to store stock.
+                Review your refund details below before confirming cancellation.
               </p>
             </div>
+
+            {/* Payment & Refund Deduction Breakdown Card */}
+            {(() => {
+              const breakdown = getOrderCancelBreakdown(cancellingOrder);
+              if (breakdown.isPaid) {
+                return (
+                  <div className={`p-4 rounded-2xl border space-y-2.5 text-xs ${
+                    isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                  }`}>
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                      <span className="font-bold uppercase tracking-wider text-[10px] text-slate-400">
+                        Refund Breakdown
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        ⚡ Instant Razorpay Refund
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-slate-300">
+                      <span>Total Paid:</span>
+                      <span className="font-mono font-bold text-white">₹{breakdown.totalAmount.toLocaleString('en-IN')}</span>
+                    </div>
+
+                    <div className="flex justify-between text-rose-400">
+                      <span>Cancellation / Handling Fee:</span>
+                      <span className="font-mono font-bold">-₹{breakdown.fee.toLocaleString('en-IN')}</span>
+                    </div>
+
+                    <div className={`pt-2 border-t flex justify-between font-bold text-sm ${
+                      isDark ? 'border-slate-800' : 'border-slate-200'
+                    }`}>
+                      <span className="text-emerald-400">Refund Amount:</span>
+                      <span className="font-mono font-black text-emerald-400 text-base">
+                        ₹{breakdown.refund.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+
+                    <p className="text-[10px] text-slate-400 leading-relaxed pt-1 border-t border-slate-800/60">
+                      ⚡ <strong>₹{breakdown.refund.toLocaleString('en-IN')}</strong> will be automatically credited back to your original payment method (Google Pay / PhonePe / Bank Account) via Razorpay.
+                    </p>
+                  </div>
+                );
+              }
+              return (
+                <div className={`p-3 rounded-xl border text-xs text-slate-400 ${
+                  isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                }`}>
+                  💵 Cash on Delivery (COD) Order: Zero cancellation charges.
+                </div>
+              );
+            })()}
 
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -409,8 +511,8 @@ export default function OrderHistory() {
                 disabled={isCancelling}
                 className="px-5 py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-950/50 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
               >
-                <XCircle className="w-4 h-4" />
-                {isCancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
+                <XCircle className={`w-4 h-4 ${isCancelling ? 'animate-spin' : ''}`} />
+                {isCancelling ? 'Processing Refund...' : 'Confirm Order Cancellation'}
               </button>
             </div>
 

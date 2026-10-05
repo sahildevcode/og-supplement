@@ -183,6 +183,21 @@ export const api = {
     }
   },
 
+  getCancellationPreview: async (id) => {
+    try {
+      return await apiRequest(`/orders/${id}/cancel-preview`);
+    } catch (e) {
+      return null;
+    }
+  },
+
+  cancelOrder: async (id, reason = '') => {
+    return await apiRequest(`/orders/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason })
+    });
+  },
+
   // Admin
   getAdminStats: () => apiRequest('/admin/stats'),
   uploadImage: (formData) => apiRequest('/admin/upload', { method: 'POST', body: formData }),

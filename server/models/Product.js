@@ -33,6 +33,9 @@ const productSchema = new mongoose.Schema(
     gstRate: { type: Number, default: 18 },
     taxLabel: { type: String, default: '18% GST' },
     shippingCost: { type: Number, default: 0 },
+    isCancellationFeeApplicable: { type: Boolean, default: true },
+    cancellationFeeType: { type: String, enum: ['percentage', 'flat'], default: 'percentage' },
+    cancellationFeeValue: { type: Number, default: 5 },
     reviewsList: [
       {
         _id: { type: String },

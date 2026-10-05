@@ -23,7 +23,10 @@ const orderSchema = new mongoose.Schema(
         price: { type: Number, required: true },
         quantity: { type: Number, required: true },
         variant: { type: String },
-        flavour: { type: String }
+        flavour: { type: String },
+        isCancellationFeeApplicable: { type: Boolean, default: true },
+        cancellationFeeType: { type: String, default: 'percentage' },
+        cancellationFeeValue: { type: Number, default: 5 }
       }
     ],
     subtotal: { type: Number, required: true },
@@ -40,6 +43,9 @@ const orderSchema = new mongoose.Schema(
     refundId: { type: String, default: '' },
     refundAmount: { type: Number, default: 0 },
     refundStatus: { type: String, default: '' },
+    cancellationFee: { type: Number, default: 0 },
+    cancelReason: { type: String, default: '' },
+    cancelledAt: { type: String, default: '' },
     orderStatus: {
       type: String,
       enum: ['Order Placed', 'Packed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Refunded'],
