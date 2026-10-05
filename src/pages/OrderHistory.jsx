@@ -31,12 +31,14 @@ export default function OrderHistory() {
   // Cancel Order Modal State
   const [cancellingOrder, setCancellingOrder] = useState(null);
   const [cancelPreview, setCancelPreview] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
   const [cancelReason, setCancelReason] = useState('Ordered by mistake');
   const [isCancelling, setIsCancelling] = useState(false);
 
   const handleOpenCancelModal = async (order) => {
     setCancellingOrder(order);
     setCancelPreview(null);
+    setLoadingPreview(true);
     try {
       const id = order.orderId || order._id;
       const preview = await api.getCancellationPreview(id);
@@ -45,6 +47,8 @@ export default function OrderHistory() {
       }
     } catch (e) {
       console.warn('Preview fetch error, fallback to local calculation', e);
+    } finally {
+      setLoadingPreview(false);
     }
   };
 
@@ -439,12 +443,27 @@ export default function OrderHistory() {
             </div>
 
             {/* Payment & Refund Deduction Breakdown Card */}
-            {(() => {
+            {loadingPreview ? (
+              <div className={`p-6 rounded-2xl border text-center space-y-2 text-xs ${
+                isDark ? 'bg-slate-950 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'
+              }`}>
+                <RotateCcw className="w-5 h-5 animate-spin mx-auto text-emerald-500" />
+                <p className="font-semibold text-slate-300">Calculating latest refund breakdown...</p>
+                <p className="text-[11px] text-slate-500">Checking product cancellation charges from database</p>
+              </div>
+            ) : (() => {
               const breakdown = cancelPreview || getOrderCancelBreakdown(cancellingOrder);
               const isPaid = breakdown.isPaid !== undefined ? breakdown.isPaid : (cancellingOrder.paymentStatus === 'Paid' || cancellingOrder.paymentMethod?.includes('Razorpay'));
               const total = breakdown.totalAmount !== undefined ? breakdown.totalAmount : cancellingOrder.totalAmount;
               const fee = breakdown.cancellationFee !== undefined ? breakdown.cancellationFee : (breakdown.fee || 0);
               const refund = breakdown.refundAmount !== undefined ? breakdown.refundAmount : (breakdown.refund || Math.max(0, total - fee));
+
+              // Format fee details (e.g. Flat ₹5 or 5%)
+              let feeLabel = '';
+              if (breakdown.breakdown && breakdown.breakdown.length > 0) {
+                const labels = breakdown.breakdown.map(b => b.feeType === 'percentage' ? `${b.feeValue}%` : `Flat ₹${b.feeValue}`);
+                feeLabel = `(${labels.join(', ')})`;
+              }
 
               if (isPaid) {
                 return (
@@ -466,7 +485,7 @@ export default function OrderHistory() {
                     </div>
 
                     <div className="flex justify-between text-rose-400">
-                      <span>Cancellation / Handling Fee:</span>
+                      <span>Cancellation / Handling Fee {feeLabel}:</span>
                       <span className="font-mono font-bold">-₹{fee.toLocaleString('en-IN')}</span>
                     </div>
 
