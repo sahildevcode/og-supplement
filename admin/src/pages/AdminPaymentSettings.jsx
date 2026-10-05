@@ -101,15 +101,18 @@ export default function AdminPaymentSettings() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.qrCodeImage && !formData.upiId) {
-      addToast('Please provide at least a QR Code Image URL or a UPI ID', 'error');
-      return;
-    }
+    const upi = formData.upiId || 'ogsupplement@okaxis';
+    const finalQr = formData.qrCodeImage || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3D${encodeURIComponent(upi)}%26pn%3D${encodeURIComponent(formData.merchantName || 'OG Supplement')}%26cu%3DINR`;
+    const payloadToSave = {
+      ...formData,
+      upiId: upi,
+      qrCodeImage: finalQr
+    };
 
     try {
       setSaving(true);
-      const res = await api.updatePaymentSettings(formData);
-      addToast('Payment & QR Code settings updated live!', 'success');
+      const res = await api.updatePaymentSettings(payloadToSave);
+      addToast('Payment & Razorpay settings updated successfully!', 'success');
       if (res && res.settings) {
         setFormData(res.settings);
       }
@@ -222,12 +225,11 @@ export default function AdminPaymentSettings() {
                   QR Code Image URL
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   value={formData.qrCodeImage}
                   onChange={(e) => setFormData({ ...formData, qrCodeImage: e.target.value })}
-                  placeholder="https://... (Direct image link of your UPI QR code)"
+                  placeholder="Leave empty or click 'Auto-Generate' above"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
-                  required
                 />
                 <p className="text-[11px] text-slate-400">
                   You can upload your scanner image to any image host (Imgur/PostImage/Cloudinary) and paste the URL here, OR click "Auto-Generate from UPI ID" above.
