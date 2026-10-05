@@ -17,7 +17,18 @@ export const getPaymentSettings = async (req, res) => {
 // Update payment & QR settings (Admin only)
 export const updatePaymentSettings = async (req, res) => {
   try {
-    const { qrCodeImage, upiId, merchantName, isUpiEnabled, isCodEnabled, instructions } = req.body;
+    const {
+      qrCodeImage,
+      upiId,
+      merchantName,
+      isUpiEnabled,
+      isCodEnabled,
+      isRazorpayEnabled,
+      razorpayKeyId,
+      razorpayKeySecret,
+      razorpayMode,
+      instructions
+    } = req.body;
 
     const updated = await PaymentSettings.update({
       ...(qrCodeImage !== undefined && { qrCodeImage }),
@@ -25,6 +36,10 @@ export const updatePaymentSettings = async (req, res) => {
       ...(merchantName !== undefined && { merchantName }),
       ...(isUpiEnabled !== undefined && { isUpiEnabled: Boolean(isUpiEnabled) }),
       ...(isCodEnabled !== undefined && { isCodEnabled: Boolean(isCodEnabled) }),
+      ...(isRazorpayEnabled !== undefined && { isRazorpayEnabled: Boolean(isRazorpayEnabled) }),
+      ...(razorpayKeyId !== undefined && { razorpayKeyId: String(razorpayKeyId).trim() }),
+      ...(razorpayKeySecret !== undefined && { razorpayKeySecret: String(razorpayKeySecret).trim() }),
+      ...(razorpayMode !== undefined && { razorpayMode: String(razorpayMode).trim() }),
       ...(instructions !== undefined && { instructions })
     });
 
