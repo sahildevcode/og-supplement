@@ -53,7 +53,7 @@ export default function Checkout() {
       isUpiEnabled: true,
       isCodEnabled: true,
       isRazorpayEnabled: true,
-      razorpayKeyId: 'rzp_test_5173DemoKey',
+      razorpayKeyId: 'rzp_test_TkDCf1hSSdbjJC',
       razorpayMode: 'test',
       instructions: ''
     };

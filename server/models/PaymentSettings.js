@@ -29,11 +29,11 @@ const paymentSettingsSchema = new mongoose.Schema(
     },
     razorpayKeyId: {
       type: String,
-      default: 'rzp_test_5173DemoKey'
+      default: 'rzp_test_TkDCf1hSSdbjJC'
     },
     razorpayKeySecret: {
       type: String,
-      default: ''
+      default: 'HYANv2AAhXJiPKG1zveHNzZS'
     },
     razorpayMode: {
       type: String,
@@ -57,8 +57,8 @@ export const defaultSettings = {
   isUpiEnabled: true,
   isCodEnabled: true,
   isRazorpayEnabled: true,
-  razorpayKeyId: 'rzp_test_5173DemoKey',
-  razorpayKeySecret: '',
+  razorpayKeyId: 'rzp_test_TkDCf1hSSdbjJC',
+  razorpayKeySecret: 'HYANv2AAhXJiPKG1zveHNzZS',
   razorpayMode: 'test',
   instructions: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
 };
@@ -69,11 +69,16 @@ export const PaymentSettings = {
       let doc = await MongoosePaymentSettings.findOne();
       if (!doc) {
         doc = await MongoosePaymentSettings.create(defaultSettings);
+      } else if (doc.razorpayKeyId === 'rzp_test_5173DemoKey' || !doc.razorpayKeySecret) {
+        doc.razorpayKeyId = 'rzp_test_TkDCf1hSSdbjJC';
+        doc.razorpayKeySecret = 'HYANv2AAhXJiPKG1zveHNzZS';
+        doc.isRazorpayEnabled = true;
+        await doc.save();
       }
       return doc;
     }
 
-    if (!localStore.paymentSettings || Object.keys(localStore.paymentSettings).length === 0) {
+    if (!localStore.paymentSettings || Object.keys(localStore.paymentSettings).length === 0 || localStore.paymentSettings.razorpayKeyId === 'rzp_test_5173DemoKey') {
       localStore.paymentSettings = { ...defaultSettings };
       localStore.save();
     }

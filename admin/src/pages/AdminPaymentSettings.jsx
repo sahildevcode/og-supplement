@@ -40,8 +40,8 @@ export default function AdminPaymentSettings() {
     isUpiEnabled: true,
     isCodEnabled: true,
     isRazorpayEnabled: true,
-    razorpayKeyId: 'rzp_test_5173DemoKey',
-    razorpayKeySecret: '',
+    razorpayKeyId: 'rzp_test_TkDCf1hSSdbjJC',
+    razorpayKeySecret: 'HYANv2AAhXJiPKG1zveHNzZS',
     razorpayMode: 'test',
     instructions: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
   });
@@ -60,8 +60,8 @@ export default function AdminPaymentSettings() {
           isUpiEnabled: res.settings.isUpiEnabled !== undefined ? res.settings.isUpiEnabled : true,
           isCodEnabled: res.settings.isCodEnabled !== undefined ? res.settings.isCodEnabled : true,
           isRazorpayEnabled: res.settings.isRazorpayEnabled !== undefined ? res.settings.isRazorpayEnabled : true,
-          razorpayKeyId: res.settings.razorpayKeyId || 'rzp_test_5173DemoKey',
-          razorpayKeySecret: res.settings.razorpayKeySecret || '',
+          razorpayKeyId: res.settings.razorpayKeyId || 'rzp_test_TkDCf1hSSdbjJC',
+          razorpayKeySecret: res.settings.razorpayKeySecret || 'HYANv2AAhXJiPKG1zveHNzZS',
           razorpayMode: res.settings.razorpayMode || 'test',
           instructions: res.settings.instructions || ''
         });
