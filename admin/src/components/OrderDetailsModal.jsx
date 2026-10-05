@@ -6,8 +6,10 @@ import { useAdminToast } from '../context/AdminToastContext';
 export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChange }) {
   const { addToast } = useAdminToast();
   const [currentStatus, setCurrentStatus] = useState(order?.orderStatus || 'Order Placed');
+  const [refundStatus, setRefundStatus] = useState(order?.refundStatus || '');
   const [updating, setUpdating] = useState(false);
   const [refunding, setRefunding] = useState(false);
+  const [updatingRefund, setUpdatingRefund] = useState(false);
   const [showConfirmRefund, setShowConfirmRefund] = useState(false);
 
   if (!isOpen || !order) return null;
@@ -27,6 +29,23 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
     }
   };
 
+  const handleMarkRefundCompleted = async () => {
+    setUpdatingRefund(true);
+    try {
+      const id = order.orderId || order._id;
+      const res = await api.updateRefundStatus(id, 'completed');
+      setRefundStatus('completed');
+      addToast(`🎉 Order #${id} refund marked as 100% Credited to customer!`, 'success');
+      if (onStatusChange) {
+        onStatusChange(res.order || { ...order, refundStatus: 'completed' });
+      }
+    } catch (err) {
+      addToast(err.message || 'Failed to update refund status', 'error');
+    } finally {
+      setUpdatingRefund(false);
+    }
+  };
+
   const handleRefund = async () => {
     setRefunding(true);
     try {
@@ -34,9 +53,10 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
       const res = await api.refundOrder(id, 'Admin initiated refund from portal');
       addToast(`🎉 ${res.message || 'Refund processed successfully!'}`, 'success');
       setCurrentStatus('Refunded');
+      setRefundStatus('completed');
       setShowConfirmRefund(false);
       if (onStatusChange) {
-        onStatusChange(res.order || { ...order, orderStatus: 'Refunded', paymentStatus: 'Refunded' });
+        onStatusChange(res.order || { ...order, orderStatus: 'Refunded', paymentStatus: 'Refunded', refundStatus: 'completed' });
       }
     } catch (err) {
       addToast(err.message || 'Refund failed', 'error');
@@ -209,18 +229,50 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
           </div>
         </div>
 
-        {/* Instant Razorpay Refund Action Card */}
-        {currentStatus === 'Refunded' || order.paymentStatus === 'Refunded' ? (
-          <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-amber-400 shrink-0" />
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-amber-400">
-                Payment Refunded
-              </p>
-              <p className="text-xs text-slate-300 mt-0.5">
-                Amount ₹{order.refundAmount || order.totalAmount} has been refunded to customer.
-                {order.refundId && <span className="font-mono text-slate-400 block text-[11px] mt-0.5">Refund ID: {order.refundId}</span>}
-              </p>
+        {/* Instant Razorpay Refund Action & Tracking Card */}
+        {currentStatus === 'Refunded' || order.paymentStatus === 'Refunded' || order.refundAmount > 0 ? (
+          <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                  refundStatus === 'completed' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                }`}>
+                  {refundStatus === 'completed' ? <CheckCircle className="w-5 h-5" /> : <RotateCcw className="w-5 h-5 animate-spin" />}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-black uppercase tracking-wider text-amber-400">
+                      Refund Tracking
+                    </p>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                      refundStatus === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    }`}>
+                      {refundStatus === 'completed' ? '✅ 100% Credited to Bank' : '🔄 Processing by Bank (2-4 Days)'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-1">
+                    Amount: <strong className="text-white">₹{order.refundAmount || order.totalAmount}</strong>
+                    {order.cancellationFee > 0 && <span className="text-slate-400 ml-1.5">(Handling Fee Retained: ₹{order.cancellationFee})</span>}
+                  </p>
+                  {order.refundId && (
+                    <span className="font-mono text-cyan-400 block text-[11px] mt-0.5">
+                      Razorpay Refund ID: {order.refundId}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {refundStatus !== 'completed' && (
+                <button
+                  type="button"
+                  onClick={handleMarkRefundCompleted}
+                  disabled={updatingRefund}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95 cursor-pointer shrink-0"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span>{updatingRefund ? 'Updating...' : 'Mark 100% Credited'}</span>
+                </button>
+              )}
             </div>
           </div>
         ) : (order.paymentStatus === 'Paid' || order.paymentMethod?.includes('Razorpay') || order.transactionId?.startsWith('pay_')) ? (

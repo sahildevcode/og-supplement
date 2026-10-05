@@ -32,12 +32,29 @@ export default function OrderHistory() {
   const [cancellingOrder, setCancellingOrder] = useState(null);
   const [cancelPreview, setCancelPreview] = useState(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
-  const [cancelReason, setCancelReason] = useState('Ordered by mistake');
+  const [cancelReason, setCancelReason] = useState('Ordered by mistake / wrong quantity');
   const [isCancelling, setIsCancelling] = useState(false);
+
+  const isPrepaidOrder = (ord) => {
+    if (!ord) return false;
+    if (ord.paymentMethod === 'Cash on Delivery') return false;
+    if (ord.paymentStatus === 'Paid') return true;
+    if ((ord.paymentMethod?.includes('Razorpay') || ord.paymentMethod?.includes('Online')) && ord.transactionId) return true;
+    return false;
+  };
 
   const handleOpenCancelModal = async (order) => {
     setCancellingOrder(order);
     setCancelPreview(null);
+    setCancelReason('Ordered by mistake / wrong quantity');
+
+    const isPrepaid = isPrepaidOrder(order);
+    // If Cash on Delivery, no refund preview is needed
+    if (!isPrepaid) {
+      setLoadingPreview(false);
+      return;
+    }
+
     setLoadingPreview(true);
     try {
       const id = order.orderId || order._id;
@@ -97,7 +114,7 @@ export default function OrderHistory() {
 
   const getOrderCancelBreakdown = (order) => {
     if (!order) return { isPaid: false, totalAmount: 0, fee: 0, refund: 0 };
-    const isPaid = order.paymentStatus === 'Paid' || (order.paymentMethod?.includes('Razorpay') && order.transactionId);
+    const isPaid = isPrepaidOrder(order);
     const totalAmount = Number(order.totalAmount || 0);
     if (!isPaid) {
       return { isPaid: false, totalAmount, fee: 0, refund: 0 };
@@ -172,15 +189,24 @@ export default function OrderHistory() {
       case 'Delivered':
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">Delivered</span>;
       case 'Cancelled':
+      case 'Refunded':
+        if (order.refundAmount > 0 || order.paymentStatus === 'Refunded' || order.cancellationFee > 0) {
+          if (order.refundStatus === 'completed') {
+            return (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Refund Completed (₹{order.refundAmount || order.totalAmount} Credited)
+              </span>
+            );
+          }
+          return (
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
+              <RotateCcw className="w-3.5 h-3.5 animate-spin" /> Refund Processing (₹{order.refundAmount || order.totalAmount})
+            </span>
+          );
+        }
         return (
           <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center gap-1">
-            <XCircle className="w-3.5 h-3.5" /> Cancelled {order?.refundAmount > 0 ? `(Refunded ₹${order.refundAmount})` : ''}
-          </span>
-        );
-      case 'Refunded':
-        return (
-          <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
-            <RotateCcw className="w-3.5 h-3.5" /> Refunded {order?.refundAmount > 0 ? `(₹${order.refundAmount})` : ''}
+            <XCircle className="w-3.5 h-3.5" /> Cancelled
           </span>
         );
       default:
@@ -415,57 +441,74 @@ export default function OrderHistory() {
       </div>
 
       {/* Confirmation Modal for Order Cancellation */}
-      {cancellingOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className={`max-w-md w-full p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 ${
-            isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
-          }`}>
-            
-            <div className="flex items-start justify-between">
-              <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6" />
+      {cancellingOrder && (() => {
+        const isPrepaid = isPrepaidOrder(cancellingOrder);
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+            <div className={`max-w-md w-full p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 ${
+              isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}>
+              
+              <div className="flex items-start justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <button
+                  onClick={() => setCancellingOrder(null)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setCancellingOrder(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <div className="space-y-2">
-              <h3 className="text-lg sm:text-xl font-black">
-                Cancel Order #{cancellingOrder.orderId}?
-              </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Review your refund details below before confirming cancellation.
-              </p>
-            </div>
-
-            {/* Payment & Refund Deduction Breakdown Card */}
-            {loadingPreview ? (
-              <div className={`p-6 rounded-2xl border text-center space-y-2 text-xs ${
-                isDark ? 'bg-slate-950 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'
-              }`}>
-                <RotateCcw className="w-5 h-5 animate-spin mx-auto text-emerald-500" />
-                <p className="font-semibold text-slate-300">Calculating latest refund breakdown...</p>
-                <p className="text-[11px] text-slate-500">Checking product cancellation charges from database</p>
+              <div className="space-y-1.5">
+                <h3 className="text-lg sm:text-xl font-black">
+                  Cancel Order #{cancellingOrder.orderId}?
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {isPrepaid
+                    ? 'Review your refund details below before confirming cancellation.'
+                    : 'Are you sure you want to cancel this Cash on Delivery order?'}
+                </p>
               </div>
-            ) : (() => {
-              const breakdown = cancelPreview || getOrderCancelBreakdown(cancellingOrder);
-              const isPaid = breakdown.isPaid !== undefined ? breakdown.isPaid : (cancellingOrder.paymentStatus === 'Paid' || cancellingOrder.paymentMethod?.includes('Razorpay'));
-              const total = breakdown.totalAmount !== undefined ? breakdown.totalAmount : cancellingOrder.totalAmount;
-              const fee = breakdown.cancellationFee !== undefined ? breakdown.cancellationFee : (breakdown.fee || 0);
-              const refund = breakdown.refundAmount !== undefined ? breakdown.refundAmount : (breakdown.refund || Math.max(0, total - fee));
 
-              // Format fee details (e.g. Flat ₹5 or 5%)
-              let feeLabel = '';
-              if (breakdown.breakdown && breakdown.breakdown.length > 0) {
-                const labels = breakdown.breakdown.map(b => b.feeType === 'percentage' ? `${b.feeValue}%` : `Flat ₹${b.feeValue}`);
-                feeLabel = `(${labels.join(', ')})`;
-              }
+              {/* Cash on Delivery Notice OR Prepaid Refund Breakdown */}
+              {!isPrepaid ? (
+                <div className={`p-4 rounded-2xl border text-xs flex items-center gap-3.5 ${
+                  isDark ? 'bg-slate-950 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+                }`}>
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center font-black flex-shrink-0 text-xs border border-emerald-500/20">
+                    ₹0
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-xs">Cash on Delivery (COD)</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      No upfront payment made. Zero charges will be applied.
+                    </p>
+                  </div>
+                </div>
+              ) : loadingPreview ? (
+                <div className={`p-6 rounded-2xl border text-center space-y-2 text-xs ${
+                  isDark ? 'bg-slate-950 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'
+                }`}>
+                  <RotateCcw className="w-5 h-5 animate-spin mx-auto text-emerald-500" />
+                  <p className="font-semibold text-slate-300">Calculating latest refund breakdown...</p>
+                  <p className="text-[11px] text-slate-500">Checking product cancellation charges from database</p>
+                </div>
+              ) : (() => {
+                const breakdown = cancelPreview || getOrderCancelBreakdown(cancellingOrder);
+                const total = breakdown.totalAmount !== undefined ? breakdown.totalAmount : cancellingOrder.totalAmount;
+                const fee = breakdown.cancellationFee !== undefined ? breakdown.cancellationFee : (breakdown.fee || 0);
+                const refund = breakdown.refundAmount !== undefined ? breakdown.refundAmount : (breakdown.refund || Math.max(0, total - fee));
 
-              if (isPaid) {
+                // Format fee details (e.g. Flat ₹5 or 5%)
+                let feeLabel = '';
+                if (breakdown.breakdown && breakdown.breakdown.length > 0) {
+                  const labels = breakdown.breakdown.map(b => b.feeType === 'percentage' ? `${b.feeValue}%` : `Flat ₹${b.feeValue}`);
+                  feeLabel = `(${labels.join(', ')})`;
+                }
+
                 return (
                   <div className={`p-4 rounded-2xl border space-y-2.5 text-xs ${
                     isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
@@ -498,66 +541,64 @@ export default function OrderHistory() {
                       </span>
                     </div>
 
-                    <p className="text-[10px] text-slate-400 leading-relaxed pt-1 border-t border-slate-800/60">
-                      ⚡ <strong>₹{refund.toLocaleString('en-IN')}</strong> will be automatically credited back to your original payment method (Google Pay / PhonePe / Bank Account) via Razorpay.
-                    </p>
+                    <div className="pt-2 border-t border-slate-800/60 space-y-1.5">
+                      <p className="text-[10px] text-slate-300 leading-relaxed">
+                        ⚡ <strong>₹{refund.toLocaleString('en-IN')}</strong> will be automatically credited back to your original payment method via Razorpay. It usually reflects within <strong>2 to 4 business days</strong> depending on your bank.
+                      </p>
+                      <p className="text-[10px] text-cyan-400">
+                        Help & Support: <a href="mailto:sk7161853@gmail.com" className="underline font-bold">sk7161853@gmail.com</a>
+                      </p>
+                    </div>
                   </div>
                 );
-              }
-              return (
-                <div className={`p-3 rounded-xl border text-xs text-slate-400 ${
-                  isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
-                }`}>
-                  💵 Cash on Delivery (COD) Order: Zero cancellation charges.
-                </div>
-              );
-            })()}
+              })()}
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Reason for cancellation:
-              </label>
-              <select
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                className={`w-full p-3 rounded-xl border text-xs font-medium focus:outline-none ${
-                  isDark
-                    ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-rose-500'
-                    : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-rose-600'
-                }`}
-              >
-                {cancelReasons.map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </select>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Reason for cancellation:
+                </label>
+                <select
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  className={`w-full p-3 rounded-xl border text-xs font-medium focus:outline-none ${
+                    isDark
+                      ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-rose-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-rose-600'
+                  }`}
+                >
+                  {cancelReasons.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCancellingOrder(null)}
+                  disabled={isCancelling}
+                  className={`px-4 py-2.5 rounded-xl font-bold text-xs ${
+                    isDark ? 'bg-slate-800 hover:bg-slate-750 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  Keep My Order
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleConfirmCancel}
+                  disabled={isCancelling}
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-950/50 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <XCircle className={`w-4 h-4 ${isCancelling ? 'animate-spin' : ''}`} />
+                  {isCancelling ? 'Cancelling Order...' : (isPrepaid ? 'Confirm Cancellation & Refund' : 'Cancel Order')}
+                </button>
+              </div>
+
             </div>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setCancellingOrder(null)}
-                disabled={isCancelling}
-                className={`px-4 py-2.5 rounded-xl font-bold text-xs ${
-                  isDark ? 'bg-slate-800 hover:bg-slate-750 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
-              >
-                Keep My Order
-              </button>
-
-              <button
-                type="button"
-                onClick={handleConfirmCancel}
-                disabled={isCancelling}
-                className="px-5 py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-950/50 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
-              >
-                <XCircle className={`w-4 h-4 ${isCancelling ? 'animate-spin' : ''}`} />
-                {isCancelling ? 'Processing Refund...' : 'Confirm Order Cancellation'}
-              </button>
-            </div>
-
           </div>
-        </div>
-      )}
+        );
+      })()}
 
     </div>
   );

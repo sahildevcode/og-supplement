@@ -78,7 +78,23 @@ export default function AdminOrders() {
     };
   }, [addToast]);
 
-  const getStatusBadge = (status) => {
+  const handleUpdateRefundStatus = async (ord, refundStatus) => {
+    const id = ord.orderId || ord._id;
+    setUpdatingId(id);
+    try {
+      await api.updateRefundStatus(id, refundStatus);
+      addToast(`🎉 Order #${id} refund marked as 100% Credited to Bank!`, 'success');
+      setOrders((prev) =>
+        prev.map((o) => (o.orderId === ord.orderId || o._id === id ? { ...o, refundStatus } : o))
+      );
+    } catch (err) {
+      addToast(err.message || 'Failed to update refund status', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const getStatusBadge = (status, ord = {}) => {
     switch (status) {
       case 'Order Placed':
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">Order Placed</span>;
@@ -93,9 +109,22 @@ export default function AdminOrders() {
       case 'Delivered':
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Delivered</span>;
       case 'Cancelled':
-        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Cancelled</span>;
       case 'Refunded':
-        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> Refunded</span>;
+        if (ord.refundAmount > 0 || ord.paymentStatus === 'Refunded' || ord.cancellationFee > 0) {
+          if (ord.refundStatus === 'completed') {
+            return (
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                <CheckCircle className="w-3.5 h-3.5" /> Refund Completed (₹{ord.refundAmount || ord.totalAmount})
+              </span>
+            );
+          }
+          return (
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+              <RotateCcw className="w-3.5 h-3.5 animate-spin" /> Refund Processing (₹{ord.refundAmount || ord.totalAmount})
+            </span>
+          );
+        }
+        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Cancelled</span>;
       default:
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400">{status}</span>;
     }
@@ -247,11 +276,22 @@ export default function AdminOrders() {
                       </td>
 
                       <td className="p-4 sm:p-5">
-                        {getStatusBadge(ord.orderStatus)}
+                        {getStatusBadge(ord.orderStatus, ord)}
                       </td>
 
                       <td className="p-4 sm:p-5 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {ord.refundAmount > 0 && ord.refundStatus !== 'completed' && (
+                            <button
+                              onClick={() => handleUpdateRefundStatus(ord, 'completed')}
+                              disabled={isUpdating}
+                              title="Mark refund 100% credited to customer bank"
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1 shadow transition-all cursor-pointer"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Mark Credited</span>
+                            </button>
+                          )}
                           {ord.orderStatus === 'Order Placed' && (
                             <button
                               onClick={() => handleQuickUpdateStatus(ord, 'Packed')}
@@ -285,7 +325,7 @@ export default function AdminOrders() {
                               <span>Mark Delivered</span>
                             </button>
                           )}
-                          {(ord.paymentStatus === 'Paid' || ord.paymentMethod?.includes('Razorpay') || ord.transactionId?.startsWith('pay_')) && ord.orderStatus !== 'Refunded' && (
+                          {(ord.paymentStatus === 'Paid' || ord.paymentMethod?.includes('Razorpay') || ord.transactionId?.startsWith('pay_')) && ord.orderStatus !== 'Refunded' && ord.orderStatus !== 'Cancelled' && (
                             <button
                               onClick={() => {
                                 setSelectedOrder(ord);

@@ -409,7 +409,8 @@ export const refundOrder = async (req, res) => {
 };
 
 export const calculateCancellationBreakdown = async (order) => {
-  const isPaid = order.paymentStatus === 'Paid' || (order.paymentMethod === 'Razorpay (Online)' && order.transactionId);
+  const isCOD = order.paymentMethod === 'Cash on Delivery';
+  const isPaid = !isCOD && (order.paymentStatus === 'Paid' || (order.paymentMethod === 'Razorpay (Online)' && order.transactionId));
   const totalAmount = Number(order.totalAmount || 0);
 
   if (!isPaid) {
@@ -579,13 +580,14 @@ export const cancelOrder = async (req, res) => {
     }
 
     const targetId = order._id || order.id;
+    const initialRefundStatus = breakdown.isPaid ? 'processing' : '';
     const updated = await Order.findByIdAndUpdate(targetId, {
       orderStatus: 'Cancelled',
       paymentStatus: breakdown.isPaid ? 'Refunded' : order.paymentStatus,
       cancellationFee: breakdown.cancellationFee,
       refundAmount: breakdown.refundAmount,
       refundId: refundData?.id || (breakdown.isPaid ? `rfnd_auto_${Date.now().toString(36)}` : ''),
-      refundStatus: refundData?.status || (breakdown.isPaid ? 'processed' : ''),
+      refundStatus: initialRefundStatus,
       cancelReason: reason,
       cancelledAt: new Date().toISOString()
     }, { new: true });
@@ -598,6 +600,7 @@ export const cancelOrder = async (req, res) => {
         paymentStatus: updated.paymentStatus,
         refundId: updated.refundId,
         refundAmount: updated.refundAmount,
+        refundStatus: updated.refundStatus,
         cancellationFee: updated.cancellationFee,
         updatedAt: updated.updatedAt
       });
@@ -607,7 +610,7 @@ export const cancelOrder = async (req, res) => {
     res.json({
       success: true,
       message: breakdown.isPaid
-        ? `Order cancelled. ₹${breakdown.refundAmount} has been refunded to your payment method (Handling fee: ₹${breakdown.cancellationFee}).`
+        ? `Order cancelled. ₹${breakdown.refundAmount} refund initiated to your original payment method (Handling fee: ₹${breakdown.cancellationFee}). It usually takes 2 to 4 business days to reflect in your account.`
         : 'Order cancelled successfully.',
       order: updated,
       breakdown,
@@ -618,3 +621,52 @@ export const cancelOrder = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @route   PATCH /api/orders/:id/refund-status
+export const updateRefundStatus = async (req, res) => {
+  try {
+    const { refundStatus } = req.body;
+    if (!refundStatus) {
+      return res.status(400).json({ success: false, message: 'Refund status is required' });
+    }
+
+    const allOrders = await Order.find();
+    const existingOrder = allOrders.find(o => matchesOrderId(o, req.params.id));
+
+    if (!existingOrder) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const targetId = existingOrder._id || existingOrder.id;
+    const updated = await Order.findByIdAndUpdate(targetId, {
+      refundStatus,
+      paymentStatus: (refundStatus === 'completed' || refundStatus === 'processed') ? 'Refunded' : existingOrder.paymentStatus
+    }, { new: true });
+
+    const io = getIO(req);
+    if (io && updated) {
+      io.emit('order:statusUpdated', {
+        orderId: updated.orderId,
+        _id: updated._id || updated.id,
+        orderStatus: updated.orderStatus,
+        paymentStatus: updated.paymentStatus,
+        refundStatus: updated.refundStatus,
+        refundAmount: updated.refundAmount,
+        cancellationFee: updated.cancellationFee,
+        updatedAt: updated.updatedAt
+      });
+      io.emit('order:refundUpdated', updated);
+      console.log(`\x1b[35m[Socket.IO Broadcast]\x1b[0m order:refundUpdated => Order ${updated.orderId} refund status: "${updated.refundStatus}"`);
+    }
+
+    res.json({
+      success: true,
+      message: `Refund status updated to ${refundStatus}`,
+      order: updated
+    });
+  } catch (error) {
+    console.error('[Update Refund Status Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+

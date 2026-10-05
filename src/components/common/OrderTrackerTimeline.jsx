@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Circle, PackageCheck, Truck, Home, Clock, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Circle, PackageCheck, Truck, Home, Clock, AlertTriangle, RotateCcw, Mail, HelpCircle, Check, XCircle } from 'lucide-react';
 
 export default function OrderTrackerTimeline({ order, isDark = true }) {
   if (!order) return null;
@@ -122,12 +122,164 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
 
       {/* If Cancelled */}
       {isCancelled ? (
-        <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-900/40 text-rose-300 flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
-          <div className="text-xs">
-            <p className="font-bold">This order has been cancelled.</p>
-            <p className="opacity-80">Reserved items have been returned to warehouse inventory.</p>
-          </div>
+        <div className="space-y-4">
+          {/* For Prepaid Orders with Refund */}
+          {isPrepaid && (order.refundAmount > 0 || order.refundId || order.paymentStatus === 'Refunded' || order.cancellationFee > 0) ? (() => {
+            const isCompleted = order.refundStatus === 'completed';
+            const refundAmt = order.refundAmount || order.totalAmount;
+            const feeAmt = order.cancellationFee || 0;
+            const cancelledDate = order.cancelledAt ? new Date(order.cancelledAt).toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : formattedOrderTime;
+
+            const refundSteps = [
+              {
+                id: 0,
+                title: 'Refund Initiated',
+                desc: 'Submitted via Razorpay',
+                time: cancelledDate,
+                done: true,
+                current: false
+              },
+              {
+                id: 1,
+                title: 'Processing by Bank',
+                desc: isCompleted ? 'Bank verified & approved' : 'UPI / Bank clearing in progress',
+                time: isCompleted ? 'Completed' : 'Expected in 2 to 4 business days',
+                done: isCompleted,
+                current: !isCompleted
+              },
+              {
+                id: 2,
+                title: 'Refund Credited',
+                desc: isCompleted ? `₹${refundAmt} credited to your account` : 'Awaiting final bank settlement',
+                time: isCompleted ? '100% Credited' : 'Pending Bank Clearance',
+                done: isCompleted,
+                current: false
+              }
+            ];
+
+            return (
+              <div className="space-y-5">
+                {/* Status Alert Banner */}
+                <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                  isCompleted
+                    ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-300'
+                    : 'bg-amber-950/20 border-amber-500/40 text-amber-300'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                      isCompleted ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                    }`}>
+                      {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <RotateCcw className="w-5 h-5 animate-spin" />}
+                    </div>
+                    <div>
+                      <p className="font-black text-sm text-white">
+                        {isCompleted
+                          ? `₹${refundAmt} Successfully Credited to Bank Account`
+                          : `Refund of ₹${refundAmt} is in Process`}
+                      </p>
+                      <p className="text-xs text-slate-300 mt-0.5">
+                        {isCompleted
+                          ? 'Bank has cleared this refund. Funds have been returned to your original payment method.'
+                          : 'Refund has been initiated. It usually reflects within 2 to 4 business days depending on your bank.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-left sm:text-right shrink-0">
+                    <p className="text-[10px] uppercase font-bold text-slate-400">Total Refund</p>
+                    <p className="font-mono font-black text-lg text-emerald-400">₹{refundAmt}</p>
+                    {feeAmt > 0 && (
+                      <span className="text-[10px] text-slate-400 block">
+                        (Handling fee deducted: ₹{feeAmt})
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3-Stage Horizontal Stepper */}
+                <div className="relative py-2 px-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {refundSteps.map((st, idx) => (
+                      <div
+                        key={st.id}
+                        className={`p-3.5 rounded-2xl border flex items-start gap-3 transition-all ${
+                          st.done
+                            ? 'bg-emerald-950/20 border-emerald-500/30 text-white'
+                            : st.current
+                            ? 'bg-amber-950/20 border-amber-500/40 text-white ring-1 ring-amber-500/30'
+                            : (isDark ? 'bg-slate-950/50 border-slate-800 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-400')
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                          st.done
+                            ? 'bg-emerald-500 text-black'
+                            : st.current
+                            ? 'bg-amber-500 text-black animate-pulse'
+                            : 'bg-slate-800 text-slate-400'
+                        }`}>
+                          {st.done ? <Check className="w-4 h-4 font-black" /> : idx + 1}
+                        </div>
+                        <div className="min-w-0 space-y-0.5">
+                          <p className="font-bold text-xs">{st.title}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{st.desc}</p>
+                          <p className={`text-[10px] font-bold ${st.done ? 'text-emerald-400' : st.current ? 'text-amber-400' : 'text-slate-500'}`}>
+                            {st.time}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Customer Support & Help Box */}
+                <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                  isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center shrink-0 border border-cyan-500/20">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <div className="text-xs">
+                      <p className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        Need Help with your Refund?
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        Agar 2 se 4 business days me refund aapke account me na dikhe, toh direct hamari support team se contact karein:
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={`mailto:sk7161853@gmail.com?subject=Refund%20Status%20Inquiry%20for%20Order%20%23${order.orderId}&body=Hello%20Support%20Team%2C%0A%0AMy%20order%20%23${order.orderId}%20was%20cancelled%20and%20I%20would%20like%20to%20check%20the%20status%20of%20my%20refund%20of%20%E2%82%B9${refundAmt}.%0A%0ARefund%20ID%3A%20${order.refundId || 'N%2FA'}%0A%0AThank%20you.`}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-black flex items-center gap-2 transition-all shadow-md active:scale-95 shrink-0 cursor-pointer"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>sk7161853@gmail.com</span>
+                  </a>
+                </div>
+              </div>
+            );
+          })() : (
+            /* Cash on Delivery (COD) Cancelled Box */
+            <div className={`p-4 rounded-2xl border flex items-center gap-3.5 ${
+              isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div className="w-9 h-9 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30 font-bold">
+                <XCircle className="w-5 h-5" />
+              </div>
+              <div className="text-xs">
+                <p className="font-bold text-white text-sm">Order Cancelled</p>
+                <p className="text-slate-400 text-[11px] mt-0.5">
+                  Cash on Delivery (COD) order — koi advance payment nahi kiya gaya tha. Zero cancellation charges apply.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         /* Flipkart 4-Stage Stepper */
