@@ -30,8 +30,23 @@ export default function OrderHistory() {
   
   // Cancel Order Modal State
   const [cancellingOrder, setCancellingOrder] = useState(null);
+  const [cancelPreview, setCancelPreview] = useState(null);
   const [cancelReason, setCancelReason] = useState('Ordered by mistake');
   const [isCancelling, setIsCancelling] = useState(false);
+
+  const handleOpenCancelModal = async (order) => {
+    setCancellingOrder(order);
+    setCancelPreview(null);
+    try {
+      const id = order.orderId || order._id;
+      const preview = await api.getCancellationPreview(id);
+      if (preview && preview.success) {
+        setCancelPreview(preview);
+      }
+    } catch (e) {
+      console.warn('Preview fetch error, fallback to local calculation', e);
+    }
+  };
 
   const fetchOrders = async (emailToUse) => {
     try {
@@ -328,7 +343,7 @@ export default function OrderHistory() {
                       {/* Cancel Order Action Button */}
                       {canCancel && (
                         <button
-                          onClick={() => setCancellingOrder(order)}
+                          onClick={() => handleOpenCancelModal(order)}
                           className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-500 border border-rose-500/30 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-sm"
                           title="Cancel this order"
                         >
@@ -425,8 +440,13 @@ export default function OrderHistory() {
 
             {/* Payment & Refund Deduction Breakdown Card */}
             {(() => {
-              const breakdown = getOrderCancelBreakdown(cancellingOrder);
-              if (breakdown.isPaid) {
+              const breakdown = cancelPreview || getOrderCancelBreakdown(cancellingOrder);
+              const isPaid = breakdown.isPaid !== undefined ? breakdown.isPaid : (cancellingOrder.paymentStatus === 'Paid' || cancellingOrder.paymentMethod?.includes('Razorpay'));
+              const total = breakdown.totalAmount !== undefined ? breakdown.totalAmount : cancellingOrder.totalAmount;
+              const fee = breakdown.cancellationFee !== undefined ? breakdown.cancellationFee : (breakdown.fee || 0);
+              const refund = breakdown.refundAmount !== undefined ? breakdown.refundAmount : (breakdown.refund || Math.max(0, total - fee));
+
+              if (isPaid) {
                 return (
                   <div className={`p-4 rounded-2xl border space-y-2.5 text-xs ${
                     isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
@@ -442,12 +462,12 @@ export default function OrderHistory() {
 
                     <div className="flex justify-between text-slate-300">
                       <span>Total Paid:</span>
-                      <span className="font-mono font-bold text-white">₹{breakdown.totalAmount.toLocaleString('en-IN')}</span>
+                      <span className="font-mono font-bold text-white">₹{total.toLocaleString('en-IN')}</span>
                     </div>
 
                     <div className="flex justify-between text-rose-400">
                       <span>Cancellation / Handling Fee:</span>
-                      <span className="font-mono font-bold">-₹{breakdown.fee.toLocaleString('en-IN')}</span>
+                      <span className="font-mono font-bold">-₹{fee.toLocaleString('en-IN')}</span>
                     </div>
 
                     <div className={`pt-2 border-t flex justify-between font-bold text-sm ${
@@ -455,12 +475,12 @@ export default function OrderHistory() {
                     }`}>
                       <span className="text-emerald-400">Refund Amount:</span>
                       <span className="font-mono font-black text-emerald-400 text-base">
-                        ₹{breakdown.refund.toLocaleString('en-IN')}
+                        ₹{refund.toLocaleString('en-IN')}
                       </span>
                     </div>
 
                     <p className="text-[10px] text-slate-400 leading-relaxed pt-1 border-t border-slate-800/60">
-                      ⚡ <strong>₹{breakdown.refund.toLocaleString('en-IN')}</strong> will be automatically credited back to your original payment method (Google Pay / PhonePe / Bank Account) via Razorpay.
+                      ⚡ <strong>₹{refund.toLocaleString('en-IN')}</strong> will be automatically credited back to your original payment method (Google Pay / PhonePe / Bank Account) via Razorpay.
                     </p>
                   </div>
                 );

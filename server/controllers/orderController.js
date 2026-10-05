@@ -408,7 +408,7 @@ export const refundOrder = async (req, res) => {
   }
 };
 
-export const calculateCancellationBreakdown = (order) => {
+export const calculateCancellationBreakdown = async (order) => {
   const isPaid = order.paymentStatus === 'Paid' || (order.paymentMethod === 'Razorpay (Online)' && order.transactionId);
   const totalAmount = Number(order.totalAmount || 0);
 
@@ -430,13 +430,23 @@ export const calculateCancellationBreakdown = (order) => {
     const qty = Number(item.quantity || 1);
     const itemTotal = itemPrice * qty;
 
+    // Check latest product settings from DB, fallback to order item
+    const dbProduct = await findProductInDB(item);
+    const isApplicable = dbProduct?.isCancellationFeeApplicable !== undefined
+      ? dbProduct.isCancellationFeeApplicable
+      : (item.isCancellationFeeApplicable !== false);
+
+    const feeType = dbProduct?.cancellationFeeType || item.cancellationFeeType || 'percentage';
+    const feeVal = dbProduct?.cancellationFeeValue !== undefined
+      ? Number(dbProduct.cancellationFeeValue)
+      : (item.cancellationFeeValue !== undefined ? Number(item.cancellationFeeValue) : 5);
+
     let itemFee = 0;
-    if (item.isCancellationFeeApplicable !== false) {
-      const feeType = item.cancellationFeeType || 'percentage';
-      const feeVal = Number(item.cancellationFeeValue !== undefined ? item.cancellationFeeValue : 5);
+    if (isApplicable !== false) {
       if (feeType === 'percentage') {
         itemFee = Math.round((itemTotal * feeVal) / 100);
       } else {
+        // Flat fee per item (e.g. ₹50 or ₹5)
         itemFee = Math.round(feeVal * qty);
       }
     }
@@ -445,8 +455,8 @@ export const calculateCancellationBreakdown = (order) => {
       name: item.name,
       itemTotal,
       fee: itemFee,
-      feeType: item.cancellationFeeType || 'percentage',
-      feeValue: item.cancellationFeeValue !== undefined ? item.cancellationFeeValue : 5
+      feeType,
+      feeValue: feeVal
     });
   }
 
@@ -473,7 +483,7 @@ export const getCancellationPreview = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    const preview = calculateCancellationBreakdown(order);
+    const preview = await calculateCancellationBreakdown(order);
     res.json({
       success: true,
       orderId: order.orderId,
@@ -505,7 +515,7 @@ export const cancelOrder = async (req, res) => {
     }
 
     const { reason = 'Customer requested cancellation' } = req.body;
-    const breakdown = calculateCancellationBreakdown(order);
+    const breakdown = await calculateCancellationBreakdown(order);
 
     let refundData = null;
     const paymentId = order.transactionId || order.razorpayPaymentId;
