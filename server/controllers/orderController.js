@@ -30,6 +30,15 @@ const findProductInDB = async (item) => {
   return prod;
 };
 
+// Robust Order Identifier Matcher (_id, id, orderId)
+const matchesOrderId = (o, targetId) => {
+  if (!o || !targetId) return false;
+  const target = String(targetId).trim().toLowerCase();
+  const idStr = String(o._id || o.id || '').trim().toLowerCase();
+  const orderIdStr = String(o.orderId || '').trim().toLowerCase();
+  return idStr === target || orderIdStr === target;
+};
+
 // @route   POST /api/orders
 export const createOrder = async (req, res) => {
   try {
@@ -193,7 +202,7 @@ export const getAllOrders = async (req, res) => {
 export const getOrderById = async (req, res) => {
   try {
     const allOrders = await Order.find();
-    const order = allOrders.find(o => o._id === req.params.id || o.orderId === req.params.id);
+    const order = allOrders.find(o => matchesOrderId(o, req.params.id));
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
@@ -225,7 +234,7 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     const allOrders = await Order.find();
-    const existingOrder = allOrders.find(o => o._id === req.params.id || o.orderId === req.params.id);
+    const existingOrder = allOrders.find(o => matchesOrderId(o, req.params.id));
 
     if (!existingOrder) {
       return res.status(404).json({ success: false, message: 'Order not found' });
@@ -280,7 +289,7 @@ export const updateOrderStatus = async (req, res) => {
 export const refundOrder = async (req, res) => {
   try {
     const allOrders = await Order.find();
-    const existingOrder = allOrders.find(o => o._id === req.params.id || o.orderId === req.params.id);
+    const existingOrder = allOrders.find(o => matchesOrderId(o, req.params.id));
 
     if (!existingOrder) {
       return res.status(404).json({ success: false, message: 'Order not found' });
@@ -458,7 +467,7 @@ export const calculateCancellationBreakdown = (order) => {
 export const getCancellationPreview = async (req, res) => {
   try {
     const allOrders = await Order.find();
-    const order = allOrders.find(o => o._id === req.params.id || o.orderId === req.params.id);
+    const order = allOrders.find(o => matchesOrderId(o, req.params.id));
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
@@ -481,7 +490,7 @@ export const getCancellationPreview = async (req, res) => {
 export const cancelOrder = async (req, res) => {
   try {
     const allOrders = await Order.find();
-    const order = allOrders.find(o => o._id === req.params.id || o.orderId === req.params.id);
+    const order = allOrders.find(o => matchesOrderId(o, req.params.id));
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });

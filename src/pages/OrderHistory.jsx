@@ -110,7 +110,7 @@ export default function OrderHistory() {
     setIsCancelling(true);
 
     try {
-      const id = cancellingOrder._id || cancellingOrder.orderId;
+      const id = cancellingOrder.orderId || cancellingOrder._id;
       const res = await api.cancelOrder(id, cancelReason);
       
       // Update local orders list state
