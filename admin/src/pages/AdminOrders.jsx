@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Eye, RefreshCw, Filter, Search, Clock, XCircle, CheckCircle, Truck, PackageCheck } from 'lucide-react';
+import { ShoppingCart, Eye, RefreshCw, Filter, Search, Clock, XCircle, CheckCircle, Truck, PackageCheck, RotateCcw } from 'lucide-react';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 import { useAdminToast } from '../context/AdminToastContext';
@@ -94,6 +94,8 @@ export default function AdminOrders() {
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Delivered</span>;
       case 'Cancelled':
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Cancelled</span>;
+      case 'Refunded':
+        return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> Refunded</span>;
       default:
         return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400">{status}</span>;
     }
@@ -161,6 +163,7 @@ export default function AdminOrders() {
           <option value="Out for Delivery">Out for Delivery</option>
           <option value="Delivered">Delivered</option>
           <option value="Cancelled">Cancelled</option>
+          <option value="Refunded">Refunded</option>
         </select>
       </div>
 
@@ -280,6 +283,19 @@ export default function AdminOrders() {
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
                               <span>Mark Delivered</span>
+                            </button>
+                          )}
+                          {(ord.paymentStatus === 'Paid' || ord.paymentMethod?.includes('Razorpay') || ord.transactionId?.startsWith('pay_')) && ord.orderStatus !== 'Refunded' && (
+                            <button
+                              onClick={() => {
+                                setSelectedOrder(ord);
+                                setIsModalOpen(true);
+                              }}
+                              title="Refund customer via Razorpay"
+                              className="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              <span>Refund</span>
                             </button>
                           )}
                           <button

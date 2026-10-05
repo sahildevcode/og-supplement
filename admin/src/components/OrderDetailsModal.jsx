@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle, Package, Truck, Clock, MapPin, Phone, Mail, User } from 'lucide-react';
+import { X, CheckCircle, Package, Truck, Clock, MapPin, Phone, Mail, User, RotateCcw, AlertTriangle } from 'lucide-react';
 import { api } from '../services/api';
 import { useAdminToast } from '../context/AdminToastContext';
 
@@ -7,6 +7,8 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
   const { addToast } = useAdminToast();
   const [currentStatus, setCurrentStatus] = useState(order?.orderStatus || 'Order Placed');
   const [updating, setUpdating] = useState(false);
+  const [refunding, setRefunding] = useState(false);
+  const [showConfirmRefund, setShowConfirmRefund] = useState(false);
 
   if (!isOpen || !order) return null;
 
@@ -25,7 +27,25 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
     }
   };
 
-  const statuses = ['Order Placed', 'Packed', 'Out for Delivery', 'Delivered', 'Cancelled'];
+  const handleRefund = async () => {
+    setRefunding(true);
+    try {
+      const id = order.orderId || order._id;
+      const res = await api.refundOrder(id, 'Admin initiated refund from portal');
+      addToast(`🎉 ${res.message || 'Refund processed successfully!'}`, 'success');
+      setCurrentStatus('Refunded');
+      setShowConfirmRefund(false);
+      if (onStatusChange) {
+        onStatusChange(res.order || { ...order, orderStatus: 'Refunded', paymentStatus: 'Refunded' });
+      }
+    } catch (err) {
+      addToast(err.message || 'Refund failed', 'error');
+    } finally {
+      setRefunding(false);
+    }
+  };
+
+  const statuses = ['Order Placed', 'Packed', 'Out for Delivery', 'Delivered', 'Cancelled', 'Refunded'];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
@@ -188,6 +208,79 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
             <p className="text-xl font-black text-white font-mono">₹{order.totalAmount?.toLocaleString('en-IN')}</p>
           </div>
         </div>
+
+        {/* Instant Razorpay Refund Action Card */}
+        {currentStatus === 'Refunded' || order.paymentStatus === 'Refunded' ? (
+          <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-amber-400 shrink-0" />
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-amber-400">
+                Payment Refunded
+              </p>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Amount ₹{order.refundAmount || order.totalAmount} has been refunded to customer.
+                {order.refundId && <span className="font-mono text-slate-400 block text-[11px] mt-0.5">Refund ID: {order.refundId}</span>}
+              </p>
+            </div>
+          </div>
+        ) : (order.paymentStatus === 'Paid' || order.paymentMethod?.includes('Razorpay') || order.transactionId?.startsWith('pay_')) ? (
+          <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-500/30 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-rose-400">
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Customer Refund Control</span>
+                </div>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Agar customer ne order cancel kiya hai, to yahan se 1-click me Razorpay se paise wapas bhej sakte hain.
+                </p>
+              </div>
+
+              {!showConfirmRefund && (
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmRefund(true)}
+                  disabled={refunding}
+                  className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs flex items-center gap-1.5 shadow-lg shadow-rose-950/50 transition-all active:scale-95 cursor-pointer shrink-0"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Refund Customer (₹{order.totalAmount})</span>
+                </button>
+              )}
+            </div>
+
+            {/* Confirmation Alert */}
+            {showConfirmRefund && (
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-rose-500/50 flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <p className="text-xs text-slate-200">
+                    Confirm: Kya aap <strong className="text-white">₹{order.totalAmount}</strong> customer <strong className="text-white">({order.customerName})</strong> ke account me wapas refund karna chahte hain?
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmRefund(false)}
+                    disabled={refunding}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRefund}
+                    disabled={refunding}
+                    className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-rose-950/40 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <RotateCcw className={`w-3.5 h-3.5 ${refunding ? 'animate-spin' : ''}`} />
+                    <span>{refunding ? 'Refunding...' : 'Yes, Send Refund'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
 
       </div>
     </div>

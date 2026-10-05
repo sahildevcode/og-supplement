@@ -4,7 +4,8 @@ import {
   getMyOrders,
   getAllOrders,
   getOrderById,
-  updateOrderStatus
+  updateOrderStatus,
+  refundOrder
 } from '../controllers/orderController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
@@ -15,5 +16,6 @@ router.get('/my-orders', getMyOrders);
 router.get('/', getAllOrders);
 router.get('/:id', getOrderById);
 router.patch('/:id/status', updateOrderStatus);
+router.post('/:id/refund', refundOrder);
 
 export default router;

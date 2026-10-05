@@ -60,6 +60,7 @@ export const api = {
   getAllOrders: () => apiRequest('/orders'),
   getOrderById: (id) => apiRequest(`/orders/${id}`),
   updateOrderStatus: (id, status) => apiRequest(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  refundOrder: (id, reason = '') => apiRequest(`/orders/${id}/refund`, { method: 'POST', body: JSON.stringify({ reason }) }),
 
   // Analytics & Stats
   getAdminStats: () => apiRequest('/admin/stats'),

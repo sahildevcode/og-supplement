@@ -1,5 +1,6 @@
 import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
+import { PaymentSettings } from '../models/PaymentSettings.js';
 
 const getIO = (req) => req.app.get('io');
 
@@ -268,6 +269,129 @@ export const updateOrderStatus = async (req, res) => {
     res.json({ success: true, order: updated, message: `Order status updated to ${status}` });
   } catch (error) {
     console.error('[Update Order Status Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @route   POST /api/orders/:id/refund
+export const refundOrder = async (req, res) => {
+  try {
+    const allOrders = await Order.find();
+    const existingOrder = allOrders.find(o => o._id === req.params.id || o.orderId === req.params.id);
+
+    if (!existingOrder) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (existingOrder.paymentStatus === 'Refunded' || existingOrder.orderStatus === 'Refunded') {
+      return res.status(400).json({ success: false, message: 'This order has already been refunded' });
+    }
+
+    const paymentId = existingOrder.transactionId || existingOrder.razorpayPaymentId;
+    const isRazorpay = existingOrder.paymentMethod === 'Razorpay (Online)' || (paymentId && paymentId.startsWith('pay_'));
+
+    let refundData = null;
+
+    if (isRazorpay && paymentId && paymentId.startsWith('pay_')) {
+      const settings = await PaymentSettings.get();
+      const keyId = settings.razorpayKeyId || process.env.RAZORPAY_KEY_ID;
+      const keySecret = settings.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
+
+      if (!keyId || !keySecret) {
+        return res.status(500).json({ success: false, message: 'Razorpay API credentials not configured in settings' });
+      }
+
+      const authHeader = 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+      const refundAmountPaise = Math.round(Number(existingOrder.totalAmount) * 100);
+
+      const rzpResponse = await fetch(`https://api.razorpay.com/v1/payments/${paymentId}/refund`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader
+        },
+        body: JSON.stringify({
+          amount: refundAmountPaise,
+          notes: {
+            orderId: existingOrder.orderId,
+            reason: req.body.reason || 'Admin initiated refund from portal'
+          }
+        })
+      });
+
+      refundData = await rzpResponse.json();
+
+      if (!rzpResponse.ok) {
+        console.error('[Razorpay Refund Error]', refundData);
+        return res.status(rzpResponse.status || 400).json({
+          success: false,
+          message: refundData.error?.description || 'Razorpay refund failed',
+          error: refundData
+        });
+      }
+    } else {
+      // Manual / COD / simulated refund
+      refundData = {
+        id: `rfnd_manual_${Date.now().toString(36)}`,
+        amount: Math.round(Number(existingOrder.totalAmount) * 100),
+        status: 'processed'
+      };
+    }
+
+    const targetId = existingOrder._id || existingOrder.id;
+
+    // Restore stock if not already cancelled
+    if (existingOrder.orderStatus !== 'Cancelled' && existingOrder.orderStatus !== 'Refunded') {
+      const io = getIO(req);
+      for (const item of existingOrder.products) {
+        const dbProduct = await findProductInDB(item);
+        if (dbProduct) {
+          const restored = await Product.findByIdAndUpdate(
+            dbProduct._id || dbProduct.id,
+            { stock: dbProduct.stock + item.quantity }
+          );
+          if (io && restored) {
+            io.emit('product:stockUpdated', {
+              productId: restored._id || restored.id,
+              stock: restored.stock,
+              status: restored.status
+            });
+            io.emit('product:updated', restored);
+          }
+        }
+      }
+    }
+
+    const updated = await Order.findByIdAndUpdate(targetId, {
+      paymentStatus: 'Refunded',
+      orderStatus: 'Refunded',
+      refundId: refundData.id || '',
+      refundAmount: refundData.amount ? (refundData.amount / 100) : existingOrder.totalAmount,
+      refundStatus: refundData.status || 'processed'
+    }, { new: true });
+
+    const io = getIO(req);
+    if (io && updated) {
+      io.emit('order:statusUpdated', {
+        orderId: updated.orderId,
+        _id: updated._id || updated.id,
+        orderStatus: updated.orderStatus,
+        paymentStatus: updated.paymentStatus,
+        refundId: updated.refundId,
+        updatedAt: updated.updatedAt
+      });
+      io.emit('order:refunded', updated);
+      console.log(`\x1b[35m[Socket.IO Broadcast]\x1b[0m order:refunded => Order ${updated.orderId} (₹${updated.totalAmount}) Refund ID: ${updated.refundId}`);
+    }
+
+    res.json({
+      success: true,
+      message: `Refund of ₹${existingOrder.totalAmount} processed successfully!`,
+      refund: refundData,
+      order: updated
+    });
+  } catch (error) {
+    console.error('[Refund Order Error]', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

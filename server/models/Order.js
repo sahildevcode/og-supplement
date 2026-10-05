@@ -32,14 +32,17 @@ const orderSchema = new mongoose.Schema(
     tax: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
     paymentMethod: { type: String, default: 'Cash on Delivery' },
-    paymentStatus: { type: String, enum: ['Pending', 'Paid', 'Verification Pending'], default: 'Pending' },
+    paymentStatus: { type: String, enum: ['Pending', 'Paid', 'Verification Pending', 'Refunded'], default: 'Pending' },
     transactionId: { type: String, default: '' },
     razorpayPaymentId: { type: String, default: '' },
     razorpayOrderId: { type: String, default: '' },
     razorpaySignature: { type: String, default: '' },
+    refundId: { type: String, default: '' },
+    refundAmount: { type: Number, default: 0 },
+    refundStatus: { type: String, default: '' },
     orderStatus: {
       type: String,
-      enum: ['Order Placed', 'Packed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'],
+      enum: ['Order Placed', 'Packed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Refunded'],
       default: 'Order Placed'
     }
   },
