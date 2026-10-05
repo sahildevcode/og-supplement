@@ -262,30 +262,6 @@ export default function Checkout() {
           theme: {
             color: '#10b981'
           },
-          config: {
-            display: {
-              blocks: {
-                upi: {
-                  name: 'Pay using UPI (PhonePe, GPay, Paytm)',
-                  instruments: [
-                    { method: 'upi' }
-                  ]
-                },
-                other: {
-                  name: 'Cards & NetBanking',
-                  instruments: [
-                    { method: 'card' },
-                    { method: 'netbanking' },
-                    { method: 'wallet' }
-                  ]
-                }
-              },
-              sequence: ['block.upi', 'block.other'],
-              preferences: {
-                show_default_blocks: true
-              }
-            }
-          },
           handler: async function (response) {
             await handleCompleteRazorpayOrder(response);
           },
