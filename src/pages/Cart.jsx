@@ -15,6 +15,7 @@ export default function Cart() {
     discountOnMRP,
     bulkDiscount,
     deliveryCharge,
+    totalGst,
     totalAmount,
     updateQuantity,
     removeFromCart,
@@ -254,6 +255,17 @@ export default function Cart() {
                       <span className="text-emerald-500 font-bold">FREE</span>
                     ) : (
                       `₹${deliveryCharge}`
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span>GST / Taxes:</span>
+                  <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                    {totalGst > 0 ? (
+                      <span className="text-emerald-400 font-bold">+ ₹{totalGst.toLocaleString('en-IN')}</span>
+                    ) : (
+                      <span className="text-emerald-500 font-bold">₹0 (Tax Free)</span>
                     )}
                   </span>
                 </div>

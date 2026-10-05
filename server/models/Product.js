@@ -29,6 +29,10 @@ const productSchema = new mongoose.Schema(
     flavours: [{ type: String }],
     ingredients: { type: String },
     nutritionalInfo: { type: Object, default: {} },
+    isGstApplicable: { type: Boolean, default: true },
+    gstRate: { type: Number, default: 18 },
+    taxLabel: { type: String, default: '18% GST' },
+    shippingCost: { type: Number, default: 0 },
     reviewsList: [
       {
         _id: { type: String },
@@ -94,6 +98,10 @@ export const Product = {
       ],
       variants: Array.isArray(data.variants) ? data.variants : (data.variants ? String(data.variants).split(',').map(s => s.trim()) : ['Standard']),
       flavours: Array.isArray(data.flavours) ? data.flavours : (data.flavours ? String(data.flavours).split(',').map(s => s.trim()) : ['Unflavored']),
+      isGstApplicable: data.isGstApplicable !== undefined ? Boolean(data.isGstApplicable) : true,
+      gstRate: data.gstRate !== undefined ? Number(data.gstRate) : 18,
+      taxLabel: data.taxLabel || '18% GST',
+      shippingCost: Number(data.shippingCost || 0),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -121,6 +129,15 @@ export const Product = {
       updateData.stock = Number(updateData.stock);
       const threshold = updateData.lowStockThreshold !== undefined ? Number(updateData.lowStockThreshold) : 10;
       updateData.status = calcStatus(updateData.stock, threshold);
+    }
+    if (updateData.shippingCost !== undefined) {
+      updateData.shippingCost = Number(updateData.shippingCost);
+    }
+    if (updateData.isGstApplicable !== undefined) {
+      updateData.isGstApplicable = Boolean(updateData.isGstApplicable);
+    }
+    if (updateData.gstRate !== undefined) {
+      updateData.gstRate = Number(updateData.gstRate);
     }
     if (updateData.price && updateData.discountPrice) {
       updateData.price = Number(updateData.price);

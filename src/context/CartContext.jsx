@@ -68,6 +68,10 @@ export const CartProvider = ({ children }) => {
           variant: selectedVariant,
           flavour: selectedFlavour,
           stock: currentStock,
+          shippingCost: Number(product.shippingCost || 0),
+          isGstApplicable: product.isGstApplicable !== undefined ? product.isGstApplicable : true,
+          gstRate: product.gstRate || 18,
+          taxLabel: product.taxLabel || '18% GST',
         };
 
         addToast(`Added "${product.name}" to cart`, 'success');
@@ -119,8 +123,16 @@ export const CartProvider = ({ children }) => {
   const totalMRP = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountOnMRP = totalMRP - subtotal;
   const bulkDiscount = subtotal >= 2000 ? Math.round(subtotal * 0.05) : 0; // 5% extra discount over 2000
-  const deliveryCharge = 0; // Always 100% Free Express Shipping on all orders
-  const totalAmount = Math.max(0, subtotal - bulkDiscount + deliveryCharge);
+  const deliveryCharge = cartItems.reduce((max, item) => Math.max(max, Number(item.shippingCost || 0)), 0);
+  const totalGst = cartItems.reduce((sum, item) => {
+    if (item.isGstApplicable !== false) {
+      const rate = Number(item.gstRate !== undefined ? item.gstRate : 18);
+      const itemSubtotal = Number(item.discountPrice || item.price || 0) * item.quantity;
+      return sum + Math.round((itemSubtotal * rate) / 100);
+    }
+    return sum;
+  }, 0);
+  const totalAmount = Math.max(0, subtotal - bulkDiscount + deliveryCharge + totalGst);
 
   return (
     <CartContext.Provider
@@ -132,6 +144,7 @@ export const CartProvider = ({ children }) => {
         discountOnMRP,
         bulkDiscount,
         deliveryCharge,
+        totalGst,
         totalAmount,
         addToCart,
         updateQuantity,

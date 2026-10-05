@@ -71,7 +71,10 @@ export const createOrder = async (req, res) => {
         price: itemPrice,
         quantity: Number(item.quantity || 1),
         variant: item.variant || 'Standard',
-        flavour: item.flavour || 'Standard'
+        flavour: item.flavour || 'Standard',
+        shippingCost: dbProduct ? Number(dbProduct.shippingCost || 0) : Number(item.shippingCost || 0),
+        isGstApplicable: dbProduct && dbProduct.isGstApplicable !== undefined ? dbProduct.isGstApplicable : true,
+        gstRate: dbProduct ? Number(dbProduct.gstRate || 18) : 18
       });
 
       // Deduct stock if product exists in DB
@@ -95,9 +98,18 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    const discount = subtotal > 2000 ? Math.round(subtotal * 0.05) : 0; // 5% bulk discount over 2000
-    const shipping = subtotal >= 999 ? 0 : 99; // Free shipping over 999
-    const totalAmount = subtotal - discount + shipping;
+    const calculatedShipping = sanitizedProducts.reduce((max, p) => Math.max(max, Number(p.shippingCost || 0)), 0);
+    const shipping = req.body.shipping !== undefined ? Number(req.body.shipping) : calculatedShipping;
+    const discount = req.body.discount !== undefined ? Number(req.body.discount) : (subtotal > 2000 ? Math.round(subtotal * 0.05) : 0);
+    const calculatedTax = sanitizedProducts.reduce((sum, p) => {
+      if (p.isGstApplicable !== false) {
+        const rate = Number(p.gstRate !== undefined ? p.gstRate : 18);
+        return sum + Math.round((Number(p.price || 0) * Number(p.quantity || 1) * rate) / 100);
+      }
+      return sum;
+    }, 0);
+    const tax = req.body.tax !== undefined ? Number(req.body.tax) : calculatedTax;
+    const totalAmount = req.body.totalAmount ? Number(req.body.totalAmount) : (subtotal - discount + shipping + tax);
 
     // 2. Save Order to Database
     const userId = req.user ? (req.user._id || req.user.id) : (req.body.userId || 'guest');
@@ -115,10 +127,11 @@ export const createOrder = async (req, res) => {
       subtotal,
       discount,
       shipping,
+      tax,
       totalAmount,
       paymentMethod,
-      paymentStatus: paymentMethod === 'Online / UPI' ? 'Verification Pending' : 'Pending',
-      transactionId: transactionId || '',
+      paymentStatus: req.body.paymentStatus || (paymentMethod === 'Razorpay (Online)' ? 'Paid' : (paymentMethod === 'Online / UPI' ? 'Verification Pending' : 'Pending')),
+      transactionId: transactionId || req.body.razorpayPaymentId || '',
       orderStatus: 'Order Placed'
     });
 

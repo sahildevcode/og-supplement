@@ -2,12 +2,20 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 import { useToast } from './ToastContext';
-import { initialProducts } from '../data/seedProducts';
 
 const ProductContext = createContext();
 
 export const ProductProvider = ({ children }) => {
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('og_cached_products');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -20,13 +28,18 @@ export const ProductProvider = ({ children }) => {
   // Fetch initial product catalog from API
   const fetchProducts = useCallback(async () => {
     try {
+      setLoading(true);
       const data = await api.getProducts();
-      if (data && data.products && data.products.length > 0) {
+      if (data && data.products) {
         setProducts(data.products);
+        try {
+          localStorage.setItem('og_cached_products', JSON.stringify(data.products));
+        } catch (e) {}
       }
     } catch (error) {
-      // Keep initialProducts fallback silently without spamming error toasts
-      console.warn('[Fetch Products Notice] Using offline product catalog fallback');
+      console.warn('[Fetch Products Notice] Live products fetch error:', error.message);
+    } finally {
+      setLoading(false);
     }
   }, []);
 

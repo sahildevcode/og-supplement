@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev:all": "concurrently -n \"SERVER,CLIENT,ADMIN\" -c \"cyan,green,magenta\" \"node server/index.js\" \"vite --port 5173\" \"vite --config admin/vite.config.js --port 5174\"",
+    "dev:all": "concurrently -n \"SERVER,CLIENT,ADMIN\" -c \"cyan,green,magenta\" \"node server/index.js\" \"vite --port 5173\" \"vite admin --port 5174\"",
     "server": "node server/index.js",
     "dev:client": "vite --port 5173",
-    "dev:admin": "vite --config admin/vite.config.js --port 5174",
+    "dev:admin": "vite admin --port 5174",
     "build": "vite build && vite build admin --base /admin/ --outDir ../dist/admin",
     "build:admin": "vite build admin --base /admin/ --outDir ../dist/admin"
   },

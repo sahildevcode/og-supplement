@@ -1,5 +1,12 @@
-// Central 24/7 Render Cloud API endpoint
-export const BASE_URL = import.meta.env.VITE_API_URL || 'https://og-supplement-api.onrender.com/api';
+// Dynamic API endpoint (local in dev, Render in prod)
+const getBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:5000/api';
+  }
+  return 'https://og-supplement-api.onrender.com/api';
+};
+export const BASE_URL = getBaseUrl();
 
 export const apiRequest = async (endpoint, options = {}) => {
   const token = localStorage.getItem('og_admin_token');

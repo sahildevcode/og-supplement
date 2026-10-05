@@ -370,7 +370,24 @@ export default function ProductDetail() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400">Inclusive of GST and all applicable taxes</p>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span className="text-slate-400 font-medium">
+                    {product.isGstApplicable !== false
+                      ? `Inclusive of ${product.gstRate || 18}% GST • No hidden charges`
+                      : 'Zero Tax / GST-Free Product • No extra charges'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-teal-500"></span>
+                  <span className="text-slate-400 font-medium">
+                    {Number(product.shippingCost) > 0
+                      ? `Delivery: ₹${product.shippingCost}`
+                      : 'Free Express Delivery'}
+                  </span>
+                </div>
+              </div>
 
             </div>
 

@@ -1,6 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Automatically detect Netlify, GitHub Pages, or Custom Domain
 const getBasePath = () => {
@@ -12,6 +17,7 @@ const getBasePath = () => {
 
 // https://vite.dev/config/
 export default defineConfig({
+  root: __dirname,
   base: getBasePath(),
   plugins: [react(), tailwindcss()],
   server: {

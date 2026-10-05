@@ -12,9 +12,14 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
     brand: '',
     category: 'Protein',
     price: '',
+    discountPercentage: '',
     discountPrice: '',
+    shippingCost: 0,
     stock: '',
     lowStockThreshold: 5,
+    isGstApplicable: true,
+    gstRate: 18,
+    taxLabel: '18% GST Included',
     description: '',
     ingredients: '',
     images: ['', '', '', ''],
@@ -34,14 +39,25 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
 
   useEffect(() => {
     if (product) {
+      const numPrice = Number(product.price || 0);
+      const numDiscPrice = Number(product.discountPrice || numPrice);
+      const computedPct = product.discountPercentage !== undefined
+        ? product.discountPercentage
+        : (numPrice > numDiscPrice ? Math.round(((numPrice - numDiscPrice) / numPrice) * 100) : '');
+
       setFormData({
         name: product.name || '',
         brand: product.brand || '',
         category: product.category || 'Protein',
         price: product.price || '',
-        discountPrice: product.discountPrice || '',
-        stock: product.stock || 0,
+        discountPercentage: computedPct,
+        discountPrice: product.discountPrice !== undefined ? product.discountPrice : (product.price || ''),
+        shippingCost: product.shippingCost !== undefined ? product.shippingCost : 0,
+        stock: product.stock !== undefined ? product.stock : 0,
         lowStockThreshold: product.lowStockThreshold || 5,
+        isGstApplicable: product.isGstApplicable !== undefined ? product.isGstApplicable : true,
+        gstRate: product.gstRate !== undefined ? product.gstRate : 18,
+        taxLabel: product.taxLabel || '18% GST Included',
         description: product.description || '',
         ingredients: product.ingredients || '',
         images: ensureFourImages(product.images),
@@ -54,9 +70,14 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         brand: '',
         category: 'Protein',
         price: '',
+        discountPercentage: '',
         discountPrice: '',
+        shippingCost: 0,
         stock: 20,
         lowStockThreshold: 5,
+        isGstApplicable: true,
+        gstRate: 18,
+        taxLabel: '18% GST Included',
         description: '',
         ingredients: '',
         images: [
@@ -75,6 +96,58 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Auto-sync between Price, Discount %, and Selling Price
+  const handlePriceChange = (e) => {
+    const newPrice = e.target.value;
+    const numPrice = Number(newPrice);
+    const discountPct = Number(formData.discountPercentage);
+    let newDiscountPrice = formData.discountPrice;
+
+    if (discountPct > 0 && numPrice > 0) {
+      newDiscountPrice = Math.round(numPrice * (1 - discountPct / 100));
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      price: newPrice,
+      discountPrice: newDiscountPrice
+    }));
+  };
+
+  const handleDiscountPctChange = (e) => {
+    const pct = e.target.value;
+    const numPrice = Number(formData.price);
+    let newDiscountPrice = formData.discountPrice;
+
+    if (pct !== '' && numPrice > 0) {
+      newDiscountPrice = Math.round(numPrice * (1 - Number(pct) / 100));
+    } else if (pct === '' && numPrice > 0) {
+      newDiscountPrice = numPrice;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      discountPercentage: pct,
+      discountPrice: newDiscountPrice
+    }));
+  };
+
+  const handleDiscountPriceChange = (e) => {
+    const newDiscountPrice = e.target.value;
+    const numPrice = Number(formData.price);
+    let pct = formData.discountPercentage;
+
+    if (numPrice > 0 && newDiscountPrice !== '') {
+      pct = Math.round(((numPrice - Number(newDiscountPrice)) / numPrice) * 100);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      discountPrice: newDiscountPrice,
+      discountPercentage: pct >= 0 ? pct : 0
+    }));
   };
 
   const handleArrayChange = (field, index, value) => {
@@ -99,7 +172,9 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
       const payload = {
         ...formData,
         price: Number(formData.price),
+        discountPercentage: formData.discountPercentage !== '' ? Number(formData.discountPercentage) : 0,
         discountPrice: formData.discountPrice ? Number(formData.discountPrice) : Number(formData.price),
+        shippingCost: Number(formData.shippingCost || 0),
         stock: Number(formData.stock),
         lowStockThreshold: Number(formData.lowStockThreshold),
         variants: formData.variants.filter(Boolean),
@@ -191,8 +266,23 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                 name="price"
                 required
                 value={formData.price}
-                onChange={handleChange}
-                placeholder="3899"
+                onChange={handlePriceChange}
+                placeholder="1000"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300 flex items-center justify-between">
+                <span>Discount (%)</span>
+                <span className="text-[10px] text-cyan-400">Auto-updates selling price</span>
+              </label>
+              <input
+                type="number"
+                name="discountPercentage"
+                value={formData.discountPercentage}
+                onChange={handleDiscountPctChange}
+                placeholder="e.g. 20 for 20% OFF"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500"
               />
             </div>
@@ -203,8 +293,23 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                 type="number"
                 name="discountPrice"
                 value={formData.discountPrice}
+                onChange={handleDiscountPriceChange}
+                placeholder="800"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300 flex items-center justify-between">
+                <span>Shipping / Delivery Cost (₹)</span>
+                <span className="text-[10px] text-emerald-400 font-semibold">0 = Free Delivery</span>
+              </label>
+              <input
+                type="number"
+                name="shippingCost"
+                value={formData.shippingCost}
                 onChange={handleChange}
-                placeholder="3199"
+                placeholder="0 for Free, or 50, 99"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500"
               />
             </div>
@@ -232,6 +337,67 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                 placeholder="5"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500"
               />
+            </div>
+
+            {/* GST & Tax Settings */}
+            <div className="sm:col-span-2 p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>GST & Tax Settings</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                      Customer Invoice
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    Is product par customer ko kitna GST show hoga ye aap yahan set karein
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isGstApplicable"
+                    checked={formData.isGstApplicable !== false}
+                    onChange={(e) => setFormData({ ...formData, isGstApplicable: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                </label>
+              </div>
+
+              {formData.isGstApplicable !== false ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-300">GST Rate (%)</label>
+                    <select
+                      name="gstRate"
+                      value={formData.gstRate || 18}
+                      onChange={(e) => setFormData({ ...formData, gstRate: Number(e.target.value) })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 text-xs cursor-pointer"
+                    >
+                      <option value={18}>18% Standard GST (Protein, Creatine & Supplements)</option>
+                      <option value={12}>12% GST (Vitamins / Herbal)</option>
+                      <option value={5}>5% GST (Health Foods)</option>
+                      <option value={0}>0% (Zero Tax / Exempt)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-300">Display Label on Checkout</label>
+                    <input
+                      type="text"
+                      name="taxLabel"
+                      value={formData.taxLabel || '18% GST Included'}
+                      onChange={handleChange}
+                      placeholder="e.g. 18% GST Included"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 text-xs"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[11px] text-amber-400/90 bg-amber-950/20 p-2.5 rounded-xl border border-amber-500/20">
+                  ⚠️ GST Disabled: Is product par customer ko checkout par "Zero Tax / GST Free" show hoga.
+                </p>
+              )}
             </div>
           </div>
 

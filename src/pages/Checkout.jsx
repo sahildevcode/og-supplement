@@ -10,7 +10,14 @@ import {
   Sparkles,
   HelpCircle,
   X,
-  CreditCard
+  CreditCard,
+  Plus,
+  Minus,
+  Trash2,
+  QrCode,
+  Smartphone,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCart } from '../context/CartContext';
@@ -35,7 +42,19 @@ const loadRazorpayScript = () => {
 };
 
 export default function Checkout() {
-  const { cartItems, totalItems, subtotal, discountOnMRP, bulkDiscount, deliveryCharge, totalAmount, clearCart } = useCart();
+  const {
+    cartItems,
+    totalItems,
+    subtotal,
+    discountOnMRP,
+    bulkDiscount,
+    deliveryCharge,
+    totalGst,
+    totalAmount,
+    updateQuantity,
+    removeFromCart,
+    clearCart
+  } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
   const { isDark } = useTheme();
@@ -144,14 +163,24 @@ export default function Checkout() {
         razorpayOrderId: rzpResponse.razorpay_order_id || '',
         razorpaySignature: rzpResponse.razorpay_signature || '',
         transactionId: rzpResponse.razorpay_payment_id || `pay_test_${Date.now().toString(36).toUpperCase()}`,
+        subtotal,
+        discount: bulkDiscount,
+        shipping: deliveryCharge,
+        tax: totalGst,
+        totalAmount,
         products: cartItems.map((item) => ({
           productId: item.productId || item._id,
           name: item.name,
           brand: item.brand,
+          image: item.image,
           price: item.discountPrice,
           quantity: item.quantity,
           variant: item.variant,
-          flavour: item.flavour
+          flavour: item.flavour,
+          shippingCost: item.shippingCost || 0,
+          isGstApplicable: item.isGstApplicable !== false,
+          gstRate: item.gstRate || 18,
+          taxLabel: item.taxLabel || '18% GST'
         }))
       };
 
@@ -233,6 +262,30 @@ export default function Checkout() {
           theme: {
             color: '#10b981'
           },
+          config: {
+            display: {
+              blocks: {
+                upi: {
+                  name: 'Pay using UPI (PhonePe, GPay, Paytm)',
+                  instruments: [
+                    { method: 'upi' }
+                  ]
+                },
+                other: {
+                  name: 'Cards & NetBanking',
+                  instruments: [
+                    { method: 'card' },
+                    { method: 'netbanking' },
+                    { method: 'wallet' }
+                  ]
+                }
+              },
+              sequence: ['block.upi', 'block.other'],
+              preferences: {
+                show_default_blocks: true
+              }
+            }
+          },
           handler: async function (response) {
             await handleCompleteRazorpayOrder(response);
           },
@@ -257,8 +310,15 @@ export default function Checkout() {
       return;
     }
 
-    // 2. Cash on Delivery (COD) Order Placement
+    // 2. Direct UPI or Cash on Delivery (COD) Order Placement
     try {
+      if (formData.paymentMethod === 'Online / UPI') {
+        if (!formData.transactionId || formData.transactionId.trim().length < 4) {
+          setErrorMessage('Please enter your 12-digit UPI Reference / UTR Number after completing payment in your UPI app.');
+          return;
+        }
+      }
+
       setIsSubmitting(true);
 
       const orderPayload = {
@@ -271,18 +331,28 @@ export default function Checkout() {
         state: formData.state,
         pincode: formData.pincode,
         landmark: formData.landmark,
-        paymentMethod: 'Cash on Delivery',
-        paymentStatus: 'Pending',
+        paymentMethod: formData.paymentMethod,
+        paymentStatus: formData.paymentMethod === 'Online / UPI' ? 'Verification Pending' : 'Pending',
         orderStatus: 'Order Placed',
-        transactionId: '',
+        transactionId: formData.transactionId ? formData.transactionId.trim() : '',
+        subtotal,
+        discount: bulkDiscount,
+        shipping: deliveryCharge,
+        tax: totalGst,
+        totalAmount,
         products: cartItems.map((item) => ({
           productId: item.productId || item._id,
           name: item.name,
           brand: item.brand,
+          image: item.image,
           price: item.discountPrice,
           quantity: item.quantity,
           variant: item.variant,
-          flavour: item.flavour
+          flavour: item.flavour,
+          shippingCost: item.shippingCost || 0,
+          isGstApplicable: item.isGstApplicable !== false,
+          gstRate: item.gstRate || 18,
+          taxLabel: item.taxLabel || '18% GST'
         }))
       };
 
@@ -508,11 +578,11 @@ export default function Checkout() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between flex-wrap gap-2">
                         <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          Instant Online Payment (UPI / Cards / GPay / NetBanking)
+                          Razorpay Payment Gateway (Cards / NetBanking / UPI)
                         </p>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            ⚡ 100% Automatic • Recommended
+                            ⚡ Instant Confirmation
                           </span>
                           {paymentSettings.razorpayMode === 'test' && (
                             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
@@ -522,13 +592,42 @@ export default function Checkout() {
                         </div>
                       </div>
                       <p className="text-xs text-slate-400 mt-1">
-                        Pay securely with Google Pay, PhonePe, Paytm, Debit/Credit Card or NetBanking. Order confirms automatically with zero manual UTR input.
+                        Pay with Debit / Credit Card, Netbanking, Wallets or Razorpay Gateway.
                       </p>
                     </div>
                   </label>
                 )}
 
-                {/* Option 2: Cash on Delivery */}
+                {/* Option 2: Direct UPI QR Code (PhonePe, Google Pay, Paytm, BHIM) */}
+                <label className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
+                  formData.paymentMethod === 'Online / UPI'
+                    ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-950/20 ring-1 ring-emerald-500/30'
+                    : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="Online / UPI"
+                    checked={formData.paymentMethod === 'Online / UPI'}
+                    onChange={handleChange}
+                    className="mt-1 accent-emerald-500 w-4 h-4"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        Direct UPI & QR Code (PhonePe, Google Pay, Paytm, BHIM)
+                      </p>
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30">
+                        📱 Scan & Pay
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Direct QR Code scan or 1-tap open PhonePe, GPay, Paytm on phone. Zero extra payment fees.
+                    </p>
+                  </div>
+                </label>
+
+                {/* Option 3: Cash on Delivery */}
                 {paymentSettings.isCodEnabled !== false && (
                   <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
                     formData.paymentMethod === 'Cash on Delivery'
@@ -552,6 +651,149 @@ export default function Checkout() {
 
               </div>
 
+              {/* Direct UPI Information Card (When Direct UPI is selected) */}
+              {formData.paymentMethod === 'Online / UPI' && (
+                <div className={`p-6 rounded-2xl border space-y-5 animate-in fade-in zoom-in-95 duration-200 ${
+                  isDark ? 'bg-slate-950/90 border-teal-500/30' : 'bg-teal-50/60 border-teal-200'
+                }`}>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-teal-400">
+                      <QrCode className="w-4 h-4" />
+                      <span>Scan & Pay via any UPI App</span>
+                    </div>
+                    <span className="text-xs font-bold text-teal-400">
+                      Exact Amount: ₹{totalAmount.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                    {/* QR Code Container */}
+                    <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-inner border border-slate-200">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+                          `upi://pay?pa=${paymentSettings.upiId || 'ogsupplement@okaxis'}&pn=${encodeURIComponent(paymentSettings.merchantName || 'OG Supplement')}&am=${totalAmount}&cu=INR`
+                        )}`}
+                        alt="UPI Payment QR Code"
+                        className="w-44 h-44 object-contain"
+                      />
+                      <p className="text-[11px] font-bold text-slate-800 mt-2 text-center">
+                        Scan with PhonePe, GPay, Paytm, BharatPe
+                      </p>
+                      <span className="text-[9px] text-slate-500 text-center font-medium">
+                        Works with BHIM, Cred, Amazon Pay & all Bank UPI apps
+                      </span>
+                    </div>
+
+                    {/* App Deep-links & UPI ID */}
+                    <div className="space-y-3.5 text-xs">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-slate-400">Official Merchant UPI ID:</span>
+                          <span className="text-[10px] text-teal-400 font-bold">Verified Merchant</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className={`px-3 py-1.5 rounded-xl font-mono font-bold text-sm border flex-1 truncate ${
+                            isDark ? 'bg-slate-900 border-slate-700 text-teal-300' : 'bg-white border-slate-300 text-teal-700'
+                          }`}>
+                            {paymentSettings.upiId || 'ogsupplement@okaxis'}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(paymentSettings.upiId || 'ogsupplement@okaxis');
+                              addToast('Merchant UPI ID copied to clipboard!', 'success');
+                            }}
+                            className="p-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-400 border border-teal-500/30 transition-colors cursor-pointer"
+                            title="Copy UPI ID"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Direct Click-to-Pay links for mobile users */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400">Pay directly via mobile app:</span>
+                          <span className="text-[10px] text-slate-500">(Mobile phones only)</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const upiUrl = `upi://pay?pa=${paymentSettings.upiId || 'ogsupplement@okaxis'}&pn=${encodeURIComponent(paymentSettings.merchantName || 'OG Supplement')}&am=${totalAmount}&cu=INR`;
+                              const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                              if (isMobile) {
+                                window.location.href = upiUrl;
+                              } else {
+                                addToast('📱 PhonePe mobile app hai. Computer/Laptop par screen par dikh rahe QR code ko apne phone ke PhonePe se scan karein!', 'info');
+                              }
+                            }}
+                            className="px-2 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 text-center font-bold text-[11px] transition-colors cursor-pointer"
+                          >
+                            PhonePe
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const upiUrl = `upi://pay?pa=${paymentSettings.upiId || 'ogsupplement@okaxis'}&pn=${encodeURIComponent(paymentSettings.merchantName || 'OG Supplement')}&am=${totalAmount}&cu=INR`;
+                              const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                              if (isMobile) {
+                                window.location.href = upiUrl;
+                              } else {
+                                addToast('📱 Google Pay mobile app hai. Computer/Laptop par screen par dikh rahe QR code ko apne phone ke Google Pay se scan karein!', 'info');
+                              }
+                            }}
+                            className="px-2 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 text-center font-bold text-[11px] transition-colors cursor-pointer"
+                          >
+                            Google Pay
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const upiUrl = `upi://pay?pa=${paymentSettings.upiId || 'ogsupplement@okaxis'}&pn=${encodeURIComponent(paymentSettings.merchantName || 'OG Supplement')}&am=${totalAmount}&cu=INR`;
+                              const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                              if (isMobile) {
+                                window.location.href = upiUrl;
+                              } else {
+                                addToast('📱 Paytm mobile app hai. Computer/Laptop par screen par dikh rahe QR code ko apne phone ke Paytm se scan karein!', 'info');
+                              }
+                            }}
+                            className="px-2 py-2 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/30 text-sky-300 text-center font-bold text-[11px] transition-colors cursor-pointer"
+                          >
+                            Paytm
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-slate-500 italic">
+                          💡 BharatPe, Cred ya kisi bhi dusre app se pay karne ke liye upar QR scan karein ya UPI ID copy karein.
+                        </p>
+                      </div>
+
+                      {/* 12-digit UTR Input */}
+                      <div className="space-y-1 pt-1">
+                        <label className="text-[11px] font-bold text-slate-300 block">
+                          Enter 12-Digit UPI UTR / Ref No. *
+                        </label>
+                        <input
+                          type="text"
+                          name="transactionId"
+                          value={formData.transactionId}
+                          onChange={handleChange}
+                          placeholder="e.g. 4289XXXXXXXX (from receipt)"
+                          maxLength={20}
+                          className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-mono focus:outline-none ${
+                            isDark ? 'bg-slate-900 border-teal-500/40 text-white focus:border-teal-400' : 'bg-white border-teal-300 text-slate-900 focus:border-teal-500'
+                          }`}
+                        />
+                        <p className="text-[10px] text-slate-400">
+                          Submit payment in your UPI app, then paste the 12-digit UTR number here to confirm.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Razorpay Information Box (When Razorpay is selected) */}
               {formData.paymentMethod === 'Razorpay (Online)' && (
                 <div className={`p-5 rounded-2xl border space-y-3 animate-in fade-in zoom-in-95 duration-200 ${
@@ -559,12 +801,12 @@ export default function Checkout() {
                 }`}>
                   <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400">
                     <Sparkles className="w-4 h-4" />
-                    <span>Instant Online Payment Gateway Powered by Razorpay</span>
+                    <span>Razorpay Online Gateway</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-300">
                     <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
                       <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Google Pay, PhonePe & Paytm UPI</span>
+                      <span>Cards & Netbanking</span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
                       <Check className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -572,7 +814,7 @@ export default function Checkout() {
                     </div>
                     <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
                       <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Automated Order Confirmation</span>
+                      <span>Automated Instant Confirmation</span>
                     </div>
                   </div>
                   {paymentSettings.razorpayMode === 'test' && (
@@ -597,39 +839,108 @@ export default function Checkout() {
               </h3>
 
               {/* Items Breakdown */}
-              <div className="max-h-60 overflow-y-auto space-y-3 pr-1">
-                {cartItems.map((item) => (
-                  <div key={`${item.productId}-${item.variant}-${item.flavour}`} className="flex items-center gap-3 text-xs">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className={`w-12 h-12 rounded-xl object-contain p-1 border flex-shrink-0 ${
-                        isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
-                      }`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-bold truncate ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{item.name}</p>
-                      <p className="text-slate-400">{item.variant} • Qty: {item.quantity}</p>
+              <div className="max-h-72 overflow-y-auto space-y-3.5 pr-1 divide-y divide-slate-800/40">
+                {cartItems.map((item) => {
+                  const itemGst = item.isGstApplicable !== false
+                    ? Math.round((Number(item.discountPrice || item.price) * item.quantity * Number(item.gstRate !== undefined ? item.gstRate : 18)) / 100)
+                    : 0;
+
+                  return (
+                    <div key={`${item.productId || item._id}-${item.variant}-${item.flavour}`} className="pt-3 first:pt-0 space-y-2">
+                      <div className="flex items-start gap-3 text-xs">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className={`w-12 h-12 rounded-xl object-contain p-1 border flex-shrink-0 ${
+                            isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-bold truncate ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{item.name}</p>
+                          <p className="text-[11px] text-slate-400">{item.variant} • {item.flavour}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {item.isGstApplicable !== false ? (
+                              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                +{item.gstRate || 18}% GST (₹{itemGst})
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-semibold text-slate-400 bg-slate-800/60 px-1.5 py-0.5 rounded">
+                                0% Tax Free
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Price Display */}
+                        <div className="text-right flex flex-col items-end">
+                          <span className={`font-black text-sm whitespace-nowrap ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            ₹{(item.discountPrice * item.quantity).toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            ₹{item.discountPrice} each
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Interactive Quantity Control Stepper & Remove right on Checkout */}
+                      <div className="flex items-center justify-between pt-1">
+                        <div className={`flex items-center border rounded-lg overflow-hidden ${
+                          isDark ? 'bg-slate-950 border-slate-700' : 'bg-slate-100 border-slate-300'
+                        }`}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                updateQuantity(item.productId || item._id, item.variant, item.flavour, item.quantity - 1, item.stock || 999);
+                              } else {
+                                removeFromCart(item.productId || item._id, item.variant, item.flavour);
+                              }
+                            }}
+                            className="px-2.5 py-1 text-slate-400 hover:text-emerald-400 active:scale-95 font-black text-xs transition-colors"
+                            title="Decrease quantity"
+                          >
+                            -
+                          </button>
+                          <span className={`px-2.5 py-1 text-xs font-black min-w-7 text-center ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.productId || item._id, item.variant, item.flavour, item.quantity + 1, item.stock || 999)}
+                            className="px-2.5 py-1 text-slate-400 hover:text-emerald-400 active:scale-95 font-black text-xs transition-colors"
+                            title="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(item.productId || item._id, item.variant, item.flavour)}
+                          className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                          title="Remove item from order"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
                     </div>
-                    <span className={`font-bold whitespace-nowrap ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      ₹{(item.discountPrice * item.quantity).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Totals */}
-              <div className={`space-y-2 text-xs sm:text-sm text-slate-400 border-t pt-3 ${
+              <div className={`space-y-2.5 text-xs sm:text-sm text-slate-400 border-t pt-3 ${
                 isDark ? 'border-slate-800' : 'border-slate-100'
               }`}>
                 <div className="flex justify-between">
-                  <span>Subtotal:</span>
+                  <span>Subtotal ({totalItems} items):</span>
                   <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>₹{subtotal.toLocaleString('en-IN')}</span>
                 </div>
 
                 {discountOnMRP > 0 && (
                   <div className="flex justify-between text-emerald-500">
-                    <span>Discount:</span>
+                    <span>Discount on MRP:</span>
                     <span className="font-bold">- ₹{discountOnMRP.toLocaleString('en-IN')}</span>
                   </div>
                 )}
@@ -641,19 +952,35 @@ export default function Checkout() {
                   </div>
                 )}
 
-                <div className="flex justify-between">
-                  <span>Delivery:</span>
+                <div className="flex justify-between items-center">
+                  <span>Delivery Charge:</span>
                   <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                    {deliveryCharge === 0 ? <span className="text-emerald-500 font-bold">FREE</span> : `₹${deliveryCharge}`}
+                    {deliveryCharge === 0 ? <span className="text-emerald-500 font-bold">FREE (₹0)</span> : `₹${deliveryCharge}`}
+                  </span>
+                </div>
+
+                {/* GST Breakdown Line calculated and added to Payable */}
+                <div className="flex justify-between items-center py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
+                  <span className="flex items-center gap-1.5 text-slate-300 font-medium">
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-black text-[10px]">
+                      GST
+                    </span>
+                    GST / Tax Charges:
+                  </span>
+                  <span className="font-black text-emerald-400 text-sm">
+                    {totalGst > 0 ? `+ ₹${totalGst.toLocaleString('en-IN')}` : '₹0 (Tax Exempt)'}
                   </span>
                 </div>
 
                 <div className={`pt-3 border-t flex justify-between items-baseline ${
                   isDark ? 'border-slate-800' : 'border-slate-100'
                 }`}>
-                  <span className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Final Amount:</span>
+                  <span className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Final Payable:</span>
                   <span className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{totalAmount.toLocaleString('en-IN')}</span>
                 </div>
+                <p className="text-[11px] text-slate-400 text-right">
+                  * Subtotal (₹{subtotal}) + Delivery (₹{deliveryCharge}) + GST (₹{totalGst}) = ₹{totalAmount}
+                </p>
               </div>
 
               {/* Submit CTA */}
@@ -674,6 +1001,8 @@ export default function Checkout() {
                     <span>
                       {formData.paymentMethod === 'Razorpay (Online)'
                         ? `Pay ₹${totalAmount.toLocaleString('en-IN')} with Razorpay`
+                        : formData.paymentMethod === 'Online / UPI'
+                        ? `Confirm & Place UPI Order (₹${totalAmount.toLocaleString('en-IN')})`
                         : `Place COD Order (₹${totalAmount.toLocaleString('en-IN')})`}
                     </span>
                   </>
