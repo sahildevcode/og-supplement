@@ -175,27 +175,23 @@ export default function AdminOrders() {
     );
     const totalPaymentProcessing = processingPaymentOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
 
-    // 3. Refunds in Processing / Pending Credit to Customer
-    const refundProcessingOrders = targetOrders.filter(
-      (o) =>
-        (o.refundStatus === 'processing' ||
-         o.refundStatus === 'pending' ||
-         ((o.orderStatus === 'Cancelled' || o.orderStatus === 'Refunded') && (o.paymentStatus === 'Paid' || o.paymentMethod?.includes('Razorpay')))) &&
-        o.refundStatus !== 'completed' &&
-        o.refundStatus !== 'Processed'
-    );
+    // 3. Refunds in Processing / Pending Bank Settlement
+    const refundProcessingOrders = targetOrders.filter((o) => {
+      const isCancelledPaid = (o.orderStatus === 'Cancelled' || o.orderStatus === 'Refunded') && (o.paymentStatus === 'Paid' || o.paymentMethod?.includes('Razorpay'));
+      const st = (o.refundStatus || '').toLowerCase();
+      const isDone = st === 'completed' || st === 'processed';
+      return (st === 'processing' || st === 'pending' || (isCancelledPaid && !isDone)) && !isDone;
+    });
     const totalRefundProcessing = refundProcessingOrders.reduce(
       (sum, o) => sum + Number(o.refundAmount || o.totalAmount || 0),
       0
     );
 
-    // 4. Completed Refunds (Credited back to customer)
-    const refundCompletedOrders = targetOrders.filter(
-      (o) =>
-        o.refundStatus === 'completed' ||
-        o.refundStatus === 'Processed' ||
-        (o.orderStatus === 'Refunded' && o.refundStatus === 'completed')
-    );
+    // 4. Completed Refunds (Processed by Razorpay / Bank)
+    const refundCompletedOrders = targetOrders.filter((o) => {
+      const st = (o.refundStatus || '').toLowerCase();
+      return st === 'completed' || st === 'processed';
+    });
     const totalRefundCompleted = refundCompletedOrders.reduce(
       (sum, o) => sum + Number(o.refundAmount || o.totalAmount || 0),
       0
