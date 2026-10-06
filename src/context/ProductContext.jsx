@@ -123,6 +123,7 @@ export const ProductProvider = ({ children }) => {
     };
 
     socket.on('product:updated', handleProductUpdated);
+    socket.on('product:bestSellerUpdated', handleProductUpdated);
     socket.on('product:stockUpdated', handleStockUpdated);
     socket.on('product:created', handleProductCreated);
     socket.on('product:deleted', handleProductDeleted);
@@ -132,6 +133,7 @@ export const ProductProvider = ({ children }) => {
       socket.off('disconnect', handleDisconnect);
       socket.io.off('reconnect', handleReconnect);
       socket.off('product:updated', handleProductUpdated);
+      socket.off('product:bestSellerUpdated', handleProductUpdated);
       socket.off('product:stockUpdated', handleStockUpdated);
       socket.off('product:created', handleProductCreated);
       socket.off('product:deleted', handleProductDeleted);

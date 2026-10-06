@@ -9,15 +9,9 @@ export const getProducts = async (req, res) => {
     const { category, brand, search, status, sort, isBestSeller } = req.query;
     let products = await Product.find();
 
-    // Filter by Best Seller flag
+    // Filter by Best Seller flag (Strict: Only return products set as Best Seller by admin)
     if (isBestSeller === 'true' || isBestSeller === true) {
-      const explicit = products.filter(p => p.isBestSeller === true);
-      if (explicit.length > 0) {
-        products = explicit;
-      } else {
-        // Fallback: If admin hasn't explicitly set any, pick top rated / sales products
-        products = [...products].sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0) || b.rating - a.rating);
-      }
+      products = products.filter(p => p.isBestSeller === true);
     }
 
     // In-memory / dynamic search filtering

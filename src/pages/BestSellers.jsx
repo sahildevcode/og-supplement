@@ -83,6 +83,7 @@ export default function BestSellers() {
   const categories = ['All', ...new Set(products.map((p) => p.category).filter(Boolean))];
 
   const filteredProducts = products.filter((p) => {
+    if (!p.isBestSeller) return false;
     if (selectedCategory !== 'All' && p.category.toLowerCase() !== selectedCategory.toLowerCase()) {
       return false;
     }

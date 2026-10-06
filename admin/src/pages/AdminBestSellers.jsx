@@ -486,10 +486,11 @@ function BestSellerItemCard({ product, index, onToggle, onUpdateDetails, isSavin
         <button
           onClick={() => onToggle(product)}
           disabled={isSaving}
-          className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition-colors"
+          className="px-2.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1.5 text-xs font-bold"
           title="Remove from Best Sellers"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>Remove</span>
         </button>
       </div>
 

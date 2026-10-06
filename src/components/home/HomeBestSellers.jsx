@@ -9,19 +9,15 @@ export default function HomeBestSellers() {
   const { products, loading } = useProducts();
   const { isDark } = useTheme();
 
-  // Pick best sellers first, sorted by bestSellerRank or salesCount
-  const explicitBestSellers = products
-    .filter((p) => p.isBestSeller)
+  // STRICT: Only products explicitly marked as Best Seller by admin in Admin Panel
+  const displayList = products
+    .filter((p) => p.isBestSeller === true)
     .sort((a, b) => (a.bestSellerRank || 999) - (b.bestSellerRank || 999) || (b.salesCount || 0) - (a.salesCount || 0));
 
-  // If fewer than 4 marked, fallback to top products by salesCount / rating
-  const fallbackProducts = products
-    .filter((p) => !p.isBestSeller)
-    .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0) || (b.rating || 0) - (a.rating || 0));
-
-  const displayList = explicitBestSellers.length >= 4
-    ? explicitBestSellers.slice(0, 8)
-    : [...explicitBestSellers, ...fallbackProducts].slice(0, 8);
+  // If no products marked as best sellers, do not show the section
+  if (!loading && displayList.length === 0) {
+    return null;
+  }
 
   return (
     <section className={`py-16 sm:py-20 border-t transition-colors duration-300 relative overflow-hidden ${
@@ -73,7 +69,15 @@ export default function HomeBestSellers() {
         ) : displayList.length === 0 ? (
           <div className="text-center py-12 text-slate-400">Loading supplements...</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className={
+            displayList.length === 1
+              ? 'max-w-xs mx-auto'
+              : displayList.length === 2
+              ? 'max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6'
+              : displayList.length === 3
+              ? 'max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
+              : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'
+          }>
             {displayList.map((prod, idx) => {
               const rankNum = prod.bestSellerRank || idx + 1;
               const badgeText = prod.bestSellerBadge || (rankNum === 1 ? '🔥 #1 BEST SELLER' : `#${rankNum} TOP CHOICE`);

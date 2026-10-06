@@ -75,6 +75,7 @@ export const api = {
 
   // Best Sellers Management
   toggleBestSeller: (id, data) => apiRequest(`/products/${id}/best-seller`, { method: 'PATCH', body: JSON.stringify(data) }),
+  updateProductBestSeller: (id, data) => apiRequest(`/products/${id}/best-seller`, { method: 'PATCH', body: JSON.stringify(data) }),
   syncBestSellers: (items) => apiRequest('/products/best-sellers/sync', { method: 'POST', body: JSON.stringify({ items }) }),
 
   // Customer Reviews & Transformations

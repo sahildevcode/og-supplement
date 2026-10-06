@@ -60,6 +60,17 @@ export default function Navbar() {
     setIsNotificationsOpen(false);
   }, [location.pathname]);
 
+  // Keyboard Escape listener to cut/close side drawer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isSideDrawerOpen) {
+        setIsSideDrawerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSideDrawerOpen]);
+
   // Click outside listener for dropdowns
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -442,14 +453,19 @@ export default function Navbar() {
                 </div>
               </div>
 
+              {/* Cut / Close Button */}
               <button
                 type="button"
                 onClick={() => setIsSideDrawerOpen(false)}
-                className={`p-1.5 rounded-xl border transition-colors ${
-                  isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border-slate-700' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                className={`px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 font-bold group shadow-sm ${
+                  isDark
+                    ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/30'
+                    : 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200'
                 }`}
+                title="Cut / Close Menu"
               >
-                <X className="w-4 h-4" />
+                <span className="text-xs font-bold">Cut</span>
+                <X className="w-4 h-4 text-rose-400 group-hover:rotate-90 transition-transform duration-200" />
               </button>
             </div>
 
