@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Plus, Trash2, Sparkles, Check } from 'lucide-react';
+import { X, Upload, Plus, Trash2, Sparkles, Check, Flame } from 'lucide-react';
 import { api } from '../services/api';
 import { useAdminToast } from '../context/AdminToastContext';
 
@@ -20,6 +20,9 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
     isGstApplicable: true,
     gstRate: 18,
     taxLabel: '18% GST Included',
+    isBestSeller: false,
+    bestSellerBadge: '🔥 #1 Best Seller',
+    bestSellerRank: 1,
     description: '',
     ingredients: '',
     images: ['', '', '', ''],
@@ -58,6 +61,9 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         isGstApplicable: product.isGstApplicable !== undefined ? product.isGstApplicable : true,
         gstRate: product.gstRate !== undefined ? product.gstRate : 18,
         taxLabel: product.taxLabel || '18% GST Included',
+        isBestSeller: Boolean(product.isBestSeller),
+        bestSellerBadge: product.bestSellerBadge || '🔥 #1 Best Seller',
+        bestSellerRank: product.bestSellerRank || 1,
         isCancellationFeeApplicable: product.isCancellationFeeApplicable !== undefined ? product.isCancellationFeeApplicable : true,
         cancellationFeeType: product.cancellationFeeType || 'percentage',
         cancellationFeeValue: product.cancellationFeeValue !== undefined ? product.cancellationFeeValue : 5,
@@ -81,6 +87,9 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         isGstApplicable: true,
         gstRate: 18,
         taxLabel: '18% GST Included',
+        isBestSeller: false,
+        bestSellerBadge: '🔥 #1 Best Seller',
+        bestSellerRank: 1,
         isCancellationFeeApplicable: true,
         cancellationFeeType: 'percentage',
         cancellationFeeValue: 5,
@@ -467,6 +476,62 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                 <p className="text-[11px] text-emerald-400/90 bg-emerald-950/20 p-2.5 rounded-xl border border-emerald-500/20">
                   ✅ Free Cancellation: Is product par cancellation ke waqt koi bhi charge nahi katega (100% Full Refund).
                 </p>
+              )}
+            </div>
+
+            {/* Best Seller Showcase Settings */}
+            <div className="sm:col-span-2 p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5">
+                    <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <span>Best Seller Leaderboard Status</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                      Front Page & Leaderboard
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    Is product ko website ke front page Best Sellers aur Best Sellers page par highlight karein
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isBestSeller"
+                    checked={Boolean(formData.isBestSeller)}
+                    onChange={(e) => setFormData({ ...formData, isBestSeller: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
+              </div>
+
+              {Boolean(formData.isBestSeller) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-500/20">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-300">Leaderboard Rank (1-99)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      name="bestSellerRank"
+                      value={formData.bestSellerRank || 1}
+                      onChange={(e) => setFormData({ ...formData, bestSellerRank: Number(e.target.value) })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500 text-xs font-mono font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-300">Display Badge Label</label>
+                    <input
+                      type="text"
+                      name="bestSellerBadge"
+                      value={formData.bestSellerBadge || '🔥 #1 Best Seller'}
+                      onChange={(e) => setFormData({ ...formData, bestSellerBadge: e.target.value })}
+                      placeholder="e.g. 🔥 #1 Best Seller"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500 text-xs"
+                    />
+                  </div>
+                </div>
               )}
             </div>
           </div>

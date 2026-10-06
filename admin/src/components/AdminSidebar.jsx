@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -11,12 +11,23 @@ import {
   Shield,
   LogOut,
   ChevronRight,
-  Flame
+  Flame,
+  X
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function AdminSidebar({ isOpen, setIsOpen }) {
   const { logout } = useAdminAuth();
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, setIsOpen]);
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -31,35 +42,50 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
 
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Universal Backdrop overlay (Click outside to Cut/Close) */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm transition-opacity duration-300"
+          title="Click to Close Navigation"
         />
       )}
 
+      {/* Slide-in Sidebar (Only opens when clicked, hides when Cut/closed) */}
       <aside
-        className={`fixed top-0 left-0 z-40 h-screen w-64 bg-slate-900 border-r border-slate-800 transition-transform duration-300 ease-in-out flex flex-col justify-between ${
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed top-0 left-0 z-50 h-screen w-72 sm:w-80 bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col justify-between ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-6 space-y-8">
+        <div className="p-6 space-y-7 overflow-y-auto">
           
-          {/* Logo */}
-          <Link to="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-950/60">
-              <Shield className="w-6 h-6 text-black" />
-            </div>
-            <div>
-              <span className="text-lg font-black text-white tracking-tight">
-                OG-<span className="text-cyan-400">ADMIN</span>
-              </span>
-              <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Management Gateway
-              </span>
-            </div>
-          </Link>
+          {/* Header: Logo + Cut/Close Button */}
+          <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
+            <Link to="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-2.5 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-950/60 flex-shrink-0">
+                <Shield className="w-6 h-6 text-black" />
+              </div>
+              <div>
+                <span className="text-lg font-black text-white tracking-tight">
+                  OG-<span className="text-cyan-400">ADMIN</span>
+                </span>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Management Gateway
+                </span>
+              </div>
+            </Link>
+
+            {/* Cut / Close Button */}
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800/80 hover:bg-rose-500/20 border border-slate-700/80 hover:border-rose-500/40 transition-all flex items-center gap-1.5 group shadow-sm"
+              title="Close / Cut Sidebar"
+            >
+              <span className="text-[11px] font-bold text-slate-400 group-hover:text-rose-300">Cut</span>
+              <X className="w-4 h-4 text-slate-300 group-hover:text-rose-400 group-hover:rotate-90 transition-transform duration-200" />
+            </button>
+          </div>
+
 
           {/* Navigation Links */}
           <nav className="space-y-1.5">

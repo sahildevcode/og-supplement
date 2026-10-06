@@ -4,7 +4,7 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 import { useTheme } from '../context/ThemeContext';
 import LiveSocketIndicator from './LiveSocketIndicator';
 
-export default function AdminHeader({ setIsSidebarOpen }) {
+export default function AdminHeader({ isSidebarOpen, setIsSidebarOpen }) {
   const { admin, logout } = useAdminAuth();
   const { theme, toggleTheme, isDark } = useTheme();
 
@@ -13,15 +13,19 @@ export default function AdminHeader({ setIsSidebarOpen }) {
       isDark ? 'bg-slate-900/90 border-slate-800 text-white' : 'bg-white/90 border-slate-200 text-slate-900 shadow-sm'
     }`}>
       
-      {/* Mobile Toggle & Brand */}
+      {/* Universal Sidebar Menu Toggle & Brand */}
       <div className="flex items-center gap-3">
         <button
-          onClick={() => setIsSidebarOpen(true)}
-          className={`lg:hidden p-2 rounded-xl ${
-            isDark ? 'bg-slate-800 text-slate-300 hover:text-white' : 'bg-slate-100 text-slate-700 hover:text-slate-900'
+          onClick={() => setIsSidebarOpen((prev) => !prev)}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all font-bold text-xs shadow-md ${
+            isDark
+              ? 'bg-slate-800/90 hover:bg-slate-750 text-cyan-400 hover:text-white border-slate-700 hover:border-cyan-500/50'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
           }`}
+          title="Click to Open/Close Navigation Sidebar"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-4 h-4 text-cyan-400" />
+          <span className="hidden sm:inline">Sidebar Menu</span>
         </button>
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse" />
@@ -30,6 +34,7 @@ export default function AdminHeader({ setIsSidebarOpen }) {
           </span>
         </div>
       </div>
+
 
       {/* Right Controls */}
       <div className="flex items-center gap-3 sm:gap-4">

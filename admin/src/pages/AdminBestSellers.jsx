@@ -13,7 +13,9 @@ import {
   Trash2,
   TrendingUp,
   Boxes,
-  HelpCircle
+  HelpCircle,
+  X,
+  Plus
 } from 'lucide-react';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
@@ -199,12 +201,12 @@ export default function AdminBestSellers() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center justify-between gap-4 border-b border-slate-800 pb-2">
-        <div className="flex items-center gap-2">
+      {/* Tabs & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div className="flex items-center gap-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab('bestsellers')}
-            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
               activeTab === 'bestsellers'
                 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-lg shadow-amber-950/40'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
@@ -216,7 +218,7 @@ export default function AdminBestSellers() {
 
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-all ${
               activeTab === 'all'
                 ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-lg shadow-cyan-950/40'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
@@ -228,13 +230,13 @@ export default function AdminBestSellers() {
         </div>
 
         {/* Search */}
-        <div className="relative min-w-[220px]">
+        <div className="relative w-full sm:w-64">
           <input
             type="text"
             placeholder="Search supplements..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500"
           />
           <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
         </div>
@@ -279,16 +281,16 @@ export default function AdminBestSellers() {
       {/* TAB 2: ALL PRODUCTS CATALOG */}
       {activeTab === 'all' && (
         <div className="bg-slate-900/80 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[11px] font-bold">
                 <tr>
-                  <th className="p-4 sm:p-5">Supplement</th>
-                  <th className="p-4 sm:p-5">Category</th>
-                  <th className="p-4 sm:p-5">Price</th>
-                  <th className="p-4 sm:p-5">Sales Count</th>
-                  <th className="p-4 sm:p-5">Best Seller Status</th>
-                  <th className="p-4 sm:p-5 text-right">Action</th>
+                  <th className="px-3.5 py-3.5">Supplement</th>
+                  <th className="px-3 py-3.5">Category</th>
+                  <th className="px-3 py-3.5">Price</th>
+                  <th className="px-3 py-3.5">Sales</th>
+                  <th className="px-3 py-3.5">Status</th>
+                  <th className="px-3.5 py-3.5 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
@@ -297,59 +299,71 @@ export default function AdminBestSellers() {
                   const isBS = prod.isBestSeller;
                   return (
                     <tr key={pid} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="p-4 sm:p-5">
-                        <div className="flex items-center gap-3">
+                      <td className="px-3.5 py-3">
+                        <div className="flex items-center gap-2.5">
                           <img
                             src={prod.images?.[0] || 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80'}
                             alt={prod.name}
-                            className="w-10 h-10 rounded-xl object-contain p-1 bg-slate-950 border border-slate-800 flex-shrink-0"
+                            className="w-9 h-9 rounded-lg object-contain p-1 bg-slate-950 border border-slate-800 flex-shrink-0"
                           />
-                          <div className="min-w-0 max-w-xs sm:max-w-md">
-                            <p className="font-bold text-white truncate">{prod.name}</p>
-                            <span className="text-[11px] text-slate-400 font-semibold">{prod.brand}</span>
+                          <div className="min-w-0 max-w-[160px] sm:max-w-[220px] md:max-w-xs">
+                            <p className="font-bold text-white truncate text-xs sm:text-sm">{prod.name}</p>
+                            <span className="text-[11px] text-slate-400 font-semibold truncate block">{prod.brand}</span>
                           </div>
                         </div>
                       </td>
 
-                      <td className="p-4 sm:p-5">
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-950 border border-slate-800 text-slate-300">
+                      <td className="px-3 py-3">
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-950 border border-slate-800 text-slate-300 whitespace-nowrap">
                           {prod.category}
                         </span>
                       </td>
 
-                      <td className="p-4 sm:p-5 font-mono font-bold text-white">
+                      <td className="px-3 py-3 font-mono font-bold text-white whitespace-nowrap text-xs">
                         ₹{prod.discountPrice?.toLocaleString('en-IN') || prod.price}
                       </td>
 
-                      <td className="p-4 sm:p-5">
-                        <div className="flex items-center gap-1.5 text-xs text-slate-300">
-                          <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="font-mono font-bold">{prod.salesCount || 0} units</span>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1 text-[11px] text-slate-300">
+                          <TrendingUp className="w-3 h-3 text-emerald-400" />
+                          <span className="font-mono font-bold">{prod.salesCount || 0} sold</span>
                         </div>
                       </td>
 
-                      <td className="p-4 sm:p-5">
+                      <td className="px-3 py-3 whitespace-nowrap">
                         {isBS ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                            <Flame className="w-3 h-3 fill-amber-400" />
-                            {prod.bestSellerBadge || 'Active Best Seller'}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                            <Flame className="w-2.5 h-2.5 fill-amber-400" />
+                            {prod.bestSellerBadge || 'Active'}
                           </span>
                         ) : (
-                          <span className="text-[11px] text-slate-500">Regular Catalog</span>
+                          <span className="text-[11px] text-slate-500">Regular</span>
                         )}
                       </td>
 
-                      <td className="p-4 sm:p-5 text-right">
+                      <td className="px-3.5 py-3 text-right whitespace-nowrap">
                         <button
                           onClick={() => handleToggle(prod)}
                           disabled={savingId === pid}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                          className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 ${
                             isBS
                               ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30'
                               : 'bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500 hover:text-black'
                           }`}
                         >
-                          {savingId === pid ? 'Updating...' : isBS ? 'Remove from Best Sellers' : '+ Add as Best Seller'}
+                          {savingId === pid ? (
+                            'Updating...'
+                          ) : isBS ? (
+                            <>
+                              <X className="w-3.5 h-3.5" />
+                              <span>Remove</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>+ Best Seller</span>
+                            </>
+                          )}
                         </button>
                       </td>
                     </tr>

@@ -2,6 +2,7 @@ import React from 'react';
 import HeroCarousel from '../components/home/HeroCarousel';
 import CategorySection from '../components/home/CategorySection';
 import BrandTrust from '../components/home/BrandTrust';
+import HomeBestSellers from '../components/home/HomeBestSellers';
 import FeaturedSection from '../components/home/FeaturedSection';
 import HomeTransformations from '../components/home/HomeTransformations';
 import SeoPopularSearches from '../components/home/SeoPopularSearches';
@@ -13,6 +14,7 @@ export default function Home() {
       <HeroCarousel />
       <BrandTrust />
       <CategorySection />
+      <HomeBestSellers />
       <FeaturedSection />
       <HomeTransformations />
       <SeoPopularSearches />

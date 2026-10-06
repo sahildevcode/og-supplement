@@ -86,6 +86,27 @@ export default function AdminProducts() {
     }
   };
 
+  const handleQuickToggleBestSeller = async (prod) => {
+    const pid = prod._id || prod.id;
+    const nextVal = !prod.isBestSeller;
+    try {
+      await api.updateProductBestSeller(pid, {
+        isBestSeller: nextVal,
+        bestSellerBadge: prod.bestSellerBadge || '🔥 #1 Best Seller',
+        bestSellerRank: prod.bestSellerRank || 1
+      });
+      setProducts((prev) =>
+        prev.map((p) => ((p._id || p.id) === pid ? { ...p, isBestSeller: nextVal } : p))
+      );
+      addToast(
+        nextVal ? `🔥 Added "${prod.name}" to Best Sellers!` : `Removed "${prod.name}" from Best Sellers`,
+        'success'
+      );
+    } catch (err) {
+      addToast(err.message || 'Failed to update Best Seller status', 'error');
+    }
+  };
+
   const filtered = products.filter((p) => {
     const matchCat = categoryFilter === 'All' || p.category === categoryFilter;
     const matchSearch =
@@ -238,6 +259,19 @@ export default function AdminProducts() {
 
                     <td className="p-4 sm:p-5 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {/* 1-Click Best Seller Quick Toggle */}
+                        <button
+                          onClick={() => handleQuickToggleBestSeller(prod)}
+                          className={`p-2 rounded-xl transition-all border ${
+                            prod.isBestSeller
+                              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                              : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-amber-400 hover:border-amber-500/30'
+                          }`}
+                          title={prod.isBestSeller ? 'Click to remove from Best Sellers' : 'Click to feature as Best Seller'}
+                        >
+                          <Flame className={`w-4 h-4 ${prod.isBestSeller ? 'fill-amber-400' : ''}`} />
+                        </button>
+
                         <button
                           onClick={() => {
                             setSelectedProduct(prod);

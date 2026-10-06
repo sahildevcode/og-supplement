@@ -118,11 +118,11 @@ export default function Navbar() {
                 </div>
               </Link>
 
-              {/* Main Visible Nav Links: Home & Store/Catalog */}
-              <nav className="hidden sm:flex items-center gap-1">
+              {/* Main Visible Nav Links: Home, Store, Best Sellers & Results */}
+              <nav className="hidden sm:flex items-center gap-1 lg:gap-1.5">
                 <Link
                   to="/"
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
+                  className={`px-2.5 lg:px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
                     location.pathname === '/'
                       ? 'text-emerald-400 bg-emerald-500/10 font-bold shadow-sm'
                       : isDark
@@ -136,7 +136,7 @@ export default function Navbar() {
                 <Link
                   to="/products"
                   onClick={() => setSelectedCategory('All')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 ${
+                  className={`px-2.5 lg:px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 ${
                     location.pathname === '/products'
                       ? 'text-emerald-400 bg-emerald-500/10 font-bold shadow-sm'
                       : isDark
@@ -146,6 +146,37 @@ export default function Navbar() {
                 >
                   <Layers className="w-3.5 h-3.5 text-emerald-500" />
                   <span>Store & Catalog</span>
+                </Link>
+
+                <Link
+                  to="/best-sellers"
+                  className={`px-2.5 lg:px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 ${
+                    location.pathname === '/best-sellers'
+                      ? 'text-amber-400 bg-amber-500/15 font-bold shadow-sm border border-amber-500/30'
+                      : isDark
+                      ? 'text-slate-300 hover:text-amber-400 hover:bg-slate-900'
+                      : 'text-slate-700 hover:text-amber-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  <span>Best Sellers</span>
+                  <span className="hidden xl:inline-block px-1 py-0.2 text-[9px] font-black uppercase rounded bg-amber-500 text-black">
+                    HOT
+                  </span>
+                </Link>
+
+                <Link
+                  to="/reviews"
+                  className={`px-2.5 lg:px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 ${
+                    location.pathname === '/reviews'
+                      ? 'text-emerald-400 bg-emerald-500/15 font-bold shadow-sm border border-emerald-500/30'
+                      : isDark
+                      ? 'text-slate-300 hover:text-emerald-400 hover:bg-slate-900'
+                      : 'text-slate-700 hover:text-emerald-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  <span>Customer Results</span>
                 </Link>
               </nav>
             </div>
