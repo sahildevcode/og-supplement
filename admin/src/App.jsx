@@ -18,6 +18,7 @@ import AdminPaymentSettings from './pages/AdminPaymentSettings';
 import AdminStock from './pages/AdminStock';
 import AdminOrders from './pages/AdminOrders';
 import AdminCustomers from './pages/AdminCustomers';
+import AdminBestSellers from './pages/AdminBestSellers';
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="products" element={<AdminProducts />} />
+                <Route path="best-sellers" element={<AdminBestSellers />} />
                 <Route path="categories" element={<AdminCategories />} />
                 <Route path="payment-settings" element={<AdminPaymentSettings />} />
                 <Route path="stock" element={<AdminStock />} />

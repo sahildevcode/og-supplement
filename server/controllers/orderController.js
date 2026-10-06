@@ -93,9 +93,10 @@ export const createOrder = async (req, res) => {
       // Deduct stock if product exists in DB
       if (dbProduct) {
         const newStock = Math.max(0, dbProduct.stock - Number(item.quantity || 1));
+        const newSalesCount = (Number(dbProduct.salesCount) || 0) + Number(item.quantity || 1);
         const updatedProduct = await Product.findByIdAndUpdate(
           dbProduct._id || dbProduct.id,
-          { stock: newStock },
+          { stock: newStock, salesCount: newSalesCount },
           { new: true }
         );
 

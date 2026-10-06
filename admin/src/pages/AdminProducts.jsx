@@ -7,7 +7,8 @@ import {
   Search,
   SlidersHorizontal,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Flame
 } from 'lucide-react';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
@@ -199,7 +200,15 @@ export default function AdminProducts() {
                         />
                         <div className="min-w-0 max-w-sm">
                           <p className="font-bold text-white truncate">{prod.name}</p>
-                          <span className="text-[11px] text-cyan-400 font-semibold">{prod.brand}</span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[11px] text-cyan-400 font-semibold">{prod.brand}</span>
+                            {prod.isBestSeller && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                <Flame className="w-2.5 h-2.5 fill-amber-400" />
+                                {prod.bestSellerBadge || 'Best Seller'}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>

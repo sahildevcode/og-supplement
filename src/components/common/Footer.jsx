@@ -41,6 +41,8 @@ export default function Footer() {
             <h4 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="hover:text-emerald-500 transition-colors">Home</Link></li>
+              <li><Link to="/best-sellers" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5"><span className="text-amber-400">🔥</span> Best Sellers</Link></li>
+              <li><Link to="/reviews" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5"><span className="text-emerald-400">🌟</span> Customer Reviews & Results</Link></li>
               <li><Link to="/products" className="hover:text-emerald-500 transition-colors">All Supplements</Link></li>
               <li><Link to="/about" className="hover:text-emerald-500 transition-colors">About OG-Supplement</Link></li>
               <li><Link to="/license" className="hover:text-emerald-500 transition-colors">Licenses & Lab Reports</Link></li>

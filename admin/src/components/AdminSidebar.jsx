@@ -10,7 +10,8 @@ import {
   QrCode,
   Shield,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Flame
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -20,6 +21,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Products Catalog', path: '/products', icon: Package },
+    { name: 'Best Sellers Manager', path: '/best-sellers', icon: Flame },
     { name: 'Homepage Categories', path: '/categories', icon: Layers },
     { name: 'Payment & QR Code', path: '/payment-settings', icon: QrCode },
     { name: 'Live Stock Control', path: '/stock', icon: Boxes },

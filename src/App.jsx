@@ -23,6 +23,8 @@ import OrderSuccess from './pages/OrderSuccess';
 import OrderHistory from './pages/OrderHistory';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import BestSellers from './pages/BestSellers';
+import ReviewsResults from './pages/ReviewsResults';
 
 // Static & Policy Pages
 import About from './pages/static/About';
@@ -134,6 +136,10 @@ export default function App() {
                     
                     <Route path="/order-success/:id" element={<OrderSuccess />} />
                     <Route path="/orders" element={<OrderHistory />} />
+                    <Route path="/best-sellers" element={<BestSellers />} />
+                    <Route path="/reviews" element={<ReviewsResults />} />
+                    <Route path="/results" element={<ReviewsResults />} />
+                    <Route path="/transformations" element={<ReviewsResults />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
 

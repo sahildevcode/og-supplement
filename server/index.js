@@ -19,7 +19,10 @@ import adminRoutes from './routes/adminRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 import { PaymentSettings } from './models/PaymentSettings.js';
+import { Review } from './models/Review.js';
+import { initialReviews } from './data/seedReviews.js';
 
 dotenv.config();
 
@@ -56,6 +59,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health Check API
 app.get('/api/health', (req, res) => {
@@ -132,6 +136,16 @@ const seedDatabase = async () => {
       await PaymentSettings.update(localStore.paymentSettings);
     } else {
       await PaymentSettings.get();
+    }
+
+    // Seed default customer reviews & transformation results
+    const existingReviews = await Review.find();
+    if (existingReviews.length === 0) {
+      console.log(`\x1b[36m[DB Seeding]\x1b[0m Seeding ${initialReviews.length} transformation reviews...`);
+      for (const rev of initialReviews) {
+        await Review.create(rev);
+      }
+      console.log(`\x1b[32m[DB Seeded]\x1b[0m Successfully seeded customer transformation reviews!`);
     }
   } catch (error) {
     console.warn('[Seed Error]', error.message);

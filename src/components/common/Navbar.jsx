@@ -23,7 +23,9 @@ import {
   RotateCcw,
   Mail,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Flame,
+  Star
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -456,6 +458,40 @@ export default function Navbar() {
                     <span className="font-bold">All Products & Store</span>
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                </Link>
+
+                <Link
+                  to="/best-sellers"
+                  onClick={() => setIsSideDrawerOpen(false)}
+                  className={`flex items-center justify-between p-2.5 rounded-xl transition-all ${
+                    isDark ? 'hover:bg-slate-900 text-slate-200' : 'hover:bg-slate-100 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <div>
+                      <span className="font-bold">Best Selling Products</span>
+                      <p className="text-[10px] text-slate-400">Top selling supplements & formulas</p>
+                    </div>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-black">HOT</span>
+                </Link>
+
+                <Link
+                  to="/reviews"
+                  onClick={() => setIsSideDrawerOpen(false)}
+                  className={`flex items-center justify-between p-2.5 rounded-xl transition-all ${
+                    isDark ? 'hover:bg-slate-900 text-slate-200' : 'hover:bg-slate-100 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <div>
+                      <span className="font-bold">Happy Customers & Results</span>
+                      <p className="text-[10px] text-slate-400">Before/after results & 4.9★ reviews</p>
+                    </div>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500 text-black">RESULTS</span>
                 </Link>
 
                 <Link

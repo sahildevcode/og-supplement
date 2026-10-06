@@ -6,11 +6,16 @@ import {
   updateProduct,
   updateStock,
   deleteProduct,
-  addProductReview
+  addProductReview,
+  toggleBestSeller,
+  syncBestSellers
 } from '../controllers/productController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+
+// Specific and bulk routes
+router.post('/best-sellers/sync', syncBestSellers);
 
 // Public routes
 router.get('/', getProducts);
@@ -21,6 +26,7 @@ router.post('/:id/reviews', addProductReview);
 router.post('/', createProduct);
 router.put('/:id', updateProduct);
 router.patch('/:id/stock', updateStock);
+router.patch('/:id/best-seller', toggleBestSeller);
 router.delete('/:id', deleteProduct);
 
 export default router;

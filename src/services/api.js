@@ -74,6 +74,12 @@ export const api = {
   updateStock: (id, stockData) => apiRequest(`/products/${id}/stock`, { method: 'PATCH', body: JSON.stringify(stockData) }),
   deleteProduct: (id) => apiRequest(`/products/${id}`, { method: 'DELETE' }),
   addProductReview: (id, reviewData) => apiRequest(`/products/${id}/reviews`, { method: 'POST', body: JSON.stringify(reviewData) }),
+  getBestSellers: (params = '') => apiRequest(`/products?isBestSeller=true${params ? `&${params.replace(/^\?/, '')}` : ''}`),
+
+  // Customer Reviews & Transformations
+  getReviews: (params = '') => apiRequest(`/reviews${params}`),
+  submitReview: (data) => apiRequest('/reviews', { method: 'POST', body: JSON.stringify(data) }),
+  likeReview: (id) => apiRequest(`/reviews/${id}/like`, { method: 'PATCH' }),
 
   // Orders with resilient cloud + offline fallback
   createOrder: async (orderData) => {

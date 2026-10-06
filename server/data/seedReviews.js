@@ -1,0 +1,111 @@
+export const initialReviews = [
+  {
+    customerName: 'Aman Deep Sharma',
+    city: 'Delhi NCR',
+    rating: 5,
+    transformationGoal: 'Muscle Building',
+    duration: '16 Weeks',
+    productUsed: 'NitroTech 100% Whey Gold',
+    title: 'Gained 5.8 KG Lean Muscle & Dropped Bodyfat!',
+    comment: 'Authenticity code verified on the official site right after delivery. Mixability is super smooth, no digestion bloating like cheap brands. My bench increased from 75kg to 95kg. 100% genuine products by OG-Supplement.',
+    beforeImage: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&auto=format&fit=crop&q=80',
+    afterImage: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80',
+    reviewImages: [
+      'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80'
+    ],
+    verified: true,
+    isFeatured: true,
+    likes: 47,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    customerName: 'Rohit Kulkarni',
+    city: 'Pune, Maharashtra',
+    rating: 5,
+    transformationGoal: 'Fat Loss & Shred',
+    duration: '12 Weeks',
+    productUsed: 'Optimum Nutrition Gold Standard 100% Isolate',
+    title: 'Down 7.4 KG from 84kg to 76.6kg - Veins are showing!',
+    comment: 'I was skeptical about ordering online because of duplicate supplements in the market, but OG-Supplement gave me sealed packaging with importer Hologram. Recovery after 5 AM fasted cardio is unbelievable. Worth every single rupee.',
+    beforeImage: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&auto=format&fit=crop&q=80',
+    afterImage: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&auto=format&fit=crop&q=80',
+    reviewImages: [
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&auto=format&fit=crop&q=80'
+    ],
+    verified: true,
+    isFeatured: true,
+    likes: 38,
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    customerName: 'Priya Rathore',
+    city: 'Jaipur, Rajasthan',
+    rating: 5,
+    transformationGoal: 'Strength & Power',
+    duration: '8 Weeks',
+    productUsed: 'Creatine Monohydrate Micronized (Creapure)',
+    title: 'Zero bloat, instant stamina spike on leg days!',
+    comment: 'First time taking Creatine and within 2 weeks my strength shot up. Deadlift increased by 15kg without any water retention or stomach cramps. Delivery arrived in 2 days in Jaipur with solid bubble wrap.',
+    beforeImage: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop&q=80',
+    afterImage: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&auto=format&fit=crop&q=80',
+    reviewImages: [],
+    verified: true,
+    isFeatured: true,
+    likes: 29,
+    createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    customerName: 'Vikram Singh Rawat',
+    city: 'Dehradun, Uttarakhand',
+    rating: 5,
+    transformationGoal: 'Muscle Building',
+    duration: '20 Weeks',
+    productUsed: 'Labrada Super Mass Gainer',
+    title: 'Hardgainer to Athletic Build (52kg to 61kg)',
+    comment: 'I had been stuck at 52kg for 2 years despite heavy workouts. Started 1 scoop twice daily along with clean diet. Gained genuine solid weight without unnecessary fat. Best taste in Chocolate Ice Cream.',
+    beforeImage: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=600&auto=format&fit=crop&q=80',
+    afterImage: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=600&auto=format&fit=crop&q=80',
+    reviewImages: [
+      'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=600&auto=format&fit=crop&q=80'
+    ],
+    verified: true,
+    isFeatured: true,
+    likes: 54,
+    createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    customerName: 'Dr. Sameer Khan',
+    city: 'Hyderabad, Telangana',
+    rating: 5,
+    transformationGoal: 'Daily Fitness & Stamina',
+    duration: '6 Weeks',
+    productUsed: 'Daily Multivitamins & Omega-3 Fish Oil',
+    title: 'Clean formulation, high bioavailability',
+    comment: 'As a practicing physician and fitness enthusiast, I scrutinize labels carefully. The heavy metal lab reports published on this site gave me 100% confidence. Energy levels throughout 12-hour hospital shifts are consistent.',
+    beforeImage: '',
+    afterImage: '',
+    reviewImages: [],
+    verified: true,
+    isFeatured: false,
+    likes: 21,
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    customerName: 'Karthik Raja',
+    city: 'Bengaluru, Karnataka',
+    rating: 5,
+    transformationGoal: 'Strength & Power',
+    duration: '10 Weeks',
+    productUsed: 'Pre-Workout Explosive Energy & Beta-Alanine',
+    title: 'Mind-muscle connection is crazy, no jittery crash',
+    comment: 'Pumps are insane! Gives clean tunnel-vision focus without heart palpitations or post-workout caffeine crash. Tastes like real green apple. Always buying from OG-Supplement now.',
+    beforeImage: '',
+    afterImage: '',
+    reviewImages: [],
+    verified: true,
+    isFeatured: false,
+    likes: 19,
+    createdAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString()
+  }
+];

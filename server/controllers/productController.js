@@ -6,8 +6,19 @@ const getIO = (req) => req.app.get('io');
 // @route   GET /api/products
 export const getProducts = async (req, res) => {
   try {
-    const { category, brand, search, status, sort } = req.query;
+    const { category, brand, search, status, sort, isBestSeller } = req.query;
     let products = await Product.find();
+
+    // Filter by Best Seller flag
+    if (isBestSeller === 'true' || isBestSeller === true) {
+      const explicit = products.filter(p => p.isBestSeller === true);
+      if (explicit.length > 0) {
+        products = explicit;
+      } else {
+        // Fallback: If admin hasn't explicitly set any, pick top rated / sales products
+        products = [...products].sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0) || b.rating - a.rating);
+      }
+    }
 
     // In-memory / dynamic search filtering
     if (category && category !== 'All') {
@@ -42,7 +53,12 @@ export const getProducts = async (req, res) => {
         products.sort((a, b) => b.rating - a.rating);
       } else if (sort === 'newest') {
         products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      } else if (sort === 'sales' || sort === 'best_seller') {
+        products.sort((a, b) => (a.bestSellerRank || 999) - (b.bestSellerRank || 999) || (b.salesCount || 0) - (a.salesCount || 0));
       }
+    } else if (isBestSeller === 'true' || isBestSeller === true) {
+      // Default order for Best Sellers page: rank first, then sales count, then rating
+      products.sort((a, b) => (a.bestSellerRank || 999) - (b.bestSellerRank || 999) || (b.salesCount || 0) - (a.salesCount || 0) || b.rating - a.rating);
     }
 
     res.json({
@@ -207,3 +223,66 @@ export const addProductReview = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @route   PATCH /api/products/:id/best-seller
+export const toggleBestSeller = async (req, res) => {
+  try {
+    const { isBestSeller, bestSellerRank, bestSellerBadge } = req.body;
+    const target = await Product.findById(req.params.id);
+    if (!target) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const updatePayload = {};
+    if (isBestSeller !== undefined) updatePayload.isBestSeller = Boolean(isBestSeller);
+    if (bestSellerRank !== undefined) updatePayload.bestSellerRank = Number(bestSellerRank);
+    if (bestSellerBadge !== undefined) updatePayload.bestSellerBadge = String(bestSellerBadge);
+
+    const updated = await Product.findByIdAndUpdate(req.params.id, updatePayload, { new: true });
+
+    const io = getIO(req);
+    if (io) {
+      io.emit('product:updated', updated);
+      io.emit('product:bestSellerUpdated', updated);
+      console.log(`\x1b[36m[Socket.IO Broadcast]\x1b[0m product:bestSellerUpdated => ${updated.name} (BestSeller: ${updated.isBestSeller})`);
+    }
+
+    res.json({ success: true, product: updated, message: 'Best seller status updated!' });
+  } catch (error) {
+    console.error('[Toggle Best Seller Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @route   POST /api/products/best-sellers/sync
+export const syncBestSellers = async (req, res) => {
+  try {
+    const { items } = req.body; // Array of { id, isBestSeller, bestSellerRank, bestSellerBadge }
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ success: false, message: 'Items array is required' });
+    }
+
+    const updatedList = [];
+    for (const item of items) {
+      const pid = item.id || item._id;
+      if (!pid) continue;
+      const updated = await Product.findByIdAndUpdate(pid, {
+        isBestSeller: Boolean(item.isBestSeller),
+        bestSellerRank: Number(item.bestSellerRank || 0),
+        bestSellerBadge: String(item.bestSellerBadge || '')
+      }, { new: true });
+      if (updated) updatedList.push(updated);
+    }
+
+    const io = getIO(req);
+    if (io) {
+      io.emit('products:bestSellersSynced', updatedList);
+    }
+
+    res.json({ success: true, updated: updatedList, message: 'Best sellers synced successfully!' });
+  } catch (error) {
+    console.error('[Sync Best Sellers Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+

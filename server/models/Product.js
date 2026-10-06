@@ -36,6 +36,10 @@ const productSchema = new mongoose.Schema(
     isCancellationFeeApplicable: { type: Boolean, default: true },
     cancellationFeeType: { type: String, enum: ['percentage', 'flat'], default: 'percentage' },
     cancellationFeeValue: { type: Number, default: 5 },
+    isBestSeller: { type: Boolean, default: false },
+    bestSellerRank: { type: Number, default: 0 },
+    bestSellerBadge: { type: String, default: '' },
+    salesCount: { type: Number, default: 0 },
     reviewsList: [
       {
         _id: { type: String },
@@ -67,6 +71,9 @@ export const Product = {
     if (query.brand) {
       res = res.filter(p => p.brand.toLowerCase() === query.brand.toLowerCase());
     }
+    if (query.isBestSeller !== undefined) {
+      res = res.filter(p => p.isBestSeller === (query.isBestSeller === true || query.isBestSeller === 'true'));
+    }
     return res;
   },
 
@@ -96,6 +103,10 @@ export const Product = {
       stock: Number(data.stock),
       lowStockThreshold: Number(data.lowStockThreshold || 10),
       status: calcStatus(data.stock, data.lowStockThreshold || 10),
+      isBestSeller: Boolean(data.isBestSeller || false),
+      bestSellerRank: Number(data.bestSellerRank || 0),
+      bestSellerBadge: data.bestSellerBadge || '',
+      salesCount: Number(data.salesCount || 0),
       images: Array.isArray(data.images) && data.images.length > 0 ? data.images : [
         "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80"
       ],
@@ -141,6 +152,18 @@ export const Product = {
     }
     if (updateData.gstRate !== undefined) {
       updateData.gstRate = Number(updateData.gstRate);
+    }
+    if (updateData.isBestSeller !== undefined) {
+      updateData.isBestSeller = Boolean(updateData.isBestSeller);
+    }
+    if (updateData.bestSellerRank !== undefined) {
+      updateData.bestSellerRank = Number(updateData.bestSellerRank);
+    }
+    if (updateData.bestSellerBadge !== undefined) {
+      updateData.bestSellerBadge = String(updateData.bestSellerBadge);
+    }
+    if (updateData.salesCount !== undefined) {
+      updateData.salesCount = Number(updateData.salesCount);
     }
     if (updateData.price && updateData.discountPrice) {
       updateData.price = Number(updateData.price);

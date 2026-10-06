@@ -73,6 +73,14 @@ export const api = {
   updateCategory: (id, data) => apiRequest(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteCategory: (id) => apiRequest(`/categories/${id}`, { method: 'DELETE' }),
 
+  // Best Sellers Management
+  toggleBestSeller: (id, data) => apiRequest(`/products/${id}/best-seller`, { method: 'PATCH', body: JSON.stringify(data) }),
+  syncBestSellers: (items) => apiRequest('/products/best-sellers/sync', { method: 'POST', body: JSON.stringify({ items }) }),
+
+  // Customer Reviews & Transformations
+  getReviews: (params = '') => apiRequest(`/reviews${params}`),
+  deleteReview: (id) => apiRequest(`/reviews/${id}`, { method: 'DELETE' }),
+
   // Payment & QR Code Settings
   getPaymentSettings: () => apiRequest('/settings/payment'),
   updatePaymentSettings: (data) => apiRequest('/settings/payment', { method: 'PUT', body: JSON.stringify(data) }),
