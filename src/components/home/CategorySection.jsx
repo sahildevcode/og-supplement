@@ -8,52 +8,68 @@ import { socket } from '../../services/socket';
 
 const themePresets = {
   emerald: {
-    colorDark: 'from-emerald-500/20 to-teal-500/5',
-    colorLight: 'from-emerald-100 to-teal-50/50',
-    borderDark: 'border-slate-800 group-hover:border-emerald-500/50',
-    borderLight: 'border-slate-200 group-hover:border-emerald-500/60 shadow-sm hover:shadow-xl',
+    badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    dot: 'bg-emerald-400',
+    glow: 'from-emerald-500/30 via-teal-500/10 to-transparent',
+    border: 'border-slate-800/90 hover:border-emerald-500/60 shadow-emerald-950/20',
+    btnBg: 'group-hover:bg-emerald-500 group-hover:text-black group-hover:border-emerald-500',
+    titleHover: 'group-hover:text-emerald-400',
   },
   purple: {
-    colorDark: 'from-purple-500/20 to-indigo-500/5',
-    colorLight: 'from-purple-100 to-indigo-50/50',
-    borderDark: 'border-slate-800 group-hover:border-purple-500/50',
-    borderLight: 'border-slate-200 group-hover:border-purple-500/60 shadow-sm hover:shadow-xl',
+    badge: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+    dot: 'bg-purple-400',
+    glow: 'from-purple-500/30 via-indigo-500/10 to-transparent',
+    border: 'border-slate-800/90 hover:border-purple-500/60 shadow-purple-950/20',
+    btnBg: 'group-hover:bg-purple-500 group-hover:text-white group-hover:border-purple-500',
+    titleHover: 'group-hover:text-purple-400',
   },
   blue: {
-    colorDark: 'from-blue-500/20 to-cyan-500/5',
-    colorLight: 'from-blue-100 to-cyan-50/50',
-    borderDark: 'border-slate-800 group-hover:border-cyan-500/50',
-    borderLight: 'border-slate-200 group-hover:border-cyan-500/60 shadow-sm hover:shadow-xl',
+    badge: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
+    dot: 'bg-cyan-400',
+    glow: 'from-cyan-500/30 via-blue-500/10 to-transparent',
+    border: 'border-slate-800/90 hover:border-cyan-500/60 shadow-cyan-950/20',
+    btnBg: 'group-hover:bg-cyan-500 group-hover:text-black group-hover:border-cyan-500',
+    titleHover: 'group-hover:text-cyan-400',
   },
   amber: {
-    colorDark: 'from-amber-500/20 to-orange-500/5',
-    colorLight: 'from-amber-100 to-orange-50/50',
-    borderDark: 'border-slate-800 group-hover:border-amber-500/50',
-    borderLight: 'border-slate-200 group-hover:border-amber-500/60 shadow-sm hover:shadow-xl',
+    badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    dot: 'bg-amber-400',
+    glow: 'from-amber-500/30 via-orange-500/10 to-transparent',
+    border: 'border-slate-800/90 hover:border-amber-500/60 shadow-amber-950/20',
+    btnBg: 'group-hover:bg-amber-500 group-hover:text-black group-hover:border-amber-500',
+    titleHover: 'group-hover:text-amber-400',
   },
   rose: {
-    colorDark: 'from-rose-500/20 to-pink-500/5',
-    colorLight: 'from-rose-100 to-pink-50/50',
-    borderDark: 'border-slate-800 group-hover:border-rose-500/50',
-    borderLight: 'border-slate-200 group-hover:border-rose-500/60 shadow-sm hover:shadow-xl',
+    badge: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+    dot: 'bg-rose-400',
+    glow: 'from-rose-500/30 via-pink-500/10 to-transparent',
+    border: 'border-slate-800/90 hover:border-rose-500/60 shadow-rose-950/20',
+    btnBg: 'group-hover:bg-rose-500 group-hover:text-white group-hover:border-rose-500',
+    titleHover: 'group-hover:text-rose-400',
   },
   teal: {
-    colorDark: 'from-teal-500/20 to-emerald-500/5',
-    colorLight: 'from-teal-100 to-emerald-50/50',
-    borderDark: 'border-slate-800 group-hover:border-teal-500/50',
-    borderLight: 'border-slate-200 group-hover:border-teal-500/60 shadow-sm hover:shadow-xl',
+    badge: 'bg-teal-500/15 text-teal-400 border-teal-500/30',
+    dot: 'bg-teal-400',
+    glow: 'from-teal-500/30 via-emerald-500/10 to-transparent',
+    border: 'border-slate-800/90 hover:border-teal-500/60 shadow-teal-950/20',
+    btnBg: 'group-hover:bg-teal-500 group-hover:text-black group-hover:border-teal-500',
+    titleHover: 'group-hover:text-teal-400',
   },
   cyan: {
-    colorDark: 'from-cyan-500/20 to-blue-500/5',
-    colorLight: 'from-cyan-100 to-blue-50/50',
-    borderDark: 'border-slate-800 group-hover:border-cyan-500/50',
-    borderLight: 'border-slate-200 group-hover:border-cyan-500/60 shadow-sm hover:shadow-xl',
+    badge: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
+    dot: 'bg-cyan-400',
+    glow: 'from-cyan-500/30 via-blue-500/10 to-transparent',
+    border: 'border-slate-800/90 hover:border-cyan-500/60 shadow-cyan-950/20',
+    btnBg: 'group-hover:bg-cyan-500 group-hover:text-black group-hover:border-cyan-500',
+    titleHover: 'group-hover:text-cyan-400',
   },
   orange: {
-    colorDark: 'from-orange-500/20 to-red-500/5',
-    colorLight: 'from-orange-100 to-amber-50/50',
-    borderDark: 'border-slate-800 group-hover:border-orange-500/50',
-    borderLight: 'border-slate-200 group-hover:border-orange-500/60 shadow-sm hover:shadow-xl',
+    badge: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+    dot: 'bg-orange-400',
+    glow: 'from-orange-500/30 via-red-500/10 to-transparent',
+    border: 'border-slate-800/90 hover:border-orange-500/60 shadow-orange-950/20',
+    btnBg: 'group-hover:bg-orange-500 group-hover:text-black group-hover:border-orange-500',
+    titleHover: 'group-hover:text-orange-400',
   }
 };
 
@@ -219,64 +235,84 @@ export default function CategorySection() {
           </button>
         </div>
 
-        {/* Categories Grid with Left/Right Staggered Motion */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Categories Grid with Responsive Layout */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${categories.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
           {categories.map((cat, idx) => {
             const isEven = idx % 2 === 0;
             const slideAnim = isEven ? 'animate-slide-left' : 'animate-slide-right';
-            const delayClass = `delay-${(idx % 3 + 1) * 100}`;
+            const delayClass = `delay-${(idx % 4 + 1) * 100}`;
             const theme = themePresets[cat.colorTheme] || themePresets.emerald;
-
-            const colorDark = cat.colorDark || theme.colorDark;
-            const colorLight = cat.colorLight || theme.colorLight;
-            const borderDark = cat.borderDark || theme.borderDark;
-            const borderLight = cat.borderLight || theme.borderLight;
 
             return (
               <div
                 key={cat._id || cat.id || cat.name || idx}
                 onClick={() => handleCategoryClick(cat.name)}
-                className={`group relative cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br ${
-                  isDark ? colorDark : colorLight
-                } border ${
-                  isDark ? borderDark : borderLight
-                } p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-[1.025] active:scale-95 flex flex-col justify-between min-h-[220px] shadow-lg hover:shadow-2xl ${slideAnim} ${delayClass}`}
+                className={`group relative cursor-pointer rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col justify-between ${
+                  isDark
+                    ? 'bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-950 text-slate-100 shadow-xl hover:shadow-2xl'
+                    : 'bg-white text-slate-900 shadow-md hover:shadow-2xl'
+                } ${theme.border} hover:-translate-y-2.5 hover:scale-[1.015] active:scale-95 ${slideAnim} ${delayClass}`}
               >
-                <div className="relative z-10 space-y-2">
-                  <span className={`inline-block text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border transition-transform duration-200 group-hover:scale-105 ${
-                    isDark ? 'bg-slate-900/90 text-emerald-400 border-slate-700' : 'bg-white/90 text-emerald-700 border-slate-200 shadow-sm'
-                  }`}>
-                    {cat.badge || cat.name}
-                  </span>
-                  <h3 className={`text-xl font-extrabold transition-colors ${
-                    isDark ? 'text-white group-hover:text-emerald-300' : 'text-slate-900 group-hover:text-emerald-700'
-                  }`}>
-                    {cat.title}
-                  </h3>
-                  <p className={`text-xs max-w-[200px] ${
-                    isDark ? 'text-slate-400' : 'text-slate-600'
-                  }`}>
-                    {cat.desc}
-                  </p>
+                {/* TOP: Large Dedicated Visual Showcase Stage */}
+                <div className="relative w-full h-60 sm:h-64 overflow-hidden flex items-center justify-center p-5 bg-gradient-to-b from-slate-950/60 via-slate-900/20 to-transparent">
+                  
+                  {/* Ambient Glowing Color Aura behind Product */}
+                  <div className={`absolute inset-0 bg-gradient-to-t ${theme.glow} opacity-30 group-hover:opacity-85 transition-opacity duration-500 blur-2xl pointer-events-none`} />
+
+                  {/* Top Left: Category Badge Pill */}
+                  <div className={`absolute top-4 left-4 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-md shadow-md ${theme.badge}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${theme.dot} animate-pulse`} />
+                    <span>{cat.badge || cat.name}</span>
+                  </div>
+
+                  {/* Top Right: Verified Importer / Quality Mini Tag */}
+                  <div className="absolute top-4 right-4 z-20 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-950/70 border border-slate-800 text-slate-400 backdrop-blur-md">
+                    GENUINE
+                  </div>
+
+                  {/* Big Full Visible Image with Floating Elevation & Drop Shadow */}
+                  <div className="relative w-full h-full flex items-center justify-center z-10 p-2">
+                    <img
+                      src={cat.image}
+                      alt={cat.title || cat.name}
+                      className="max-h-full max-w-full w-auto h-auto object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.65)] group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500 ease-out"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80';
+                      }}
+                    />
+                  </div>
+
+                  {/* Soft Glass Shine Line on Hover */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                 </div>
 
-                {/* Floating Product Render Preview */}
-                <div className="absolute -right-4 -bottom-4 w-36 h-36 opacity-85 group-hover:opacity-100 transition-all duration-500 group-hover:scale-115 group-hover:-translate-x-2 group-hover:-translate-y-2 pointer-events-none">
-                  <img
-                    src={cat.image}
-                    alt={cat.title || cat.name}
-                    className="w-full h-full object-contain filter drop-shadow-2xl"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.target.src = 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80';
-                    }}
-                  />
-                </div>
+                {/* BOTTOM: Clean Typography & Interactive Action Button */}
+                <div className="p-6 pt-3 flex flex-col justify-between flex-1 space-y-4 border-t border-slate-800/40">
+                  <div className="space-y-1.5">
+                    <h3 className={`text-xl font-black tracking-tight transition-colors duration-300 ${theme.titleHover}`}>
+                      {cat.title}
+                    </h3>
+                    <p className={`text-xs leading-relaxed line-clamp-2 ${
+                      isDark ? 'text-slate-400' : 'text-slate-600'
+                    }`}>
+                      {cat.desc}
+                    </p>
+                  </div>
 
-                {/* Action Link */}
-                <div className="relative z-10 pt-4 flex items-center gap-1.5 text-xs font-bold text-emerald-500 group-hover:text-emerald-600">
-                  <span>View Products</span>
-                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1.5 transition-transform" />
+                  {/* Interactive Action Button */}
+                  <div className="pt-2">
+                    <div className={`w-full py-2.5 px-4 rounded-2xl border text-xs font-black flex items-center justify-between transition-all duration-300 ${
+                      isDark
+                        ? 'bg-slate-950/80 border-slate-800 text-slate-300'
+                        : 'bg-slate-100 border-slate-200 text-slate-800'
+                    } ${theme.btnBg}`}>
+                      <span>Explore Collection</span>
+                      <div className="w-6 h-6 rounded-xl bg-black/20 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             );
