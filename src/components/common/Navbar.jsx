@@ -14,44 +14,58 @@ import {
   LogOut,
   Package,
   Sun,
-  Moon
+  Moon,
+  Bell,
+  ShieldCheck,
+  HelpCircle,
+  FileText,
+  Truck,
+  RotateCcw,
+  Mail,
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useProducts } from '../../context/ProductContext';
 import { useTheme } from '../../context/ThemeContext';
-import MegaMenu from './MegaMenu';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { totalItems } = useCart();
   const { searchQuery, setSearchQuery, setSelectedCategory } = useProducts();
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
 
-  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // Navigation states
+  const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchQuery);
 
   const navigate = useNavigate();
   const location = useLocation();
-  const megaMenuTimeoutRef = useRef(null);
-  const megaMenuContainerRef = useRef(null);
-  const triggerRef = useRef(null);
+  const profileDropdownRef = useRef(null);
+  const notifDropdownRef = useRef(null);
 
   useEffect(() => {
     setLocalSearch(searchQuery);
   }, [searchQuery]);
 
+  // Close drawer and dropdowns on route change
+  useEffect(() => {
+    setIsSideDrawerOpen(false);
+    setIsProfileDropdownOpen(false);
+    setIsNotificationsOpen(false);
+  }, [location.pathname]);
+
+  // Click outside listener for dropdowns
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        megaMenuContainerRef.current &&
-        !megaMenuContainerRef.current.contains(e.target) &&
-        triggerRef.current &&
-        !triggerRef.current.contains(e.target)
-      ) {
-        setIsMegaMenuOpen(false);
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
+        setIsProfileDropdownOpen(false);
+      }
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(e.target)) {
+        setIsNotificationsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -66,354 +80,562 @@ export default function Navbar() {
     }
   };
 
-  const handleMegaMenuEnter = () => {
-    if (megaMenuTimeoutRef.current) clearTimeout(megaMenuTimeoutRef.current);
-    setIsMegaMenuOpen(true);
-  };
-
-  const handleMegaMenuLeave = () => {
-    if (megaMenuTimeoutRef.current) clearTimeout(megaMenuTimeoutRef.current);
-    megaMenuTimeoutRef.current = setTimeout(() => {
-      setIsMegaMenuOpen(false);
-    }, 300);
-  };
+  const categories = [
+    { name: 'Protein', label: '100% Whey Protein' },
+    { name: 'Creatine', label: 'Monohydrate Creatine' },
+    { name: 'Mass Gainer', label: 'High Calorie Mass Gainer' },
+    { name: 'Pre-Workout', label: 'Energy & Pre-Workout' },
+    { name: 'Supplements', label: 'BCAA & Aminos' },
+    { name: 'Vitamins', label: 'Daily Vitamins & Fish Oil' }
+  ];
 
   return (
-    <header className={`sticky top-0 z-40 w-full backdrop-blur-xl border-b transition-all duration-300 ${
-      isDark ? 'bg-slate-950/80 border-slate-800/80 text-slate-100' : 'bg-white/85 border-slate-200 text-slate-900 shadow-sm'
-    }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
-          
-          {/* Brand Logo - OG-SUPPLEMENT */}
-          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-6 h-6 text-black" />
-            </div>
-            <div className="flex flex-col">
-              <span className={`text-xl font-extrabold tracking-tight flex items-center gap-1 ${
-                isDark ? 'text-white' : 'text-slate-900'
-              }`}>
-                OG-<span className="gradient-text font-black">SUPPLEMENT</span>
-              </span>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-500 -mt-1">
-                Authentic Performance
-              </span>
-            </div>
-          </Link>
+    <>
+      <header className={`sticky top-0 z-40 w-full backdrop-blur-xl border-b transition-all duration-300 ${
+        isDark ? 'bg-slate-950/85 border-slate-800/80 text-slate-100' : 'bg-white/90 border-slate-200 text-slate-900 shadow-sm'
+      }`}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-3">
+            
+            {/* LEFT: Brand Logo & Main Nav Links in ONE Line */}
+            <div className="flex items-center gap-4 sm:gap-6 shrink-0">
+              {/* Brand Logo */}
+              <Link to="/" className="flex items-center gap-2 group shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform">
+                  <Sparkles className="w-4 h-4 text-black" />
+                </div>
+                <div className="flex flex-col">
+                  <span className={`text-base sm:text-lg font-black tracking-tight leading-none flex items-center gap-0.5 ${
+                    isDark ? 'text-white' : 'text-slate-900'
+                  }`}>
+                    OG-<span className="gradient-text">SUPPLEMENT</span>
+                  </span>
+                  <span className="text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-emerald-500 mt-0.5 leading-none">
+                    Authentic Performance
+                  </span>
+                </div>
+              </Link>
 
-          {/* Desktop Dynamic Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-md mx-4">
+              {/* Main Visible Nav Links: Home & Store/Catalog */}
+              <nav className="hidden sm:flex items-center gap-1">
+                <Link
+                  to="/"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
+                    location.pathname === '/'
+                      ? 'text-emerald-400 bg-emerald-500/10 font-bold shadow-sm'
+                      : isDark
+                      ? 'text-slate-300 hover:text-white hover:bg-slate-900'
+                      : 'text-slate-700 hover:text-black hover:bg-slate-100'
+                  }`}
+                >
+                  Home
+                </Link>
+
+                <Link
+                  to="/products"
+                  onClick={() => setSelectedCategory('All')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all flex items-center gap-1.5 ${
+                    location.pathname === '/products'
+                      ? 'text-emerald-400 bg-emerald-500/10 font-bold shadow-sm'
+                      : isDark
+                      ? 'text-slate-300 hover:text-white hover:bg-slate-900'
+                      : 'text-slate-700 hover:text-black hover:bg-slate-100'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Store & Catalog</span>
+                </Link>
+              </nav>
+            </div>
+
+            {/* RIGHT: Search Bar + Theme + Cart + Login/Signup + Side Menu Button */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5">
+              
+              {/* Dynamic Compact Search Bar (Moved to RIGHT side) */}
+              <div className="relative hidden md:block">
+                <form onSubmit={handleSearchSubmit} className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search supplements..."
+                    value={localSearch}
+                    onChange={(e) => {
+                      setLocalSearch(e.target.value);
+                      setSearchQuery(e.target.value);
+                    }}
+                    className={`w-44 lg:w-56 focus:w-64 border rounded-full pl-8 pr-7 py-1.5 text-xs transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 ${
+                      isDark
+                        ? 'bg-slate-900/90 border-slate-700/80 text-slate-100 placeholder-slate-400 focus:border-emerald-500'
+                        : 'bg-slate-100 border-slate-300 text-slate-900 placeholder-slate-500 focus:border-emerald-600 focus:bg-white'
+                    }`}
+                  />
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  {localSearch && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLocalSearch('');
+                        setSearchQuery('');
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 p-0.5"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </form>
+              </div>
+
+              {/* Notification Bell Icon with Dot */}
+              <div ref={notifDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  className={`relative p-2 rounded-xl border transition-all ${
+                    isDark
+                      ? 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
+                      : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-black hover:bg-slate-200'
+                  }`}
+                  title="Special Offers & Announcements"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-4 h-4" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-slate-950 animate-pulse" />
+                </button>
+
+                {/* Notifications Dropdown */}
+                {isNotificationsOpen && (
+                  <div className={`absolute right-0 mt-2 w-72 sm:w-80 backdrop-blur-xl border rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 ${
+                    isDark ? 'bg-slate-900/98 border-slate-800 text-slate-100' : 'bg-white/98 border-slate-200 text-slate-900 shadow-slate-300/50'
+                  }`}>
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-800/60 mb-2">
+                      <span className="text-xs font-black uppercase tracking-wider text-emerald-400">⚡ Live Announcements</span>
+                      <button onClick={() => setIsNotificationsOpen(false)} className="text-slate-400 hover:text-white p-0.5">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <div className="space-y-2 text-xs">
+                      <div className={`p-2.5 rounded-xl border ${isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                        <p className="font-bold text-emerald-400">🔥 100% Genuine Guarantee</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">All products lab-tested with original brand importer seals.</p>
+                      </div>
+                      <div className={`p-2.5 rounded-xl border ${isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                        <p className="font-bold text-cyan-400">⚡ Instant Razorpay Refund Active</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Automated online refunds with 3-stage live bank tracking.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Theme Toggle Button (Sun / Moon) */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className={`p-2 rounded-xl border transition-all ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-amber-400 hover:text-amber-300 hover:border-slate-700'
+                    : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-black hover:bg-slate-200'
+                }`}
+                title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+                aria-label="Toggle Theme"
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+
+              {/* Cart Button (Clean, Compact with item badge) */}
+              <Link
+                to="/cart"
+                className={`relative p-2 rounded-xl border transition-all group ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-slate-200 hover:text-emerald-400 hover:border-emerald-500/40'
+                    : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-emerald-600 hover:bg-slate-200'
+                }`}
+                title="View Shopping Cart"
+              >
+                <ShoppingBag className="w-4 h-4 group-hover:scale-105 transition-transform" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-emerald-500 text-black text-[10px] font-black rounded-full flex items-center justify-center shadow-md shadow-emerald-500/50 animate-in zoom-in">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+
+              {/* User Auth: Login & Sign Up (Clean, Sleek Compact Buttons) */}
+              {isAuthenticated ? (
+                <div ref={profileDropdownRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                      isDark
+                        ? 'bg-slate-900 border-slate-800 text-slate-200 hover:border-slate-700'
+                        : 'bg-slate-100 border-slate-200 text-slate-800 hover:bg-slate-200'
+                    }`}
+                  >
+                    <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-[11px]">
+                      {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <span className="hidden sm:inline text-xs font-bold">{user?.name?.split(' ')[0]}</span>
+                    <ChevronDown className="w-3 h-3 text-slate-400" />
+                  </button>
+
+                  {isProfileDropdownOpen && (
+                    <div className={`absolute right-0 mt-2 w-52 backdrop-blur-xl border rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 ${
+                      isDark ? 'bg-slate-900/98 border-slate-800' : 'bg-white/98 border-slate-200 shadow-slate-300/50'
+                    }`}>
+                      <div className={`px-3 py-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                        <p className="text-[10px] text-slate-400">Signed in as</p>
+                        <p className={`text-xs font-bold truncate ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{user?.name}</p>
+                      </div>
+
+                      <div className="py-1">
+                        <Link
+                          to="/orders"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                          className={`flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                            isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+                          }`}
+                        >
+                          <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>My Orders & Tracking</span>
+                        </Link>
+                      </div>
+
+                      <div className={`pt-1 border-t ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsProfileDropdownOpen(false);
+                            logout();
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <Link
+                    to="/login"
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      isDark
+                        ? 'text-slate-300 hover:text-white hover:bg-slate-900'
+                        : 'text-slate-700 hover:text-black hover:bg-slate-100'
+                    }`}
+                  >
+                    Login
+                  </Link>
+
+                  <Link
+                    to="/signup"
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-black shadow-sm transition-all active:scale-95"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+
+              {/* SIDE MENU HAMBURGER BUTTON (Opens Side Drawer containing Policies, Order History & More) */}
+              <button
+                type="button"
+                onClick={() => setIsSideDrawerOpen(true)}
+                className={`p-2 rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isDark
+                    ? 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-emerald-500/40'
+                    : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-black hover:bg-slate-200'
+                }`}
+                title="Open Side Menu (Policies, Order Tracking & Support)"
+                aria-label="Open Menu"
+              >
+                <Menu className="w-4 h-4 text-emerald-400" />
+              </button>
+
+            </div>
+          </div>
+
+          {/* Mobile Search Input (Visible only on small phones below md) */}
+          <div className="md:hidden pb-2.5">
             <form onSubmit={handleSearchSubmit} className="relative w-full">
               <input
                 type="text"
-                placeholder="Search Whey, Creatine, MuscleBlaze, ON..."
+                placeholder="Search supplements..."
                 value={localSearch}
                 onChange={(e) => {
                   setLocalSearch(e.target.value);
                   setSearchQuery(e.target.value);
                 }}
-                className={`w-full border rounded-full pl-11 pr-10 py-2 text-sm transition-all shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500/20 ${
+                className={`w-full border rounded-full pl-8 pr-8 py-1.5 text-xs focus:outline-none ${
                   isDark
-                    ? 'bg-slate-900/90 border-slate-700/70 text-slate-100 placeholder-slate-400 focus:border-emerald-500'
-                    : 'bg-slate-100 border-slate-300 text-slate-900 placeholder-slate-500 focus:border-emerald-600 focus:bg-white'
+                    ? 'bg-slate-900/90 border-slate-800 text-slate-100 placeholder-slate-400 focus:border-emerald-500'
+                    : 'bg-slate-100 border-slate-300 text-slate-900 placeholder-slate-500 focus:border-emerald-600'
                 }`}
               />
-              <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-              {localSearch && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLocalSearch('');
-                    setSearchQuery('');
-                  }}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 p-0.5"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </form>
           </div>
+        </div>
+      </header>
 
-          {/* Main Desktop Navigation Items */}
-          <nav className="hidden lg:flex items-center gap-1">
-            <Link
-              to="/"
-              className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                location.pathname === '/'
-                  ? 'text-emerald-500 bg-emerald-500/10'
-                  : isDark
-                  ? 'text-slate-200 hover:text-emerald-400 hover:bg-slate-800/40'
-                  : 'text-slate-700 hover:text-emerald-600 hover:bg-slate-100'
-              }`}
-            >
-              Home
-            </Link>
+      {/* ======================================================== */}
+      {/* SLIDE-OUT SIDE DRAWER (Contains Policies, Order History & More) */}
+      {/* ======================================================== */}
+      {isSideDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-200">
+          {/* Backdrop blur */}
+          <div
+            onClick={() => setIsSideDrawerOpen(false)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+          />
 
-            <Link
-              to="/products"
-              onClick={() => setSelectedCategory('All')}
-              className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                location.pathname === '/products'
-                  ? 'text-emerald-500 bg-emerald-500/10'
-                  : isDark
-                  ? 'text-slate-200 hover:text-emerald-400 hover:bg-slate-800/40'
-                  : 'text-slate-700 hover:text-emerald-600 hover:bg-slate-100'
-              }`}
-            >
-              Categories & Store
-            </Link>
+          {/* Side Drawer Content */}
+          <div className={`relative w-full max-w-sm h-full shadow-2xl flex flex-col z-10 overflow-hidden animate-in slide-in-from-right duration-300 border-l ${
+            isDark ? 'bg-slate-950 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            
+            {/* Drawer Header */}
+            <div className={`p-4 sm:p-5 border-b flex items-center justify-between ${
+              isDark ? 'border-slate-800/80 bg-slate-900/50' : 'border-slate-200 bg-slate-50'
+            }`}>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center font-bold">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black tracking-tight">OG-SUPPLEMENT</h3>
+                  <p className="text-[10px] text-slate-400">Navigation & Customer Care</p>
+                </div>
+              </div>
 
-            <Link
-              to="/orders"
-              className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 ${
-                location.pathname === '/orders'
-                  ? 'text-emerald-500 bg-emerald-500/10'
-                  : isDark
-                  ? 'text-slate-200 hover:text-emerald-400 hover:bg-slate-800/40'
-                  : 'text-slate-700 hover:text-emerald-600 hover:bg-slate-100'
-              }`}
-            >
-              <Clock className="w-4 h-4" />
-              Order History
-            </Link>
-
-            {/* Information & Policies Dropdown Trigger */}
-            <div
-              ref={triggerRef}
-              className="relative"
-              onMouseEnter={handleMegaMenuEnter}
-              onMouseLeave={handleMegaMenuLeave}
-            >
               <button
                 type="button"
-                onClick={() => setIsMegaMenuOpen((prev) => !prev)}
-                className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer select-none ${
-                  isMegaMenuOpen
-                    ? 'text-emerald-500 bg-slate-800/40'
-                    : isDark
-                    ? 'text-slate-200 hover:text-emerald-400 hover:bg-slate-800/40'
-                    : 'text-slate-700 hover:text-emerald-600 hover:bg-slate-100'
+                onClick={() => setIsSideDrawerOpen(false)}
+                className={`p-1.5 rounded-xl border transition-colors ${
+                  isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border-slate-700' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
                 }`}
               >
-                <span>Information & Policies</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMegaMenuOpen ? 'rotate-180 text-emerald-500' : 'text-slate-400'}`} />
+                <X className="w-4 h-4" />
               </button>
             </div>
-          </nav>
 
-          {/* Right Action Icons (Theme, Cart, Auth, Mobile toggle) */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            
-            {/* Theme Toggle Button (Dark / Light) */}
-            <button
-              onClick={toggleTheme}
-              className={`p-2.5 rounded-xl border transition-all duration-300 ${
-                isDark
-                  ? 'bg-slate-800/80 hover:bg-slate-800 text-amber-400 border-slate-700/60 hover:rotate-12'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 hover:-rotate-12'
-              }`}
-              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              aria-label="Toggle Theme"
-            >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-
-            {/* Cart Button with Animated Pill Badge */}
-            <Link
-              to="/cart"
-              className={`relative p-2.5 rounded-xl border transition-all group ${
-                isDark
-                  ? 'bg-slate-800/60 hover:bg-slate-800 text-slate-100 hover:text-emerald-400 border-slate-700/60'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-emerald-600 border-slate-300'
-              }`}
-            >
-              <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              {totalItems > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-emerald-500 text-black text-xs font-black rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/50 animate-in zoom-in">
-                  {totalItems}
-                </span>
-              )}
-            </Link>
-
-            {/* User Auth Dropdown */}
-            {isAuthenticated ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className={`flex items-center gap-2 p-1.5 sm:px-3 sm:py-2 rounded-xl border text-sm font-medium transition-colors ${
-                    isDark
-                      ? 'bg-slate-800/60 hover:bg-slate-800 border-slate-700/60 text-slate-100'
-                      : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
+            {/* Drawer Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 text-xs">
+              
+              {/* Primary Actions: Order History & Store */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-black uppercase tracking-wider text-emerald-400 px-2">Quick Navigation</p>
+                
+                <Link
+                  to="/"
+                  onClick={() => setIsSideDrawerOpen(false)}
+                  className={`flex items-center justify-between p-2.5 rounded-xl transition-all ${
+                    isDark ? 'hover:bg-slate-900 text-slate-200' : 'hover:bg-slate-100 text-slate-800'
                   }`}
                 >
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xs">
-                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  <div className="flex items-center gap-2.5">
+                    <Home className="w-4 h-4 text-emerald-400" />
+                    <span className="font-bold">Home Page</span>
                   </div>
-                  <span className="hidden sm:inline font-semibold">{user?.name?.split(' ')[0]}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                </button>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                </Link>
 
-                {isProfileDropdownOpen && (
-                  <div
-                    onMouseLeave={() => setIsProfileDropdownOpen(false)}
-                    className={`absolute right-0 mt-2 w-56 backdrop-blur-xl border rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 ${
-                      isDark ? 'bg-slate-900/95 border-slate-700' : 'bg-white/95 border-slate-200 shadow-slate-300/50'
+                <Link
+                  to="/products"
+                  onClick={() => {
+                    setSelectedCategory('All');
+                    setIsSideDrawerOpen(false);
+                  }}
+                  className={`flex items-center justify-between p-2.5 rounded-xl transition-all ${
+                    isDark ? 'hover:bg-slate-900 text-slate-200' : 'hover:bg-slate-100 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Layers className="w-4 h-4 text-cyan-400" />
+                    <span className="font-bold">All Products & Store</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                </Link>
+
+                <Link
+                  to="/orders"
+                  onClick={() => setIsSideDrawerOpen(false)}
+                  className={`flex items-center justify-between p-2.5 rounded-xl border border-emerald-500/30 transition-all ${
+                    isDark ? 'bg-emerald-950/20 text-emerald-300 hover:bg-emerald-950/40' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Clock className="w-4 h-4 text-emerald-400" />
+                    <div>
+                      <span className="font-black">Order History & Tracking</span>
+                      <p className="text-[10px] text-slate-400">Track live courier & refund updates</p>
+                    </div>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500 text-black">Live</span>
+                </Link>
+              </div>
+
+              {/* Categories Direct Links */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-800/60">
+                <p className="text-[10px] font-black uppercase tracking-wider text-cyan-400 px-2">Top Categories</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {categories.map((c) => (
+                    <button
+                      key={c.name}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory(c.name);
+                        setIsSideDrawerOpen(false);
+                        navigate('/products');
+                      }}
+                      className={`text-left p-2 rounded-xl text-[11px] font-semibold border transition-all truncate ${
+                        isDark ? 'bg-slate-900/60 border-slate-800 hover:border-cyan-500/50 text-slate-300 hover:text-white' : 'bg-slate-50 border-slate-200 hover:border-cyan-500 text-slate-700'
+                      }`}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Information & Store Policies (Moved INSIDE Side Navbar) */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-800/60">
+                <p className="text-[10px] font-black uppercase tracking-wider text-amber-400 px-2">Information & Policies</p>
+                <div className="space-y-1">
+                  
+                  <Link
+                    to="/about"
+                    onClick={() => setIsSideDrawerOpen(false)}
+                    className={`flex items-center justify-between p-2 rounded-xl transition-all ${
+                      isDark ? 'hover:bg-slate-900 text-slate-300 hover:text-white' : 'hover:bg-slate-100 text-slate-700'
                     }`}
                   >
-                    <div className={`px-3 py-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-                      <p className="text-xs text-slate-400">Signed in as</p>
-                      <p className={`text-sm font-bold truncate ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{user?.name}</p>
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+                      <span>About Us & Authenticity</span>
                     </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                  </Link>
 
-                    <div className="py-1">
-                      <Link
-                        to="/orders"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                        className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                          isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
-                        }`}
-                      >
-                        <Package className="w-4 h-4 text-slate-400" />
-                        My Orders
-                      </Link>
+                  <Link
+                    to="/cancellation-policy"
+                    onClick={() => setIsSideDrawerOpen(false)}
+                    className={`flex items-center justify-between p-2 rounded-xl transition-all ${
+                      isDark ? 'hover:bg-slate-900 text-slate-300 hover:text-white' : 'hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Cancellation & Refund Policy</span>
                     </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                  </Link>
 
-                    <div className={`pt-1 border-t ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-                      <button
-                        onClick={() => {
-                          setIsProfileDropdownOpen(false);
-                          logout();
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Sign Out
-                      </button>
+                  <Link
+                    to="/shipping-policy"
+                    onClick={() => setIsSideDrawerOpen(false)}
+                    className={`flex items-center justify-between p-2 rounded-xl transition-all ${
+                      isDark ? 'hover:bg-slate-900 text-slate-300 hover:text-white' : 'hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Truck className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Shipping & Fast Dispatch</span>
                     </div>
-                  </div>
-                )}
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                  </Link>
+
+                  <Link
+                    to="/privacy-policy"
+                    onClick={() => setIsSideDrawerOpen(false)}
+                    className={`flex items-center justify-between p-2 rounded-xl transition-all ${
+                      isDark ? 'hover:bg-slate-900 text-slate-300 hover:text-white' : 'hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Privacy Policy</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                  </Link>
+
+                  <Link
+                    to="/terms"
+                    onClick={() => setIsSideDrawerOpen(false)}
+                    className={`flex items-center justify-between p-2 rounded-xl transition-all ${
+                      isDark ? 'hover:bg-slate-900 text-slate-300 hover:text-white' : 'hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Terms & Conditions</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                  </Link>
+
+                  <Link
+                    to="/license"
+                    onClick={() => setIsSideDrawerOpen(false)}
+                    className={`flex items-center justify-between p-2 rounded-xl transition-all ${
+                      isDark ? 'hover:bg-slate-900 text-slate-300 hover:text-white' : 'hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Importer Licenses & Certifications</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                  </Link>
+
+                  <Link
+                    to="/faq"
+                    onClick={() => setIsSideDrawerOpen(false)}
+                    className={`flex items-center justify-between p-2 rounded-xl transition-all ${
+                      isDark ? 'hover:bg-slate-900 text-slate-300 hover:text-white' : 'hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Help & Frequently Asked Questions</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                  </Link>
+
+                </div>
               </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link
-                  to="/login"
-                  className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
-                    isDark
-                      ? 'text-slate-200 hover:text-white bg-slate-800/60 hover:bg-slate-800 border-slate-700/60'
-                      : 'text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border-slate-300'
-                  }`}
+
+              {/* Customer Support Card */}
+              <div className={`p-3.5 rounded-2xl border space-y-2 ${
+                isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-slate-50 border-slate-200'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-emerald-400" />
+                  <span className="font-bold text-xs">Customer Support</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Koi sawaal ya refund enquiry ke liye direct email karein:
+                </p>
+                <a
+                  href="mailto:sk7161853@gmail.com"
+                  className="block text-center py-2 px-3 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-black shadow-sm transition-all"
                 >
-                  Login
-                </Link>
-                <Link
-                  to="/signup"
-                  className="hidden sm:inline-flex px-4 py-2 rounded-xl text-sm font-bold text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-md shadow-emerald-950/40 transition-transform active:scale-95"
-                >
-                  Sign Up
-                </Link>
+                  sk7161853@gmail.com
+                </a>
               </div>
-            )}
 
-            {/* Mobile Hamburger Toggle */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`lg:hidden p-2 rounded-xl border ${
-                isDark ? 'bg-slate-800/60 text-slate-300 hover:text-white border-slate-700/60' : 'bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-300'
-              }`}
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Search Bar */}
-        <div className="md:hidden pb-3">
-          <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <input
-              type="text"
-              placeholder="Search Whey, Creatine, ON..."
-              value={localSearch}
-              onChange={(e) => {
-                setLocalSearch(e.target.value);
-                setSearchQuery(e.target.value);
-              }}
-              className={`w-full border rounded-full pl-10 pr-9 py-2 text-xs focus:outline-none ${
-                isDark
-                  ? 'bg-slate-900/90 border-slate-700/70 text-slate-100 placeholder-slate-400 focus:border-emerald-500'
-                  : 'bg-slate-100 border-slate-300 text-slate-900 placeholder-slate-500 focus:border-emerald-600'
-              }`}
-            />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          </form>
-        </div>
-      </div>
-
-      {/* MegaMenu Dropdown (Desktop) */}
-      <div ref={megaMenuContainerRef}>
-        <MegaMenu
-          isOpen={isMegaMenuOpen}
-          onClose={() => setIsMegaMenuOpen(false)}
-          onMouseEnter={handleMegaMenuEnter}
-          onMouseLeave={handleMegaMenuLeave}
-        />
-      </div>
-
-      {/* Mobile Drawer Menu */}
-      {isMobileMenuOpen && (
-        <div className={`lg:hidden border-b px-4 pt-2 pb-6 space-y-3 animate-in fade-in slide-in-from-top-3 max-h-[85vh] overflow-y-auto ${
-          isDark ? 'bg-slate-900/98 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900 shadow-xl'
-        }`}>
-          <nav className="flex flex-col space-y-1">
-            <Link
-              to="/"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Home className="w-4 h-4 text-emerald-500" />
-              Home
-            </Link>
-            <Link
-              to="/products"
-              onClick={() => {
-                setSelectedCategory('All');
-                setIsMobileMenuOpen(false);
-              }}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Layers className="w-4 h-4 text-cyan-500" />
-              All Products & Categories
-            </Link>
-            <Link
-              to="/orders"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Clock className="w-4 h-4 text-amber-500" />
-              Order History
-            </Link>
-          </nav>
-
-          <div className={`pt-3 border-t space-y-1 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-            <p className="px-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Policies & Support</p>
-            <div className={`grid grid-cols-2 gap-1 text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-              <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">About Us</Link>
-              <Link to="/license" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Licenses</Link>
-              <Link to="/privacy-policy" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Privacy Policy</Link>
-              <Link to="/terms" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Terms & Conditions</Link>
-              <Link to="/return-policy" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Return Policy</Link>
-              <Link to="/shipping-policy" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Shipping Policy</Link>
-              <Link to="/faq" onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-emerald-500/10 rounded-lg">Help & FAQ</Link>
             </div>
+
+            {/* Drawer Footer */}
+            <div className={`p-4 border-t text-center text-[10px] text-slate-500 ${
+              isDark ? 'border-slate-800/80 bg-slate-950' : 'border-slate-200 bg-white'
+            }`}>
+              OG-SUPPLEMENT • 100% Authentic Gym Nutrition
+            </div>
+
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
