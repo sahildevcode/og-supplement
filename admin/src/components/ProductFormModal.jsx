@@ -329,19 +329,56 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
               />
             </div>
 
-            {/* Final Price Calculator Preview */}
-            <div className="sm:col-span-2 p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 flex items-center justify-between">
-              <div>
-                <p className="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-cyan-400" />
-                  Final Customer Price Preview
-                </p>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Selling Price (₹{formData.discountPrice || 0}) + Shipping (₹{formData.shippingCost || 0})
-                </p>
+            {/* Dynamic Final Price Calculator Card */}
+            <div className="sm:col-span-2 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-slate-900 to-emerald-950/40 border border-cyan-500/40 shadow-xl space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                <div>
+                  <p className="font-black text-white text-sm sm:text-base flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
+                    <span>Final Customer Checkout Price</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                      Auto-Calculated
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Customer ko website checkout par ye final amount pay karna hoga
+                  </p>
+                </div>
+                <div className="text-left sm:text-right">
+                  <div className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 font-mono">
+                    ₹{((Number(formData.discountPrice) || Number(formData.price) || 0) + (Number(formData.shippingCost) || 0)).toLocaleString('en-IN')}
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-medium">Total Customer Payable</span>
+                </div>
               </div>
-              <div className="text-xl sm:text-2xl font-black text-cyan-400">
-                ₹{(Number(formData.discountPrice) || 0) + (Number(formData.shippingCost) || 0)}
+
+              {/* Breakdown Details */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                  <span className="block text-[11px] text-slate-400">Original MRP:</span>
+                  <span className="font-mono font-bold text-slate-200">₹{(Number(formData.price) || 0).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                  <span className="block text-[11px] text-slate-400">Selling Price:</span>
+                  <span className="font-mono font-bold text-cyan-400">₹{(Number(formData.discountPrice) || Number(formData.price) || 0).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                  <span className="block text-[11px] text-slate-400">Discount Given:</span>
+                  <span className="font-mono font-bold text-amber-400">
+                    {formData.discountPercentage ? `${formData.discountPercentage}% OFF` : '0%'}
+                    {Number(formData.price) > Number(formData.discountPrice) && (
+                      <span className="text-[10px] text-slate-400 block font-normal">
+                        (-₹{(Number(formData.price) - Number(formData.discountPrice)).toLocaleString('en-IN')})
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                  <span className="block text-[11px] text-slate-400">Shipping Cost:</span>
+                  <span className="font-mono font-bold text-emerald-400">
+                    {Number(formData.shippingCost) > 0 ? `+₹${Number(formData.shippingCost).toLocaleString('en-IN')}` : 'FREE (₹0)'}
+                  </span>
+                </div>
               </div>
             </div>
 
