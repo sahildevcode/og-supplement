@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Lock, Mail, Shield, ArrowRight, Store, AlertCircle, Sparkles } from 'lucide-react';
+import { Lock, Mail, Shield, ArrowRight, Store, AlertCircle, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function AdminPortalLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -89,20 +90,52 @@ export default function AdminPortalLogin() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                Admin Secure Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Admin Secure Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  <span>{showPassword ? "Hide" : "Show"}</span>
+                </button>
+              </div>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-12 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-cyan-400 transition-colors p-1.5 z-20 cursor-pointer rounded-lg hover:bg-slate-800/60"
+                  title={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5 text-cyan-400" /> : <Eye className="w-5 h-5 text-slate-400" />}
+                </button>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between text-xs pt-1 pb-1">
+              <label className="flex items-center gap-2 text-slate-300 hover:text-white cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-500 accent-cyan-500 cursor-pointer"
+                />
+                <span>Show Password</span>
+              </label>
+              <span className="text-[11px] text-cyan-400/80 font-medium">Encrypted Login</span>
             </div>
 
             <button
