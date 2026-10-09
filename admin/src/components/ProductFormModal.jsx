@@ -330,57 +330,74 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
             </div>
 
             {/* Dynamic Final Price Calculator Card */}
-            <div className="sm:col-span-2 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-slate-900 to-emerald-950/40 border border-cyan-500/40 shadow-xl space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-                <div>
-                  <p className="font-black text-white text-sm sm:text-base flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
-                    <span>Final Customer Checkout Price</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                      Auto-Calculated
-                    </span>
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Customer ko website checkout par ye final amount pay karna hoga
-                  </p>
-                </div>
-                <div className="text-left sm:text-right">
-                  <div className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 font-mono">
-                    ₹{((Number(formData.discountPrice) || Number(formData.price) || 0) + (Number(formData.shippingCost) || 0)).toLocaleString('en-IN')}
-                  </div>
-                  <span className="text-[10px] text-slate-400 font-medium">Total Customer Payable</span>
-                </div>
-              </div>
+            {(() => {
+              const sellingPrice = Number(formData.discountPrice) || Number(formData.price) || 0;
+              const isGstOn = formData.isGstApplicable !== false;
+              const gstRate = isGstOn ? Number(formData.gstRate !== undefined ? formData.gstRate : 18) : 0;
+              const gstAmount = Math.round((sellingPrice * gstRate) / 100);
+              const shipping = Number(formData.shippingCost) || 0;
+              const finalPayable = sellingPrice + gstAmount + shipping;
 
-              {/* Breakdown Details */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-                <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                  <span className="block text-[11px] text-slate-400">Original MRP:</span>
-                  <span className="font-mono font-bold text-slate-200">₹{(Number(formData.price) || 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                  <span className="block text-[11px] text-slate-400">Selling Price:</span>
-                  <span className="font-mono font-bold text-cyan-400">₹{(Number(formData.discountPrice) || Number(formData.price) || 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                  <span className="block text-[11px] text-slate-400">Discount Given:</span>
-                  <span className="font-mono font-bold text-amber-400">
-                    {formData.discountPercentage ? `${formData.discountPercentage}% OFF` : '0%'}
-                    {Number(formData.price) > Number(formData.discountPrice) && (
-                      <span className="text-[10px] text-slate-400 block font-normal">
-                        (-₹{(Number(formData.price) - Number(formData.discountPrice)).toLocaleString('en-IN')})
+              return (
+                <div className="sm:col-span-2 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-slate-900 to-emerald-950/40 border border-cyan-500/40 shadow-xl space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                    <div>
+                      <p className="font-black text-white text-sm sm:text-base flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
+                        <span>Final Customer Checkout Price</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          Auto-Calculated
+                        </span>
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Customer payable: Selling Price (₹{sellingPrice.toLocaleString('en-IN')}) {isGstOn ? `+ ${gstRate}% GST (₹${gstAmount.toLocaleString('en-IN')})` : '+ GST Exempt'} {shipping > 0 ? `+ Shipping (₹${shipping.toLocaleString('en-IN')})` : '+ Free Delivery'}
+                      </p>
+                    </div>
+                    <div className="text-left sm:text-right">
+                      <div className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 font-mono">
+                        ₹{finalPayable.toLocaleString('en-IN')}
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-medium">Total Customer Payable (Incl. GST)</span>
+                    </div>
+                  </div>
+
+                  {/* Breakdown Details */}
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 text-xs">
+                    <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                      <span className="block text-[11px] text-slate-400">Original MRP:</span>
+                      <span className="font-mono font-bold text-slate-200">₹{(Number(formData.price) || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                      <span className="block text-[11px] text-slate-400">Selling Price:</span>
+                      <span className="font-mono font-bold text-cyan-400">₹{sellingPrice.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                      <span className="block text-[11px] text-slate-400">Discount Given:</span>
+                      <span className="font-mono font-bold text-amber-400">
+                        {formData.discountPercentage ? `${formData.discountPercentage}% OFF` : '0%'}
+                        {Number(formData.price) > Number(formData.discountPrice) && (
+                          <span className="text-[10px] text-slate-400 block font-normal">
+                            (-₹{(Number(formData.price) - Number(formData.discountPrice)).toLocaleString('en-IN')})
+                          </span>
+                        )}
                       </span>
-                    )}
-                  </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                      <span className="block text-[11px] text-slate-400">GST ({isGstOn ? `${gstRate}%` : 'Exempt'}):</span>
+                      <span className="font-mono font-bold text-indigo-400">
+                        {isGstOn ? `+₹${gstAmount.toLocaleString('en-IN')}` : '₹0 (Exempt)'}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                      <span className="block text-[11px] text-slate-400">Shipping Cost:</span>
+                      <span className="font-mono font-bold text-emerald-400">
+                        {shipping > 0 ? `+₹${shipping.toLocaleString('en-IN')}` : 'FREE (₹0)'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                  <span className="block text-[11px] text-slate-400">Shipping Cost:</span>
-                  <span className="font-mono font-bold text-emerald-400">
-                    {Number(formData.shippingCost) > 0 ? `+₹${Number(formData.shippingCost).toLocaleString('en-IN')}` : 'FREE (₹0)'}
-                  </span>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             <div className="space-y-1.5">
               <label className="font-bold text-slate-300">Current Stock Quantity *</label>
@@ -436,10 +453,15 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
               {formData.isGstApplicable !== false ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-300">GST Rate (%)</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-300">GST Rate (%)</label>
+                      <span className="text-[11px] font-mono font-bold text-cyan-400">
+                        +₹{Math.round(((Number(formData.discountPrice) || Number(formData.price) || 0) * (formData.gstRate !== undefined ? formData.gstRate : 18)) / 100).toLocaleString('en-IN')}
+                      </span>
+                    </div>
                     <select
                       name="gstRate"
-                      value={formData.gstRate || 18}
+                      value={formData.gstRate !== undefined ? formData.gstRate : 18}
                       onChange={(e) => setFormData({ ...formData, gstRate: Number(e.target.value) })}
                       className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 text-xs cursor-pointer"
                     >
