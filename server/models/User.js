@@ -10,7 +10,9 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
     phone: { type: String, default: '' },
-    address: { type: String, default: '' }
+    address: { type: String, default: '' },
+    resetOtp: { type: String, default: null },
+    resetOtpExpires: { type: Date, default: null }
   },
   { timestamps: true }
 );
@@ -73,5 +75,17 @@ export const User = {
       return await MongooseUser.countDocuments(filter);
     }
     return localStore.users.length;
+  },
+
+  async updateOne(query, updateData) {
+    if (isConnectedToMongo) {
+      return await MongooseUser.updateOne(query, updateData);
+    }
+    const user = await this.findOne(query);
+    if (!user) return null;
+    const updates = updateData.$set || updateData;
+    Object.assign(user, updates);
+    localStore.save();
+    return { acknowledged: true, modifiedCount: 1 };
   }
 };

@@ -46,6 +46,8 @@ export const apiRequest = async (endpoint, options = {}) => {
 export const api = {
   // Admin Auth
   login: (credentials) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
+  forgotPassword: (email) => apiRequest('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (email, otp, newPassword) => apiRequest('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, otp, newPassword }) }),
   getMe: () => apiRequest('/auth/me'),
 
   // Products CRUD
