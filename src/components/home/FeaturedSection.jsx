@@ -54,7 +54,7 @@ export default function FeaturedSection() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featured.map((prod, idx) => (
               <div key={prod._id || prod.id} className={`scroll-reveal reveal-active delay-${(idx % 4 + 1) * 100}`}>
-                <ProductCard product={prod} />
+                <ProductCard product={prod} priority={idx < 4} />
               </div>
             ))}
           </div>

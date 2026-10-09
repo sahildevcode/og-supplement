@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, Shield, ArrowRight, AlertCircle } from 'lucide-react';
+import { Lock, Mail, Shield, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const { login } = useAdminAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('og_admin_saved_email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,6 +29,11 @@ export default function AdminLogin() {
 
     try {
       await login(email, password);
+      if (rememberMe) {
+        localStorage.setItem('og_admin_saved_email', email);
+      } else {
+        localStorage.removeItem('og_admin_saved_email');
+      }
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Authentication failed. Please check administrator credentials.');
@@ -79,15 +94,37 @@ export default function AdminLogin() {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-11 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors p-1"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
+            </div>
+
+            {/* Remember Me & Secure Email/Password Info */}
+            <div className="flex items-center justify-between text-xs pt-1 pb-1">
+              <label className="flex items-center gap-2 text-slate-400 hover:text-slate-200 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-500 focus:ring-0 focus:ring-offset-0 accent-cyan-500 cursor-pointer"
+                />
+                <span>Remember Email</span>
+              </label>
+              <span className="text-[11px] text-cyan-400/80 font-medium">Email + Password Verified</span>
             </div>
 
             <button

@@ -197,7 +197,7 @@ export default function Products() {
                 key={product._id || product.id}
                 className={`animate-page-enter delay-${(idx % 4 + 1) * 100}`}
               >
-                <ProductCard product={product} />
+                <ProductCard product={product} priority={idx < 4} />
               </div>
             ))}
           </div>

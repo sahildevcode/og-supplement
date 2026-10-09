@@ -91,7 +91,7 @@ export default function HomeBestSellers() {
                   </div>
 
                   <div className="pt-2 h-full flex flex-col">
-                    <ProductCard product={prod} />
+                    <ProductCard product={prod} priority={idx < 4} />
                   </div>
                 </div>
               );

@@ -5,13 +5,15 @@ import { useCart } from '../../context/CartContext';
 import { useProducts } from '../../context/ProductContext';
 import { useTheme } from '../../context/ThemeContext';
 import StockBadge from './StockBadge';
+import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, priority = false }) {
   const { addToCart } = useCart();
   const { setQuickViewProduct } = useProducts();
   const { isDark } = useTheme();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAddedAnim, setIsAddedAnim] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   const isOutOfStock = Number(product.stock) <= 0;
   const productId = product._id || product.id;
@@ -74,15 +76,23 @@ export default function ProductCard({ product }) {
           <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
         </button>
 
-        {/* Product Image with Hover Zoom */}
-        <Link to={`/products/${productId}`} className="w-full h-full flex items-center justify-center">
+        {/* Product Image with Hover Zoom & Progressive Shimmer */}
+        <Link to={`/products/${productId}`} className="w-full h-full flex items-center justify-center relative">
+          {!isImageLoaded && (
+            <div className={`absolute inset-4 rounded-2xl animate-pulse ${
+              isDark ? 'bg-slate-800/60' : 'bg-slate-200/70'
+            }`} />
+          )}
           <img
-            src={product.images && product.images[0] ? product.images[0] : 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80'}
+            src={getOptimizedImageUrl(product.images?.[0], 480, 72)}
             alt={product.name}
             className={`w-full h-full object-contain filter drop-shadow-xl transition-all duration-500 group-hover:scale-110 ${
               isOutOfStock ? 'opacity-40 grayscale' : 'group-hover:brightness-105'
-            }`}
-            loading="lazy"
+            } ${isImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
+            decoding="async"
+            onLoad={() => setIsImageLoaded(true)}
           />
         </Link>
 
