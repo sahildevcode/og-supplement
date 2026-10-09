@@ -329,6 +329,22 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
               />
             </div>
 
+            {/* Final Price Calculator Preview */}
+            <div className="sm:col-span-2 p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 flex items-center justify-between">
+              <div>
+                <p className="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-cyan-400" />
+                  Final Customer Price Preview
+                </p>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Selling Price (₹{formData.discountPrice || 0}) + Shipping (₹{formData.shippingCost || 0})
+                </p>
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-cyan-400">
+                ₹{(Number(formData.discountPrice) || 0) + (Number(formData.shippingCost) || 0)}
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <label className="font-bold text-slate-300">Current Stock Quantity *</label>
               <input
