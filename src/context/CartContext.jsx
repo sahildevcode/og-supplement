@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './ToastContext';
+import { useProducts } from './ProductContext';
 
 const CartContext = createContext();
 
@@ -14,6 +15,51 @@ export const CartProvider = ({ children }) => {
   });
 
   const { addToast } = useToast();
+  const { products } = useProducts() || {};
+
+  // Auto-sync cart items with live database prices, GST, stock & shipping
+  useEffect(() => {
+    if (!products || !Array.isArray(products) || products.length === 0) return;
+    setCartItems((prevItems) => {
+      let changed = false;
+      const updated = prevItems.map((item) => {
+        const live = products.find((p) => String(p._id || p.id) === String(item.productId || item._id));
+        if (!live) return item;
+
+        const livePrice = Number(live.price || 0);
+        const liveDiscountPrice = Number(live.discountPrice !== undefined ? live.discountPrice : live.price || 0);
+        const liveStock = Number(live.stock || 0);
+        const liveShipping = Number(live.shippingCost || 0);
+        const liveGstApplicable = live.isGstApplicable !== false;
+        const liveGstRate = live.gstRate !== undefined ? Number(live.gstRate) : 18;
+        const liveTaxLabel = live.taxLabel || `${liveGstRate}% GST`;
+
+        if (
+          item.price !== livePrice ||
+          item.discountPrice !== liveDiscountPrice ||
+          item.stock !== liveStock ||
+          item.shippingCost !== liveShipping ||
+          item.isGstApplicable !== liveGstApplicable ||
+          item.gstRate !== liveGstRate ||
+          item.taxLabel !== liveTaxLabel
+        ) {
+          changed = true;
+          return {
+            ...item,
+            price: livePrice,
+            discountPrice: liveDiscountPrice,
+            stock: liveStock,
+            shippingCost: liveShipping,
+            isGstApplicable: liveGstApplicable,
+            gstRate: liveGstRate,
+            taxLabel: liveTaxLabel,
+          };
+        }
+        return item;
+      });
+      return changed ? updated : prevItems;
+    });
+  }, [products]);
 
   useEffect(() => {
     localStorage.setItem('apex_cart', JSON.stringify(cartItems));
@@ -117,12 +163,12 @@ export const CartProvider = ({ children }) => {
     localStorage.removeItem('apex_cart');
   };
 
-  // Cart financial calculations
+  // Cart financial calculations (Exact 1:1 match with Admin Final Customer Checkout Price)
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cartItems.reduce((sum, item) => sum + item.discountPrice * item.quantity, 0);
   const totalMRP = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountOnMRP = totalMRP - subtotal;
-  const bulkDiscount = subtotal >= 2000 ? Math.round(subtotal * 0.05) : 0; // 5% extra discount over 2000
+  const bulkDiscount = 0; // Removed arbitrary 5% discount so customer price strictly matches admin configured price
   const deliveryCharge = cartItems.reduce((max, item) => Math.max(max, Number(item.shippingCost || 0)), 0);
   const totalGst = cartItems.reduce((sum, item) => {
     if (item.isGstApplicable !== false) {
@@ -132,7 +178,7 @@ export const CartProvider = ({ children }) => {
     }
     return sum;
   }, 0);
-  const totalAmount = Math.max(0, subtotal - bulkDiscount + deliveryCharge + totalGst);
+  const totalAmount = Math.max(0, subtotal + deliveryCharge + totalGst);
 
   return (
     <CartContext.Provider
