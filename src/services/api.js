@@ -206,6 +206,12 @@ export const api = {
     });
   },
 
+  deleteOrder: async (id) => {
+    return await apiRequest(`/orders/${id}`, {
+      method: 'DELETE'
+    });
+  },
+
   // Admin
   getAdminStats: () => apiRequest('/admin/stats'),
   uploadImage: (formData) => apiRequest('/admin/upload', { method: 'POST', body: formData }),

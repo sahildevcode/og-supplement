@@ -126,5 +126,16 @@ export const Order = {
       return await MongooseOrder.countDocuments(filter);
     }
     return localStore.orders.length;
+  },
+
+  async findByIdAndDelete(id) {
+    if (isConnectedToMongo) {
+      return await MongooseOrder.findByIdAndDelete(id);
+    }
+    const idx = localStore.orders.findIndex(o => o._id === id || o.orderId === id);
+    if (idx === -1) return null;
+    const removed = localStore.orders.splice(idx, 1)[0];
+    localStore.save();
+    return removed;
   }
 };

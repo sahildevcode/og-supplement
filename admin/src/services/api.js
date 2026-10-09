@@ -64,6 +64,7 @@ export const api = {
   updateOrderStatus: (id, status) => apiRequest(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   updateRefundStatus: (id, refundStatus) => apiRequest(`/orders/${id}/refund-status`, { method: 'PATCH', body: JSON.stringify({ refundStatus }) }),
   refundOrder: (id, reason = '') => apiRequest(`/orders/${id}/refund`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  deleteOrder: (id) => apiRequest(`/orders/${id}`, { method: 'DELETE' }),
 
   // Analytics & Stats
   getAdminStats: () => apiRequest('/admin/stats'),

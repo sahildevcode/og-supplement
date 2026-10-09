@@ -8,7 +8,8 @@ import {
   refundOrder,
   getCancellationPreview,
   cancelOrder,
-  updateRefundStatus
+  updateRefundStatus,
+  deleteOrder
 } from '../controllers/orderController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
@@ -23,5 +24,6 @@ router.patch('/:id/refund-status', updateRefundStatus);
 router.post('/:id/refund', refundOrder);
 router.get('/:id/cancel-preview', getCancellationPreview);
 router.post('/:id/cancel', cancelOrder);
+router.delete('/:id', deleteOrder);
 
 export default router;

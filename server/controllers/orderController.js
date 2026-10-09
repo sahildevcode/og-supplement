@@ -671,3 +671,35 @@ export const updateRefundStatus = async (req, res) => {
   }
 };
 
+// @route   DELETE /api/orders/:id
+export const deleteOrder = async (req, res) => {
+  try {
+    const allOrders = await Order.find();
+    const existingOrder = allOrders.find(o => matchesOrderId(o, req.params.id));
+
+    if (!existingOrder) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const targetId = existingOrder._id || existingOrder.id;
+    await Order.findByIdAndDelete(targetId);
+
+    const io = getIO(req);
+    if (io) {
+      io.emit('order:deleted', {
+        orderId: existingOrder.orderId,
+        _id: targetId
+      });
+      console.log(`\x1b[35m[Socket.IO Broadcast]\x1b[0m order:deleted => Order ${existingOrder.orderId}`);
+    }
+
+    res.json({
+      success: true,
+      message: `Order #${existingOrder.orderId || req.params.id} permanently deleted`
+    });
+  } catch (error) {
+    console.error('[Delete Order Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+

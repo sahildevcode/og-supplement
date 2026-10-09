@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle, Package, Truck, Clock, MapPin, Phone, Mail, User, RotateCcw, AlertTriangle } from 'lucide-react';
+import { X, CheckCircle, Package, Truck, Clock, MapPin, Phone, Mail, User, RotateCcw, AlertTriangle, Trash2 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAdminToast } from '../context/AdminToastContext';
 
@@ -9,10 +9,29 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
   const [refundStatus, setRefundStatus] = useState(order?.refundStatus || '');
   const [updating, setUpdating] = useState(false);
   const [refunding, setRefunding] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [updatingRefund, setUpdatingRefund] = useState(false);
   const [showConfirmRefund, setShowConfirmRefund] = useState(false);
 
   if (!isOpen || !order) return null;
+
+  const handleDelete = async () => {
+    const id = order.orderId || order._id;
+    if (!window.confirm(`⚠️ Permanently delete Order #${id}?\n\nCustomer: ${order.customerName}\nAmount: ₹${order.totalAmount?.toLocaleString('en-IN')}\n\nThis will remove it completely from the database.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.deleteOrder(id);
+      addToast(`Order #${id} deleted successfully!`, 'success');
+      if (onStatusChange) onStatusChange({ ...order, isDeleted: true });
+      onClose();
+    } catch (err) {
+      addToast(err.message || 'Failed to delete order', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleUpdateStatus = async (newStatus) => {
     setUpdating(true);
@@ -333,6 +352,27 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
             )}
           </div>
         ) : null}
+
+        {/* Modal Footer Actions */}
+        <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:text-rose-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{deleting ? 'Deleting Order...' : 'Delete Order'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
+          >
+            Close
+          </button>
+        </div>
 
       </div>
     </div>

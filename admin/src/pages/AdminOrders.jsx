@@ -21,7 +21,11 @@ import {
   Wallet,
   Sparkles,
   Layers,
-  ChevronRight
+  ChevronRight,
+  Trash2,
+  Tag,
+  SlidersHorizontal,
+  X
 } from 'lucide-react';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
@@ -30,13 +34,21 @@ import OrderDetailsModal from '../components/OrderDetailsModal';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
+  const [catalogProducts, setCatalogProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // 4 Core Filters: Category, Brand, Days/Monthly Timeframe, Status
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [brandFilter, setBrandFilter] = useState('All');
+  const [timeframeFilter, setTimeframeFilter] = useState('all'); // 'all' | 'today' | 'yesterday' | '7days' | '30days' | 'thisMonth' | 'lastMonth' | 'YYYY-MM'
   const [statusFilter, setStatusFilter] = useState('All');
   const [paymentFilter, setPaymentFilter] = useState('All'); // 'All' | 'Paid' | 'Processing' | 'RefundPending' | 'RefundCompleted' | 'COD'
+  
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   
   // Month Filter: 'current' | 'YYYY-MM' | 'all'
   const currentDate = new Date();
@@ -62,6 +74,15 @@ export default function AdminOrders() {
     }
   };
 
+  const fetchCatalog = async () => {
+    try {
+      const res = await api.getProducts();
+      if (res && res.products) {
+        setCatalogProducts(res.products);
+      }
+    } catch (e) {}
+  };
+
   const handleQuickUpdateStatus = async (ord, newStatus) => {
     const id = ord.orderId || ord._id;
     setUpdatingId(id);
@@ -76,8 +97,29 @@ export default function AdminOrders() {
     }
   };
 
+  const handleDeleteOrder = async (ord) => {
+    const id = ord.orderId || ord._id;
+    const confirmMsg = `⚠️ Delete Order #${id} permanently?\n\nCustomer: ${ord.customerName}\nAmount: ₹${ord.totalAmount?.toLocaleString('en-IN')}\n\nAre you sure you want to permanently delete this order? This cannot be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingId(id);
+    try {
+      await api.deleteOrder(id);
+      addToast(`Order #${id} permanently deleted!`, 'success');
+      setOrders((prev) => prev.filter((o) => o.orderId !== id && o._id !== id));
+      if (selectedOrder && (selectedOrder.orderId === id || selectedOrder._id === id)) {
+        setIsModalOpen(false);
+      }
+    } catch (err) {
+      addToast(err.message || 'Failed to delete order', 'error');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
+    fetchCatalog();
 
     const handleOrderCreated = (newOrder) => {
       setOrders((prev) => [newOrder, ...prev.filter(o => o.orderId !== newOrder.orderId)]);
@@ -93,8 +135,13 @@ export default function AdminOrders() {
       fetchOrders();
     };
 
+    const handleOrderDeleted = ({ orderId, _id }) => {
+      setOrders((prev) => prev.filter((o) => o.orderId !== orderId && o._id !== _id));
+    };
+
     socket.on('order:created', handleOrderCreated);
     socket.on('order:statusUpdated', handleStatusUpdated);
+    socket.on('order:deleted', handleOrderDeleted);
 
     const interval = setInterval(() => {
       fetchOrders();
@@ -103,6 +150,7 @@ export default function AdminOrders() {
     return () => {
       socket.off('order:created', handleOrderCreated);
       socket.off('order:statusUpdated', handleStatusUpdated);
+      socket.off('order:deleted', handleOrderDeleted);
       clearInterval(interval);
     };
   }, [addToast]);
@@ -260,33 +308,193 @@ export default function AdminOrders() {
     }
   };
 
+  // Available categories list for filter
+  const availableCategories = useMemo(() => {
+    const set = new Set();
+    catalogProducts.forEach((p) => p.category && set.add(p.category.trim()));
+    orders.forEach((o) => {
+      (o.products || []).forEach((p) => {
+        if (p.category) set.add(p.category.trim());
+        const match = catalogProducts.find((cp) => (cp._id || cp.id) === p.productId || cp.name === p.name);
+        if (match?.category) set.add(match.category.trim());
+      });
+    });
+    ['Protein', 'Creatine', 'Mass Gainer', 'Pre-Workout', 'Vitamins', 'Health Food'].forEach((c) => set.add(c));
+    return ['All', ...Array.from(set).sort()];
+  }, [orders, catalogProducts]);
+
+  // Available brands list for filter
+  const availableBrands = useMemo(() => {
+    const set = new Set();
+    catalogProducts.forEach((p) => p.brand && set.add(p.brand.trim()));
+    orders.forEach((o) => {
+      (o.products || []).forEach((p) => {
+        if (p.brand) set.add(p.brand.trim());
+        const match = catalogProducts.find((cp) => (cp._id || cp.id) === p.productId || cp.name === p.name);
+        if (match?.brand) set.add(match.brand.trim());
+        else if (p.name) {
+          const firstWord = p.name.trim().split(' ')[0];
+          if (firstWord && firstWord.length > 2) set.add(firstWord);
+        }
+      });
+    });
+    ['DYMATIZE', 'Optimum Nutrition', 'MuscleBlaze', 'MuscleTech', 'Cellucor'].forEach((b) => set.add(b));
+    return ['All', ...Array.from(set).sort()];
+  }, [orders, catalogProducts]);
+
   // Filter for the list table
-  const filtered = orders.filter((ord) => {
-    const matchStatus = statusFilter === 'All' || ord.orderStatus === statusFilter;
-    
-    let matchPayment = true;
-    if (paymentFilter === 'Paid') {
-      matchPayment = ord.paymentStatus === 'Paid' || (ord.paymentMethod?.includes('Razorpay') && ord.orderStatus !== 'Cancelled' && ord.orderStatus !== 'Refunded');
-    } else if (paymentFilter === 'Processing') {
-      matchPayment = (ord.paymentStatus === 'Pending' || ord.paymentStatus === 'Verification Pending') && ord.orderStatus !== 'Cancelled' && ord.orderStatus !== 'Refunded';
-    } else if (paymentFilter === 'RefundPending') {
-      matchPayment = (ord.refundStatus === 'processing' || ord.refundStatus === 'pending' || ((ord.orderStatus === 'Cancelled' || ord.orderStatus === 'Refunded') && (ord.paymentStatus === 'Paid' || ord.paymentMethod?.includes('Razorpay')))) && ord.refundStatus !== 'completed' && ord.refundStatus !== 'Processed';
-    } else if (paymentFilter === 'RefundCompleted') {
-      matchPayment = ord.refundStatus === 'completed' || ord.refundStatus === 'Processed' || (ord.orderStatus === 'Refunded' && ord.refundStatus === 'completed');
-    } else if (paymentFilter === 'COD') {
-      matchPayment = ord.paymentMethod === 'Cash on Delivery';
-    }
+  const filtered = useMemo(() => {
+    return orders.filter((ord) => {
+      // 1. Order Status Filter
+      if (statusFilter !== 'All' && ord.orderStatus !== statusFilter) {
+        return false;
+      }
 
-    const matchSearch =
-      !search ||
-      ord.orderId.toLowerCase().includes(search.toLowerCase()) ||
-      ord.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      ord.email.toLowerCase().includes(search.toLowerCase()) ||
-      (ord.transactionId && ord.transactionId.toLowerCase().includes(search.toLowerCase())) ||
-      (ord.razorpayPaymentId && ord.razorpayPaymentId.toLowerCase().includes(search.toLowerCase()));
+      // 2. Payment Filter
+      if (paymentFilter === 'Paid') {
+        const isPaid = ord.paymentStatus === 'Paid' || (ord.paymentMethod?.includes('Razorpay') && ord.orderStatus !== 'Cancelled' && ord.orderStatus !== 'Refunded');
+        if (!isPaid) return false;
+      } else if (paymentFilter === 'Processing') {
+        const isProcessing = (ord.paymentStatus === 'Pending' || ord.paymentStatus === 'Verification Pending') && ord.orderStatus !== 'Cancelled' && ord.orderStatus !== 'Refunded';
+        if (!isProcessing) return false;
+      } else if (paymentFilter === 'RefundPending') {
+        const isRefPending = (ord.refundStatus === 'processing' || ord.refundStatus === 'pending' || ((ord.orderStatus === 'Cancelled' || ord.orderStatus === 'Refunded') && (ord.paymentStatus === 'Paid' || ord.paymentMethod?.includes('Razorpay')))) && ord.refundStatus !== 'completed' && ord.refundStatus !== 'Processed';
+        if (!isRefPending) return false;
+      } else if (paymentFilter === 'RefundCompleted') {
+        const isRefDone = ord.refundStatus === 'completed' || ord.refundStatus === 'Processed' || (ord.orderStatus === 'Refunded' && ord.refundStatus === 'completed');
+        if (!isRefDone) return false;
+      } else if (paymentFilter === 'COD') {
+        if (ord.paymentMethod !== 'Cash on Delivery') return false;
+      }
 
-    return matchStatus && matchPayment && matchSearch;
-  });
+      // 3. Timeframe Filter (Days & Monthly)
+      if (timeframeFilter !== 'all') {
+        if (!ord.createdAt) return false;
+        const ordDate = new Date(ord.createdAt);
+        if (isNaN(ordDate.getTime())) return false;
+
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        const endOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, -1);
+
+        if (timeframeFilter === 'today') {
+          if (ordDate < startOfToday) return false;
+        } else if (timeframeFilter === 'yesterday') {
+          if (ordDate < startOfYesterday || ordDate > endOfYesterday) return false;
+        } else if (timeframeFilter === '7days') {
+          const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          if (ordDate < sevenDaysAgo) return false;
+        } else if (timeframeFilter === '30days') {
+          const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          if (ordDate < thirtyDaysAgo) return false;
+        } else if (timeframeFilter === 'thisMonth') {
+          const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+          const ordMonth = `${ordDate.getFullYear()}-${String(ordDate.getMonth() + 1).padStart(2, '0')}`;
+          if (ordMonth !== currentMonth) return false;
+        } else if (timeframeFilter === 'lastMonth') {
+          const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          const prevMonthKey = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
+          const ordMonth = `${ordDate.getFullYear()}-${String(ordDate.getMonth() + 1).padStart(2, '0')}`;
+          if (ordMonth !== prevMonthKey) return false;
+        } else if (timeframeFilter.includes('-')) {
+          const ordMonth = `${ordDate.getFullYear()}-${String(ordDate.getMonth() + 1).padStart(2, '0')}`;
+          if (ordMonth !== timeframeFilter) return false;
+        }
+      }
+
+      // 4. Category Filter
+      if (categoryFilter !== 'All') {
+        const catLower = categoryFilter.toLowerCase();
+        const hasCategory = (ord.products || []).some((p) => {
+          if (p.category && p.category.toLowerCase().includes(catLower)) return true;
+          const matched = catalogProducts.find((cp) => (cp._id || cp.id) === p.productId || cp.name === p.name);
+          if (matched?.category && matched.category.toLowerCase().includes(catLower)) return true;
+          if (p.name && p.name.toLowerCase().includes(catLower)) return true;
+          return false;
+        });
+        if (!hasCategory) return false;
+      }
+
+      // 5. Brand Filter
+      if (brandFilter !== 'All') {
+        const brandLower = brandFilter.toLowerCase();
+        const hasBrand = (ord.products || []).some((p) => {
+          if (p.brand && p.brand.toLowerCase().includes(brandLower)) return true;
+          const matched = catalogProducts.find((cp) => (cp._id || cp.id) === p.productId || cp.name === p.name);
+          if (matched?.brand && matched.brand.toLowerCase().includes(brandLower)) return true;
+          if (p.name && p.name.toLowerCase().includes(brandLower)) return true;
+          return false;
+        });
+        if (!hasBrand) return false;
+      }
+
+      // 6. Search Filter
+      if (search) {
+        const q = search.toLowerCase();
+        const matchSearch =
+          ord.orderId.toLowerCase().includes(q) ||
+          ord.customerName.toLowerCase().includes(q) ||
+          ord.email.toLowerCase().includes(q) ||
+          (ord.transactionId && ord.transactionId.toLowerCase().includes(q)) ||
+          (ord.razorpayPaymentId && ord.razorpayPaymentId.toLowerCase().includes(q)) ||
+          (ord.products || []).some((p) => p.name?.toLowerCase().includes(q));
+        if (!matchSearch) return false;
+      }
+
+      return true;
+    });
+  }, [orders, statusFilter, paymentFilter, timeframeFilter, categoryFilter, brandFilter, search, catalogProducts]);
+
+  // Live Selling & Revenue Summary for Active Filtered Criteria
+  const filteredSalesSummary = useMemo(() => {
+    let totalSelling = 0;
+    let totalUnits = 0;
+
+    filtered.forEach((ord) => {
+      // If Category or Brand filter is active, only count revenue for products matching those filters
+      if (categoryFilter !== 'All' || brandFilter !== 'All') {
+        (ord.products || []).forEach((p) => {
+          let matchCat = true;
+          if (categoryFilter !== 'All') {
+            const catLower = categoryFilter.toLowerCase();
+            const matched = catalogProducts.find((cp) => (cp._id || cp.id) === p.productId || cp.name === p.name);
+            matchCat = (p.category && p.category.toLowerCase().includes(catLower)) ||
+              (matched?.category && matched.category.toLowerCase().includes(catLower)) ||
+              (p.name && p.name.toLowerCase().includes(catLower));
+          }
+
+          let matchBrand = true;
+          if (brandFilter !== 'All') {
+            const brandLower = brandFilter.toLowerCase();
+            const matched = catalogProducts.find((cp) => (cp._id || cp.id) === p.productId || cp.name === p.name);
+            matchBrand = (p.brand && p.brand.toLowerCase().includes(brandLower)) ||
+              (matched?.brand && matched.brand.toLowerCase().includes(brandLower)) ||
+              (p.name && p.name.toLowerCase().includes(brandLower));
+          }
+
+          if (matchCat && matchBrand) {
+            totalSelling += (Number(p.price) || 0) * (Number(p.quantity) || 1);
+            totalUnits += Number(p.quantity) || 1;
+          }
+        });
+      } else {
+        totalSelling += Number(ord.totalAmount) || 0;
+        (ord.products || []).forEach((p) => {
+          totalUnits += Number(p.quantity) || 1;
+        });
+      }
+    });
+
+    const aov = filtered.length > 0 ? Math.round(totalSelling / filtered.length) : 0;
+
+    return {
+      totalSelling,
+      totalOrders: filtered.length,
+      totalUnits,
+      aov
+    };
+  }, [filtered, categoryFilter, brandFilter, catalogProducts]);
 
   return (
     <div className="space-y-8">
@@ -569,34 +777,191 @@ export default function AdminOrders() {
         </button>
       </div>
 
-      {/* Filter Bar (Search & Order Status) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-        <div className="relative flex-1 min-w-[260px]">
+      {/* ========================================================= */}
+      {/* 4-FILTER CONTROL BAR & SALES ANALYTICS */}
+      {/* ========================================================= */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4 shadow-xl">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <h3 className="text-sm font-black text-white flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
+              <span>Category, Brand & Date Selling Filters</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                4 Smart Filters
+              </span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Category aur Brand ke basis par filtered selling aur orders track karein
+            </p>
+          </div>
+
+          {(categoryFilter !== 'All' || brandFilter !== 'All' || timeframeFilter !== 'all' || statusFilter !== 'All' || paymentFilter !== 'All' || search) && (
+            <button
+              onClick={() => {
+                setCategoryFilter('All');
+                setBrandFilter('All');
+                setTimeframeFilter('all');
+                setStatusFilter('All');
+                setPaymentFilter('All');
+                setSearch('');
+              }}
+              className="text-xs font-bold text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 flex items-center gap-1.5 transition-all self-start lg:self-auto cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Reset All Filters</span>
+            </button>
+          )}
+        </div>
+
+        {/* 4 Filter Dropdowns Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* 1. Category Filter */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+              <Tag className="w-3.5 h-3.5 text-cyan-400" />
+              <span>1. Filter by Category:</span>
+            </label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            >
+              <option value="All">All Categories (Sabhi)</option>
+              {availableCategories.filter((c) => c !== 'All').map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 2. Brand Filter */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5 text-purple-400" />
+              <span>2. Filter by Brand:</span>
+            </label>
+            <select
+              value={brandFilter}
+              onChange={(e) => setBrandFilter(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            >
+              <option value="All">All Brands (Sabhi)</option>
+              {availableBrands.filter((b) => b !== 'All').map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 3. Monthly & Days Timeframe Filter */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+              <span>3. Days & Monthly Timeframe:</span>
+            </label>
+            <select
+              value={timeframeFilter}
+              onChange={(e) => setTimeframeFilter(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            >
+              <option value="all">All Time (Sabhi Din)</option>
+              <option value="today">Today (Aaj)</option>
+              <option value="yesterday">Yesterday (Kal)</option>
+              <option value="7days">Last 7 Days (Pichle 7 Din)</option>
+              <option value="30days">Last 30 Days (Pichle 30 Din)</option>
+              <option value="thisMonth">This Month ({formatMonthName(currentMonthKey)})</option>
+              <option value="lastMonth">Last Month</option>
+              {availableMonths.map((mKey) => (
+                <option key={mKey} value={mKey}>{formatMonthName(mKey)}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 4. Order Status Filter */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+              <Filter className="w-3.5 h-3.5 text-amber-400" />
+              <span>4. Order Status:</span>
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            >
+              <option value="All">All Statuses (Sabhi)</option>
+              <option value="Order Placed">Order Placed</option>
+              <option value="Packed">Packed</option>
+              <option value="Out for Delivery">Out for Delivery</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Processing">Processing</option>
+              <option value="Cancelled">Cancelled</option>
+              <option value="Refunded">Refunded</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Live Selling Cards for Filtered Results */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-500/15 to-slate-950 border border-emerald-500/30">
+            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 block">
+              Filtered Total Selling
+            </span>
+            <span className="text-xl sm:text-2xl font-black text-white font-mono mt-0.5 block">
+              ₹{filteredSalesSummary.totalSelling.toLocaleString('en-IN')}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1 block">
+              Selected criteria par total revenue
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-cyan-500/15 to-slate-950 border border-cyan-500/30">
+            <span className="text-[10px] font-black uppercase tracking-wider text-cyan-400 block">
+              Total Filtered Orders
+            </span>
+            <span className="text-xl sm:text-2xl font-black text-white font-mono mt-0.5 block">
+              {filteredSalesSummary.totalOrders}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1 block">
+              Total customer orders matched
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-500/15 to-slate-950 border border-purple-500/30">
+            <span className="text-[10px] font-black uppercase tracking-wider text-purple-400 block">
+              Units / Quantity Sold
+            </span>
+            <span className="text-xl sm:text-2xl font-black text-white font-mono mt-0.5 block">
+              {filteredSalesSummary.totalUnits} Units
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1 block">
+              Items purchased by customers
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/15 to-slate-950 border border-amber-500/30">
+            <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 block">
+              Average Order Value
+            </span>
+            <span className="text-xl sm:text-2xl font-black text-white font-mono mt-0.5 block">
+              ₹{filteredSalesSummary.aov.toLocaleString('en-IN')}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1 block">
+              Average per order ticket size
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="flex items-center gap-4 p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800">
+        <div className="relative flex-1">
           <input
             type="text"
-            placeholder="Search by Order ID, customer, email, UTR, Razorpay Payment ID..."
+            placeholder="Search by Order ID, customer, email, UTR, product name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
           />
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         </div>
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-200 focus:outline-none cursor-pointer"
-        >
-          <option value="All">All Order Statuses</option>
-          <option value="Order Placed">Order Placed</option>
-          <option value="Packed">Packed</option>
-          <option value="Processing">Processing</option>
-          <option value="Shipped">Shipped</option>
-          <option value="Out for Delivery">Out for Delivery</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Cancelled">Cancelled</option>
-          <option value="Refunded">Refunded</option>
-        </select>
       </div>
 
       {/* Orders Table */}
@@ -793,6 +1158,15 @@ export default function AdminOrders() {
                           >
                             <Eye className="w-3.5 h-3.5" />
                             <span>Details</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteOrder(ord)}
+                            disabled={deletingId === (ord.orderId || ord._id)}
+                            title="Permanently Delete Order"
+                            className="px-2.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 hover:text-rose-100 text-xs font-bold inline-flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                            <span>{deletingId === (ord.orderId || ord._id) ? 'Deleting...' : 'Delete'}</span>
                           </button>
                         </div>
                       </td>
