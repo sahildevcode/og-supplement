@@ -27,6 +27,7 @@ const productSchema = new mongoose.Schema(
     },
     variants: [{ type: String }],
     flavours: [{ type: String }],
+    variantDetails: { type: mongoose.Schema.Types.Mixed, default: {} },
     ingredients: { type: String },
     nutritionalInfo: { type: Object, default: {} },
     isGstApplicable: { type: Boolean, default: true },

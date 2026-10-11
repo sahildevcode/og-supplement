@@ -89,12 +89,8 @@ export default function ProductDetail() {
   useEffect(() => {
     if (liveProduct) {
       setProduct(liveProduct);
-      if (!selectedVariant && liveProduct.variants?.length) {
-        setSelectedVariant(liveProduct.variants[0]);
-      }
-      if (!selectedFlavour && liveProduct.flavours?.length) {
-        setSelectedFlavour(liveProduct.flavours[0]);
-      }
+      setSelectedVariant((prev) => (prev && liveProduct.variants?.includes(prev) ? prev : (liveProduct.variants?.[0] || 'Standard')));
+      setSelectedFlavour((prev) => (prev && liveProduct.flavours?.includes(prev) ? prev : (liveProduct.flavours?.[0] || 'Standard')));
     } else {
       // Fetch fallback
       api.getProductById(id)
@@ -107,7 +103,7 @@ export default function ProductDetail() {
         })
         .catch(console.error);
     }
-  }, [id, liveProduct, selectedVariant, selectedFlavour]);
+  }, [id, liveProduct]);
 
   if (!product) {
     return (
@@ -120,27 +116,102 @@ export default function ProductDetail() {
     );
   }
 
-  const isOutOfStock = Number(product.stock) <= 0;
-  const currentStock = Number(product.stock || 0);
+  // Flipkart / Amazon Dynamic Variant & Flavor Resolution
+  const flavourDetail = product.variantDetails?.flavours?.[selectedFlavour] || {};
+  const sizeDetail = product.variantDetails?.sizes?.[selectedVariant] || {};
 
-  const productImages = Array.isArray(product.images) ? product.images.filter(Boolean) : [];
-  const galleryImages = productImages.length >= 2
-    ? productImages
+  // 1. Dynamic Price, MRP & Discount %
+  const displayPrice = Number(
+    (sizeDetail.price !== undefined && sizeDetail.price !== '' ? sizeDetail.price : null) ??
+    (flavourDetail.price !== undefined && flavourDetail.price !== '' ? flavourDetail.price : null) ??
+    product.price ??
+    0
+  );
+  const displayDiscountPrice = Number(
+    (sizeDetail.discountPrice !== undefined && sizeDetail.discountPrice !== '' ? sizeDetail.discountPrice : null) ??
+    (flavourDetail.discountPrice !== undefined && flavourDetail.discountPrice !== '' ? flavourDetail.discountPrice : null) ??
+    product.discountPrice ??
+    displayPrice
+  );
+  const displayDiscountPct = displayPrice > displayDiscountPrice
+    ? Math.round(((displayPrice - displayDiscountPrice) / displayPrice) * 100)
+    : 0;
+
+  // 2. Dynamic Stock
+  const currentStock = Number(
+    (sizeDetail.stock !== undefined && sizeDetail.stock !== '' ? sizeDetail.stock : null) ??
+    (flavourDetail.stock !== undefined && flavourDetail.stock !== '' ? flavourDetail.stock : null) ??
+    product.stock ??
+    0
+  );
+  const isOutOfStock = currentStock <= 0;
+
+  // 3. Dynamic Title (Custom Title OR Auto-Updated "(Weight, Flavor)" Title)
+  const computeDynamicTitle = () => {
+    if (flavourDetail.title && flavourDetail.title.trim()) return flavourDetail.title.trim();
+    if (sizeDetail.title && sizeDetail.title.trim()) return sizeDetail.title.trim();
+
+    const baseName = (product.name || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+    const parts = [selectedVariant, selectedFlavour].filter((x) => x && x !== 'Standard');
+    if (parts.length > 0) {
+      return `${baseName} (${parts.join(', ')})`;
+    }
+    return product.name;
+  };
+  const displayTitle = computeDynamicTitle();
+
+  // 4. Dynamic Description
+  const displayDescription =
+    (flavourDetail.description && flavourDetail.description.trim()) ||
+    (sizeDetail.description && sizeDetail.description.trim()) ||
+    product.description;
+
+  // 5. Dynamic 4-Angle Images
+  const customFlavourImgs = Array.isArray(flavourDetail.images) ? flavourDetail.images.filter(Boolean) : [];
+  const customSizeImgs = Array.isArray(sizeDetail.images) ? sizeDetail.images.filter(Boolean) : [];
+  const baseProductImgs = Array.isArray(product.images) ? product.images.filter(Boolean) : [];
+
+  const activeSourceImages = customFlavourImgs.length > 0
+    ? customFlavourImgs
+    : customSizeImgs.length > 0
+    ? customSizeImgs
+    : baseProductImgs;
+
+  const galleryImages = activeSourceImages.length >= 1
+    ? activeSourceImages
     : [
-        productImages[0] || 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80'
       ];
 
+  // Find sibling products of the same Brand & Base Title (in case Admin added separate products for other flavors/weights)
+  const cleanBaseName = (product.name || '').replace(/\s*\([^)]*\)\s*$/, '').trim().toLowerCase();
+  const siblingProducts = (products || []).filter((p) => {
+    if ((p._id || p.id) === (product._id || product.id)) return false;
+    const pBase = (p.name || '').replace(/\s*\([^)]*\)\s*$/, '').trim().toLowerCase();
+    return pBase && pBase === cleanBaseName && (p.brand || '').toLowerCase() === (product.brand || '').toLowerCase();
+  });
+
+  const variantProductForCart = {
+    ...product,
+    name: displayTitle,
+    price: displayPrice,
+    discountPrice: displayDiscountPrice,
+    discountPercentage: displayDiscountPct,
+    stock: currentStock,
+    images: galleryImages
+  };
+
   const handleAddToCart = () => {
     if (isOutOfStock) return;
-    addToCart(product, quantity, selectedVariant, selectedFlavour);
+    addToCart(variantProductForCart, quantity, selectedVariant, selectedFlavour);
   };
 
   const handleBuyNow = () => {
     if (isOutOfStock) return;
-    const added = addToCart(product, quantity, selectedVariant, selectedFlavour);
+    const added = addToCart(variantProductForCart, quantity, selectedVariant, selectedFlavour);
     if (added) {
       navigate('/checkout');
     }
@@ -256,7 +327,7 @@ export default function ProductDetail() {
           <ChevronRight className="w-3.5 h-3.5" />
           <Link to="/products" className="hover:text-emerald-500 transition-colors">Supplements</Link>
           <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-emerald-500 truncate max-w-xs">{product.name}</span>
+          <span className="text-emerald-500 truncate max-w-xs">{displayTitle}</span>
         </nav>
 
         {/* Main Product Layout */}
@@ -267,9 +338,9 @@ export default function ProductDetail() {
             <div className={`relative aspect-square w-full rounded-3xl p-8 flex items-center justify-center overflow-hidden border shadow-lg ${
               isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200 shadow-slate-200/50'
             }`}>
-              {product.discountPercentage > 0 && (
+              {displayDiscountPct > 0 && (
                 <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500 text-black shadow-lg">
-                  {product.discountPercentage}% OFF
+                  {displayDiscountPct}% OFF
                 </div>
               )}
               <button
@@ -283,9 +354,10 @@ export default function ProductDetail() {
                 <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
               </button>
               <img
+                key={galleryImages[activeImage] || galleryImages[0]}
                 src={galleryImages[activeImage] || galleryImages[0]}
-                alt={product.name}
-                className={`max-h-96 object-contain filter drop-shadow-2xl transition-transform duration-300 hover:scale-105 ${isOutOfStock ? 'opacity-40 grayscale' : ''}`}
+                alt={displayTitle}
+                className={`max-h-96 object-contain filter drop-shadow-2xl transition-all duration-300 hover:scale-105 ${isOutOfStock ? 'opacity-40 grayscale' : ''}`}
               />
             </div>
 
@@ -320,14 +392,14 @@ export default function ProductDetail() {
                 <span className="text-xs font-black uppercase tracking-widest text-emerald-500">
                   {product.brand}
                 </span>
-                <StockBadge stock={product.stock} lowStockThreshold={product.lowStockThreshold} />
+                <StockBadge stock={currentStock} lowStockThreshold={product.lowStockThreshold} />
               </div>
 
-              {/* Product Title */}
-              <h1 className={`text-2xl sm:text-4xl font-black tracking-tight leading-tight ${
+              {/* Product Title (Dynamically updates with selected Weight & Flavor) */}
+              <h1 className={`text-2xl sm:text-4xl font-black tracking-tight leading-tight transition-all ${
                 isDark ? 'text-white' : 'text-slate-900'
               }`}>
-                {product.name}
+                {displayTitle}
               </h1>
 
               {/* Rating & Reviews */}
@@ -357,16 +429,16 @@ export default function ProductDetail() {
               {/* Price Details */}
               <div className="pt-2 flex items-baseline gap-3">
                 <span className={`text-3xl sm:text-4xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  ₹{product.discountPrice?.toLocaleString('en-IN') || product.price}
+                  ₹{displayDiscountPrice.toLocaleString('en-IN')}
                 </span>
-                {product.price > (product.discountPrice || product.price) && (
+                {displayPrice > displayDiscountPrice && (
                   <span className="text-base sm:text-lg text-slate-400 line-through font-medium">
-                    ₹{product.price?.toLocaleString('en-IN')}
+                    ₹{displayPrice.toLocaleString('en-IN')}
                   </span>
                 )}
-                {product.discountPercentage > 0 && (
+                {displayDiscountPct > 0 && (
                   <span className="text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                    Save ₹{(product.price - product.discountPrice).toLocaleString('en-IN')}
+                    Save ₹{(displayPrice - displayDiscountPrice).toLocaleString('en-IN')}
                   </span>
                 )}
               </div>
@@ -391,48 +463,123 @@ export default function ProductDetail() {
 
             </div>
 
-            {/* Variant / Size Picker */}
+            {/* Variant / Size Picker (Flipkart / Amazon Style with Price Preview) */}
             {product.variants && product.variants.length > 0 && (
               <div className="space-y-2 pt-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Select Size / Package:
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                  <span>Select Size / Package:</span>
+                  <span className="text-emerald-400 font-black">{selectedVariant}</span>
                 </label>
                 <div className="flex flex-wrap gap-2.5">
-                  {product.variants.map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => setSelectedVariant(v)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                        selectedVariant === v
-                          ? 'bg-emerald-500 text-black border border-emerald-400 shadow-md shadow-emerald-950/40'
-                          : isDark ? 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                      }`}
-                    >
-                      {v}
-                    </button>
-                  ))}
+                  {product.variants.map((v) => {
+                    const vInfo = product.variantDetails?.sizes?.[v] || {};
+                    const vPrice = vInfo.discountPrice || vInfo.price;
+                    const vImg = Array.isArray(vInfo.images) ? vInfo.images.find(Boolean) : null;
+                    return (
+                      <button
+                        key={v}
+                        onClick={() => {
+                          setSelectedVariant(v);
+                          setActiveImage(0);
+                        }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                          selectedVariant === v
+                            ? 'bg-emerald-500 text-black border border-emerald-400 shadow-md shadow-emerald-950/40 scale-[1.02]'
+                            : isDark ? 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                        }`}
+                      >
+                        {vImg && (
+                          <img src={vImg} alt={v} className="w-6 h-6 rounded-md object-contain bg-black/20 p-0.5" />
+                        )}
+                        <div className="text-left">
+                          <div>{v}</div>
+                          {vPrice && (
+                            <div className={`text-[10px] font-black ${selectedVariant === v ? 'text-black/80' : 'text-emerald-400'}`}>
+                              ₹{Number(vPrice).toLocaleString('en-IN')}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Flavour Picker */}
+            {/* Flavour Picker (Flipkart / Amazon Style with Thumbnail & Price Preview) */}
             {product.flavours && product.flavours.length > 0 && (
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Select Flavor:
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                  <span>Select Flavor:</span>
+                  <span className="text-emerald-400 font-black">{selectedFlavour}</span>
                 </label>
                 <div className="flex flex-wrap gap-2.5">
-                  {product.flavours.map((f) => (
+                  {product.flavours.map((f) => {
+                    const fInfo = product.variantDetails?.flavours?.[f] || {};
+                    const fPrice = fInfo.discountPrice || fInfo.price;
+                    const fImg = Array.isArray(fInfo.images) ? fInfo.images.find(Boolean) : null;
+                    return (
+                      <button
+                        key={f}
+                        onClick={() => {
+                          setSelectedFlavour(f);
+                          setActiveImage(0);
+                        }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                          selectedFlavour === f
+                            ? 'bg-emerald-500 text-black border border-emerald-400 shadow-md shadow-emerald-950/40 scale-[1.02]'
+                            : isDark ? 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                        }`}
+                      >
+                        {fImg && (
+                          <img src={fImg} alt={f} className="w-7 h-7 rounded-lg object-contain bg-black/20 p-0.5" />
+                        )}
+                        <div className="text-left">
+                          <div>{f}</div>
+                          {fPrice && (
+                            <div className={`text-[10px] font-black ${selectedFlavour === f ? 'text-black/80' : 'text-emerald-400'}`}>
+                              ₹{Number(fPrice).toLocaleString('en-IN')}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Sibling Products Switcher (If Admin added separate products for other flavors/weights of the same supplement) */}
+            {siblingProducts.length > 0 && (
+              <div className="space-y-2 pt-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Other Available Packs / Flavors:
+                </label>
+                <div className="flex flex-wrap gap-2.5">
+                  {siblingProducts.map((sib) => (
                     <button
-                      key={f}
-                      onClick={() => setSelectedFlavour(f)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                        selectedFlavour === f
-                          ? 'bg-emerald-500 text-black border border-emerald-400 shadow-md shadow-emerald-950/40'
-                          : isDark ? 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                      key={sib._id || sib.id}
+                      onClick={() => {
+                        setActiveImage(0);
+                        navigate(`/product/${sib._id || sib.id}`);
+                      }}
+                      className={`p-2 pr-3 rounded-xl text-xs font-bold border transition-all flex items-center gap-2.5 cursor-pointer ${
+                        isDark
+                          ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 hover:border-emerald-500/50 text-slate-200'
+                          : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-emerald-500 text-slate-800'
                       }`}
                     >
-                      {f}
+                      <img
+                        src={(sib.images && sib.images[0]) || galleryImages[0]}
+                        alt={sib.name}
+                        className="w-9 h-9 rounded-lg object-contain bg-slate-950 p-1 border border-slate-800"
+                      />
+                      <div className="text-left">
+                        <div className="line-clamp-1 max-w-[180px]">{sib.name}</div>
+                        <div className="text-[11px] font-black text-emerald-400">
+                          ₹{Number(sib.discountPrice || sib.price || 0).toLocaleString('en-IN')}
+                        </div>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -546,8 +693,8 @@ export default function ProductDetail() {
           }`}>
             {activeTab === 'description' && (
               <div className="space-y-4 text-sm leading-relaxed">
-                <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Product Overview</h3>
-                <p className={isDark ? 'text-slate-300' : 'text-slate-600'}>{product.description}</p>
+                <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Product Overview ({selectedVariant} • {selectedFlavour})</h3>
+                <p className={isDark ? 'text-slate-300' : 'text-slate-600'}>{displayDescription}</p>
                 <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className={`p-3 rounded-xl border ${isDark ? 'bg-slate-800/40 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
                     <span className="font-bold text-emerald-500">Category:</span> {product.category}

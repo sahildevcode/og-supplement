@@ -17,7 +17,7 @@ export const CartProvider = ({ children }) => {
   const { addToast } = useToast();
   const { products } = useProducts() || {};
 
-  // Auto-sync cart items with live database prices, GST, stock & shipping
+  // Auto-sync cart items with live database prices, variant/flavour prices, GST, stock & shipping
   useEffect(() => {
     if (!products || !Array.isArray(products) || products.length === 0) return;
     setCartItems((prevItems) => {
@@ -26,9 +26,27 @@ export const CartProvider = ({ children }) => {
         const live = products.find((p) => String(p._id || p.id) === String(item.productId || item._id));
         if (!live) return item;
 
-        const livePrice = Number(live.price || 0);
-        const liveDiscountPrice = Number(live.discountPrice !== undefined ? live.discountPrice : live.price || 0);
-        const liveStock = Number(live.stock || 0);
+        const sizeInfo = live.variantDetails?.sizes?.[item.variant] || {};
+        const flavInfo = live.variantDetails?.flavours?.[item.flavour] || {};
+
+        const livePrice = Number(
+          (sizeInfo.price !== undefined && sizeInfo.price !== '' ? sizeInfo.price : null) ??
+          (flavInfo.price !== undefined && flavInfo.price !== '' ? flavInfo.price : null) ??
+          live.price ??
+          0
+        );
+        const liveDiscountPrice = Number(
+          (sizeInfo.discountPrice !== undefined && sizeInfo.discountPrice !== '' ? sizeInfo.discountPrice : null) ??
+          (flavInfo.discountPrice !== undefined && flavInfo.discountPrice !== '' ? flavInfo.discountPrice : null) ??
+          live.discountPrice ??
+          livePrice
+        );
+        const liveStock = Number(
+          (sizeInfo.stock !== undefined && sizeInfo.stock !== '' ? sizeInfo.stock : null) ??
+          (flavInfo.stock !== undefined && flavInfo.stock !== '' ? flavInfo.stock : null) ??
+          live.stock ??
+          0
+        );
         const liveShipping = Number(live.shippingCost || 0);
         const liveGstApplicable = live.isGstApplicable !== false;
         const liveGstRate = live.gstRate !== undefined ? Number(live.gstRate) : 18;
