@@ -131,13 +131,14 @@ export default function HeroCarousel() {
               <p className={`text-xs sm:text-sm font-extrabold tracking-widest uppercase ${
                 isDark ? 'text-slate-400' : 'text-slate-500'
               }`}>
-                {active.tagline}
+                OG SUPPLEMENT OFFICIAL STORE • {active.tagline}
               </p>
 
               {/* Headline */}
               <h1 className={`text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] ${
                 isDark ? 'text-white' : 'text-slate-900'
               }`}>
+                <span className="sr-only">OG Supplement — Buy Original Gym & Health Supplements Online India: </span>
                 {active.title}
               </h1>
 
