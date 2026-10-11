@@ -113,10 +113,12 @@ export default function Navbar() {
             {/* LEFT: Brand Logo & Main Nav Links in ONE Line */}
             <div className="flex items-center gap-4 sm:gap-6 shrink-0">
               {/* Brand Logo */}
-              <Link to="/" className="flex items-center gap-2 group shrink-0">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform">
-                  <Sparkles className="w-4 h-4 text-black" />
-                </div>
+              <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+                <img
+                  src="/favicon-96x96.png"
+                  alt="OG Supplement Logo"
+                  className="w-9 h-9 rounded-xl object-cover border border-emerald-500/30 shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform"
+                />
                 <div className="flex flex-col">
                   <span className={`text-base sm:text-lg font-black tracking-tight leading-none flex items-center gap-0.5 ${
                     isDark ? 'text-white' : 'text-slate-900'

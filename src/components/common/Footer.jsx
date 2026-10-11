@@ -18,9 +18,11 @@ export default function Footer() {
           {/* Brand Col - OG-SUPPLEMENT */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-2.5 group inline-flex">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-950/40">
-                <Sparkles className="w-5 h-5 text-black" />
-              </div>
+              <img
+                src="/favicon-96x96.png"
+                alt="OG Supplement Logo"
+                className="w-10 h-10 rounded-xl object-cover border border-emerald-500/30 shadow-lg shadow-emerald-950/40"
+              />
               <span className={`text-xl font-extrabold tracking-tight ${
                 isDark ? 'text-white' : 'text-slate-900'
               }`}>
