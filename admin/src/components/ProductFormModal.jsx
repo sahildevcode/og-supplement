@@ -59,6 +59,22 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
           ? product.variantDetails
           : product.nutritionalInfo?.__variantDetails || { flavours: {}, sizes: {} };
 
+      // Keep variantDetails only for 2nd+ (extra) flavors and sizes; 1st flavor & 1st size use the Main Form
+      const extraFlavourSet = new Set(loadedFlavours.slice(1).map((f) => f.toLowerCase()));
+      const extraSizeSet = new Set(loadedVariants.slice(1).map((v) => v.toLowerCase()));
+      const initialFlavoursVD = {};
+      Object.entries(savedVD.flavours || {}).forEach(([k, v]) => {
+        if (k && extraFlavourSet.has(k.trim().toLowerCase())) {
+          initialFlavoursVD[k.trim()] = v;
+        }
+      });
+      const initialSizesVD = {};
+      Object.entries(savedVD.sizes || {}).forEach(([k, v]) => {
+        if (k && extraSizeSet.has(k.trim().toLowerCase())) {
+          initialSizesVD[k.trim()] = v;
+        }
+      });
+
       setFormData({
         name: product.name || '',
         brand: product.brand || '',
@@ -84,11 +100,17 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         variants: loadedVariants,
         flavours: loadedFlavours,
         variantDetails: {
-          flavours: savedVD.flavours || {},
-          sizes: savedVD.sizes || {}
+          flavours: initialFlavoursVD,
+          sizes: initialSizesVD
         }
       });
-      setActiveCustomizer({ type: 'flavours', key: loadedFlavours[0] || '' });
+      if (loadedFlavours[1]) {
+        setActiveCustomizer({ type: 'flavours', key: loadedFlavours[1] });
+      } else if (loadedVariants[1]) {
+        setActiveCustomizer({ type: 'sizes', key: loadedVariants[1] });
+      } else {
+        setActiveCustomizer({ type: 'flavours', key: '' });
+      }
     } else {
       setFormData({
         name: '',
@@ -121,7 +143,7 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         flavours: ['Double Rich Chocolate', 'Vanilla Ice Cream'],
         variantDetails: { flavours: {}, sizes: {} }
       });
-      setActiveCustomizer({ type: 'flavours', key: 'Double Rich Chocolate' });
+      setActiveCustomizer({ type: 'flavours', key: 'Vanilla Ice Cream' });
     }
   }, [product, isOpen]);
 
@@ -194,7 +216,7 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
       sizes: { ...(formData.variantDetails?.sizes || {}) }
     };
 
-    if ((field === 'flavours' || field === 'variants') && oldVal && newVal && oldVal !== newVal) {
+    if ((field === 'flavours' || field === 'variants') && index > 0 && oldVal && newVal && oldVal !== newVal) {
       const group = field === 'flavours' ? 'flavours' : 'sizes';
       if (nextVariantDetails[group][oldVal]) {
         nextVariantDetails[group][newVal] = nextVariantDetails[group][oldVal];
@@ -221,13 +243,22 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
     setSaving(true);
 
     try {
+      const cleanedVariants = formData.variants.map((v) => String(v).trim()).filter(Boolean);
+      const cleanedFlavours = formData.flavours.map((f) => String(f).trim()).filter(Boolean);
+      const validExtraFlavours = new Set(cleanedFlavours.slice(1).map((f) => f.toLowerCase()));
+      const validExtraSizes = new Set(cleanedVariants.slice(1).map((v) => v.toLowerCase()));
+
       const cleanFlavoursMap = {};
       Object.entries(formData.variantDetails?.flavours || {}).forEach(([k, v]) => {
-        if (k && k.trim()) cleanFlavoursMap[k.trim()] = v;
+        if (k && k.trim() && validExtraFlavours.has(k.trim().toLowerCase())) {
+          cleanFlavoursMap[k.trim()] = v;
+        }
       });
       const cleanSizesMap = {};
       Object.entries(formData.variantDetails?.sizes || {}).forEach(([k, v]) => {
-        if (k && k.trim()) cleanSizesMap[k.trim()] = v;
+        if (k && k.trim() && validExtraSizes.has(k.trim().toLowerCase())) {
+          cleanSizesMap[k.trim()] = v;
+        }
       });
       const cleanedVariantDetails = {
         flavours: cleanFlavoursMap,
@@ -242,8 +273,8 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         shippingCost: Number(formData.shippingCost || 0),
         stock: Number(formData.stock),
         lowStockThreshold: Number(formData.lowStockThreshold),
-        variants: formData.variants.map((v) => String(v).trim()).filter(Boolean),
-        flavours: formData.flavours.map((f) => String(f).trim()).filter(Boolean),
+        variants: cleanedVariants,
+        flavours: cleanedFlavours,
         images: formData.images.filter(Boolean),
         variantDetails: cleanedVariantDetails,
         nutritionalInfo: {
@@ -755,7 +786,11 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                     placeholder="e.g. 1 kg or 3 kg"
                     className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500"
                   />
-                  {v.trim() && (
+                  {idx === 0 ? (
+                    <span className="px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-slate-900/80 text-slate-400 border border-slate-800 shrink-0" title="1st Weight uses Main Form Images, Price & Description above">
+                      ★ Main Weight
+                    </span>
+                  ) : v.trim() ? (
                     <button
                       type="button"
                       onClick={() => {
@@ -767,14 +802,16 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                           ? 'bg-cyan-500 text-black border-cyan-400'
                           : 'bg-slate-900 text-cyan-400 border-cyan-500/30 hover:bg-slate-800'
                       }`}
-                      title="Customize Price, Images, Title & Description for this Size"
+                      title="Customize Price, Images, Title & Description for this Extra Size"
                     >
                       🎨 Edit {v.trim()}
                     </button>
+                  ) : null}
+                  {formData.variants.length > 1 && (
+                    <button type="button" onClick={() => removeArrayItem('variants', idx)} className="p-1.5 text-rose-400">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   )}
-                  <button type="button" onClick={() => removeArrayItem('variants', idx)} className="p-1.5 text-rose-400">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
                 </div>
               ))}
               <button type="button" onClick={() => addArrayItem('variants')} className="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">
@@ -794,7 +831,11 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                     placeholder="e.g. Kiwi Kick"
                     className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500"
                   />
-                  {f.trim() && (
+                  {idx === 0 ? (
+                    <span className="px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-slate-900/80 text-slate-400 border border-slate-800 shrink-0" title="1st Flavor uses Main Form Images, Price & Description above">
+                      ★ Main Flavor
+                    </span>
+                  ) : f.trim() ? (
                     <button
                       type="button"
                       onClick={() => {
@@ -806,14 +847,16 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                           ? 'bg-emerald-500 text-black border-emerald-400'
                           : 'bg-slate-900 text-emerald-400 border-emerald-500/30 hover:bg-slate-800'
                       }`}
-                      title="Customize Images, Title, Price & Description for this Flavor"
+                      title="Customize Images, Title, Price & Description for this Extra Flavor"
                     >
                       🎨 Edit {f.trim()}
                     </button>
+                  ) : null}
+                  {formData.flavours.length > 1 && (
+                    <button type="button" onClick={() => removeArrayItem('flavours', idx)} className="p-1.5 text-rose-400">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   )}
-                  <button type="button" onClick={() => removeArrayItem('flavours', idx)} className="p-1.5 text-rose-400">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
                 </div>
               ))}
               <button type="button" onClick={() => addArrayItem('flavours')} className="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">
@@ -828,11 +871,14 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
               <button
                 type="button"
                 onClick={() => {
-                  if (!activeCustomizer.key) {
-                    const firstFlav = formData.flavours.find(Boolean)?.trim();
-                    const firstSize = formData.variants.find(Boolean)?.trim();
-                    if (firstFlav) setActiveCustomizer({ type: 'flavours', key: firstFlav });
-                    else if (firstSize) setActiveCustomizer({ type: 'sizes', key: firstSize });
+                  const secondFlav = formData.flavours.slice(1).find(Boolean)?.trim();
+                  const secondSize = formData.variants.slice(1).find(Boolean)?.trim();
+                  if (secondFlav) {
+                    setActiveCustomizer({ type: 'flavours', key: secondFlav });
+                  } else if (secondSize) {
+                    setActiveCustomizer({ type: 'sizes', key: secondSize });
+                  } else {
+                    setActiveCustomizer({ type: 'flavours', key: '' });
                   }
                   setShowVariantCustomizer(true);
                 }}
@@ -847,10 +893,10 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                   <div>
                     <p className="font-black text-white text-xs sm:text-sm flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-emerald-400" />
-                      <span>Flipkart / Amazon Style: Flavor & Weight Customizer</span>
+                      <span>Extra Flavor & Weight Customizer (2nd, 3rd Flavors / Weights)</span>
                     </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Kisi bhi Flavor ya Weight (1kg, 3kg) par click karke uska alag <strong className="text-slate-200">Title, 4 Photos, Price, Stock, aur Description</strong> set karein!
+                      1st Main Flavor (<strong className="text-emerald-400">{formData.flavours[0] || 'Default'}</strong>) aur 1st Weight (<strong className="text-cyan-400">{formData.variants[0] || 'Default'}</strong>) upar Main Form ki photos & details use karte hain. Yahan <strong className="text-slate-200">Extra Flavors ya Weights</strong> add karke unki alag Photos, Title, Price aur Description set karein:
                     </p>
                   </div>
                   <button
@@ -863,204 +909,260 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                   </button>
                 </div>
 
-            {/* Quick Select Tabs for All Sizes & Flavors */}
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Flavors:</span>
-                {formData.flavours.filter(Boolean).map((flavourName) => {
-                  const cleanKey = flavourName.trim();
-                  const isSelected = activeCustomizer.type === 'flavours' && activeCustomizer.key === cleanKey;
-                  const data = formData.variantDetails?.flavours?.[cleanKey] || {};
-                  const hasCustom = Boolean(data.title || data.price || data.discountPrice || data.description || (data.images && data.images.some(Boolean)));
-                  return (
+                {/* Quick Select Tabs for Extra (2nd+) Sizes & Flavors + Quick Add Buttons */}
+                <div className="space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Extra Flavors:</span>
+                    {formData.flavours.slice(1).filter(Boolean).map((flavourName) => {
+                      const cleanKey = flavourName.trim();
+                      const isSelected = activeCustomizer.type === 'flavours' && activeCustomizer.key === cleanKey;
+                      const data = formData.variantDetails?.flavours?.[cleanKey] || {};
+                      const hasCustom = Boolean(data.title || data.price || data.discountPrice || data.description || (data.images && data.images.some(Boolean)));
+                      return (
+                        <button
+                          key={`flav-${cleanKey}`}
+                          type="button"
+                          onClick={() => setActiveCustomizer({ type: 'flavours', key: cleanKey })}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg shadow-emerald-950/50'
+                              : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-emerald-500/50'
+                          }`}
+                        >
+                          <span>🍓 {cleanKey}</span>
+                          {hasCustom && (
+                            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black ${isSelected ? 'bg-black/20 text-black' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                              ✓ Custom
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                     <button
-                      key={`flav-${cleanKey}`}
                       type="button"
-                      onClick={() => setActiveCustomizer({ type: 'flavours', key: cleanKey })}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
-                        isSelected
-                          ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg shadow-emerald-950/50'
-                          : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-emerald-500/50'
-                      }`}
+                      onClick={() => {
+                        const newFlavName = `New Flavor ${formData.flavours.length}`;
+                        setFormData((prev) => ({
+                          ...prev,
+                          flavours: [...prev.flavours, newFlavName]
+                        }));
+                        setActiveCustomizer({ type: 'flavours', key: newFlavName });
+                      }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold border border-dashed border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-1"
                     >
-                      <span>🍓 {cleanKey}</span>
-                      {hasCustom && (
-                        <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black ${isSelected ? 'bg-black/20 text-black' : 'bg-emerald-500/20 text-emerald-400'}`}>
-                          ✓ Custom
-                        </span>
-                      )}
+                      <Plus className="w-3.5 h-3.5" /> Add Extra Flavor
                     </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Weights / Sizes:</span>
-                {formData.variants.filter(Boolean).map((sizeName) => {
-                  const cleanKey = sizeName.trim();
-                  const isSelected = activeCustomizer.type === 'sizes' && activeCustomizer.key === cleanKey;
-                  const data = formData.variantDetails?.sizes?.[cleanKey] || {};
-                  const hasCustom = Boolean(data.title || data.price || data.discountPrice || data.description || (data.images && data.images.some(Boolean)));
-                  return (
-                    <button
-                      key={`size-${cleanKey}`}
-                      type="button"
-                      onClick={() => setActiveCustomizer({ type: 'sizes', key: cleanKey })}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
-                        isSelected
-                          ? 'bg-cyan-500 text-black border-cyan-400 shadow-lg shadow-cyan-950/50'
-                          : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-cyan-500/50'
-                      }`}
-                    >
-                      <span>⚖️ {cleanKey}</span>
-                      {hasCustom && (
-                        <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black ${isSelected ? 'bg-black/20 text-black' : 'bg-cyan-500/20 text-cyan-400'}`}>
-                          ✓ Custom
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Active Selected Flavor or Size Editor Box */}
-            {activeCustomizer.key && (() => {
-              const group = activeCustomizer.type; // 'flavours' | 'sizes'
-              const key = activeCustomizer.key;
-              const currentDetail = formData.variantDetails?.[group]?.[key] || {
-                title: '',
-                price: '',
-                discountPrice: '',
-                stock: '',
-                description: '',
-                images: ['', '', '', '']
-              };
-              const detailImages = ensureFourImages(currentDetail.images);
-
-              const updateDetailField = (field, val) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  variantDetails: {
-                    ...prev.variantDetails,
-                    [group]: {
-                      ...(prev.variantDetails?.[group] || {}),
-                      [key]: {
-                        ...currentDetail,
-                        images: detailImages,
-                        [field]: val
-                      }
-                    }
-                  }
-                }));
-              };
-
-              const updateDetailImage = (imgIdx, val) => {
-                const nextImgs = [...detailImages];
-                nextImgs[imgIdx] = val;
-                updateDetailField('images', nextImgs);
-              };
-
-              return (
-                <div className="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span className="text-xs font-black text-emerald-400 uppercase tracking-wider">
-                      Editing {group === 'flavours' ? 'Flavor' : 'Weight / Size'}: "{key}"
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      (Jo field khali chhodoge woh main product se automatic le lega)
-                    </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-3 space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300">
-                        Custom Title for "{key}" (Optional — Auto-updates if left blank)
-                      </label>
-                      <input
-                        type="text"
-                        value={currentDetail.title || ''}
-                        onChange={(e) => updateDetailField('title', e.target.value)}
-                        placeholder={`e.g. ${formData.name || 'Wellcore Creatine'} (${key})`}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300">MRP (₹) for "{key}"</label>
-                      <input
-                        type="number"
-                        value={currentDetail.price ?? ''}
-                        onChange={(e) => updateDetailField('price', e.target.value)}
-                        placeholder={String(formData.price || '999')}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-emerald-400">Selling Price (₹) for "{key}"</label>
-                      <input
-                        type="number"
-                        value={currentDetail.discountPrice ?? ''}
-                        onChange={(e) => updateDetailField('discountPrice', e.target.value)}
-                        placeholder={String(formData.discountPrice || formData.price || '699')}
-                        className="w-full bg-slate-900 border border-emerald-500/40 rounded-xl px-3 py-2 text-xs text-emerald-300 font-bold focus:outline-none focus:border-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300">Stock Units for "{key}"</label>
-                      <input
-                        type="number"
-                        value={currentDetail.stock ?? ''}
-                        onChange={(e) => updateDetailField('stock', e.target.value)}
-                        placeholder={String(formData.stock || '20')}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-3 space-y-1">
-                      <label className="text-[11px] font-bold text-emerald-400">
-                        Separate Description / Amazon Specs for "{key}" (Yahan is {group === 'flavours' ? 'Flavor' : 'Weight'} ki alag description daalein):
-                      </label>
-                      <textarea
-                        rows={4}
-                        value={currentDetail.description || ''}
-                        onChange={(e) => updateDetailField('description', e.target.value)}
-                        placeholder={`Paste separate description or Amazon/Flipkart details for "${key}" here...`}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-3 space-y-2 pt-1">
-                      <label className="text-[11px] font-bold text-cyan-400 block">
-                        4 Product Images for "{key}" (Paste image URLs for this specific {group === 'flavours' ? 'Flavor' : 'Weight'}):
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {detailImages.map((imgUrl, iIdx) => (
-                          <div key={iIdx} className="flex items-center gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800">
-                            <div className="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0">
-                              {imgUrl ? (
-                                <img src={imgUrl} alt="" className="w-full h-full object-contain" />
-                              ) : (
-                                <span className="text-[9px] text-slate-600 font-bold">#{iIdx + 1}</span>
-                              )}
-                            </div>
-                            <input
-                              type="text"
-                              value={imgUrl}
-                              onChange={(e) => updateDetailImage(iIdx, e.target.value)}
-                              placeholder={`Image ${iIdx + 1} URL for ${key}...`}
-                              className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-100 focus:outline-none focus:border-cyan-500"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Extra Weights:</span>
+                    {formData.variants.slice(1).filter(Boolean).map((sizeName) => {
+                      const cleanKey = sizeName.trim();
+                      const isSelected = activeCustomizer.type === 'sizes' && activeCustomizer.key === cleanKey;
+                      const data = formData.variantDetails?.sizes?.[cleanKey] || {};
+                      const hasCustom = Boolean(data.title || data.price || data.discountPrice || data.description || (data.images && data.images.some(Boolean)));
+                      return (
+                        <button
+                          key={`size-${cleanKey}`}
+                          type="button"
+                          onClick={() => setActiveCustomizer({ type: 'sizes', key: cleanKey })}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'bg-cyan-500 text-black border-cyan-400 shadow-lg shadow-cyan-950/50'
+                              : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-cyan-500/50'
+                          }`}
+                        >
+                          <span>⚖️ {cleanKey}</span>
+                          {hasCustom && (
+                            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black ${isSelected ? 'bg-black/20 text-black' : 'bg-cyan-500/20 text-cyan-400'}`}>
+                              ✓ Custom
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSizeName = `New Weight ${formData.variants.length}`;
+                        setFormData((prev) => ({
+                          ...prev,
+                          variants: [...prev.variants, newSizeName]
+                        }));
+                        setActiveCustomizer({ type: 'sizes', key: newSizeName });
+                      }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold border border-dashed border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add Extra Weight
+                    </button>
                   </div>
                 </div>
-              );
-            })()}
+
+                {/* Active Selected Extra Flavor or Size Editor Box */}
+                {activeCustomizer.key ? (() => {
+                  const group = activeCustomizer.type; // 'flavours' | 'sizes'
+                  const arrayField = group === 'flavours' ? 'flavours' : 'variants';
+                  const key = activeCustomizer.key;
+                  const arrayIdx = formData[arrayField].findIndex(
+                    (item, idx) => idx > 0 && String(item).trim().toLowerCase() === String(key).trim().toLowerCase()
+                  );
+                  const currentDetail = formData.variantDetails?.[group]?.[key] || {
+                    title: '',
+                    price: '',
+                    discountPrice: '',
+                    stock: '',
+                    description: '',
+                    images: ['', '', '', '']
+                  };
+                  const detailImages = ensureFourImages(currentDetail.images);
+
+                  const updateDetailField = (field, val) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      variantDetails: {
+                        ...prev.variantDetails,
+                        [group]: {
+                          ...(prev.variantDetails?.[group] || {}),
+                          [key]: {
+                            ...currentDetail,
+                            images: detailImages,
+                            [field]: val
+                          }
+                        }
+                      }
+                    }));
+                  };
+
+                  const updateDetailImage = (imgIdx, val) => {
+                    const nextImgs = [...detailImages];
+                    nextImgs[imgIdx] = val;
+                    updateDetailField('images', nextImgs);
+                  };
+
+                  return (
+                    <div className="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                        <span className="text-xs font-black text-emerald-400 uppercase tracking-wider">
+                          Editing Extra {group === 'flavours' ? 'Flavor' : 'Weight / Size'}: "{key}"
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          (Jo field khali chhodoge woh main product se automatic le lega)
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {arrayIdx > 0 && (
+                          <div className="sm:col-span-3 space-y-1">
+                            <label className="text-[11px] font-bold text-emerald-400">
+                              {group === 'flavours' ? 'Extra Flavor Name * (e.g. Fruit Fusion, Mango)' : 'Extra Weight / Size Name * (e.g. 1 kg, 3 kg)'}
+                            </label>
+                            <input
+                              type="text"
+                              value={formData[arrayField][arrayIdx] || ''}
+                              onChange={(e) => handleArrayChange(arrayField, arrayIdx, e.target.value)}
+                              placeholder={group === 'flavours' ? 'e.g. Fruit Fusion' : 'e.g. 1 kg'}
+                              className="w-full bg-slate-900 border border-emerald-500/50 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-emerald-400"
+                            />
+                          </div>
+                        )}
+
+                        <div className="sm:col-span-3 space-y-1">
+                          <label className="text-[11px] font-bold text-slate-300">
+                            Custom Title for "{key}" (Optional — Auto-updates if left blank)
+                          </label>
+                          <input
+                            type="text"
+                            value={currentDetail.title || ''}
+                            onChange={(e) => updateDetailField('title', e.target.value)}
+                            placeholder={`e.g. ${formData.name || 'Wellcore Creatine'} (${key})`}
+                            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-slate-300">MRP (₹) for "{key}"</label>
+                          <input
+                            type="number"
+                            value={currentDetail.price ?? ''}
+                            onChange={(e) => updateDetailField('price', e.target.value)}
+                            placeholder={String(formData.price || '999')}
+                            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-emerald-400">Selling Price (₹) for "{key}"</label>
+                          <input
+                            type="number"
+                            value={currentDetail.discountPrice ?? ''}
+                            onChange={(e) => updateDetailField('discountPrice', e.target.value)}
+                            placeholder={String(formData.discountPrice || formData.price || '699')}
+                            className="w-full bg-slate-900 border border-emerald-500/40 rounded-xl px-3 py-2 text-xs text-emerald-300 font-bold focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-slate-300">Stock Units for "{key}"</label>
+                          <input
+                            type="number"
+                            value={currentDetail.stock ?? ''}
+                            onChange={(e) => updateDetailField('stock', e.target.value)}
+                            placeholder={String(formData.stock || '20')}
+                            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3 space-y-1">
+                          <label className="text-[11px] font-bold text-emerald-400">
+                            Separate Description / Amazon Specs for "{key}" (Yahan is {group === 'flavours' ? 'Flavor' : 'Weight'} ki alag description daalein):
+                          </label>
+                          <textarea
+                            rows={4}
+                            value={currentDetail.description || ''}
+                            onChange={(e) => updateDetailField('description', e.target.value)}
+                            placeholder={`Paste separate description or Amazon/Flipkart details for "${key}" here...`}
+                            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3 space-y-2 pt-1">
+                          <label className="text-[11px] font-bold text-cyan-400 block">
+                            4 Product Images for "{key}" (Paste image URLs for this specific {group === 'flavours' ? 'Flavor' : 'Weight'}):
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {detailImages.map((imgUrl, iIdx) => (
+                              <div key={iIdx} className="flex items-center gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800">
+                                <div className="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+                                  {imgUrl ? (
+                                    <img src={imgUrl} alt="" className="w-full h-full object-contain" />
+                                  ) : (
+                                    <span className="text-[9px] text-slate-600 font-bold">#{iIdx + 1}</span>
+                                  )}
+                                </div>
+                                <input
+                                  type="text"
+                                  value={imgUrl}
+                                  onChange={(e) => updateDetailImage(iIdx, e.target.value)}
+                                  placeholder={`Image ${iIdx + 1} URL for ${key}...`}
+                                  className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-100 focus:outline-none focus:border-cyan-500"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })() : (
+                  <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-center space-y-2">
+                    <p className="text-xs text-slate-300 font-semibold">
+                      Abhi koi Extra (2nd) Flavor ya Weight add nahi hai.
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      Upar <strong className="text-emerald-400">+ Add Extra Flavor</strong> ya <strong className="text-cyan-400">+ Add Extra Weight</strong> button par click karein!
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

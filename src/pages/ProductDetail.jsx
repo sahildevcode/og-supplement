@@ -137,8 +137,21 @@ export default function ProductDetail() {
     return matchedKey ? groupMap[matchedKey] : {};
   };
 
-  const flavourDetail = getVariantDetail(rawVariantDetails.flavours, selectedFlavour);
-  const sizeDetail = getVariantDetail(rawVariantDetails.sizes, selectedVariant);
+  // Primary (1st) flavor & size always use the Main Product Form's Images, Title, Price & Description.
+  // Only additional (2nd, 3rd...) flavors & sizes use variantDetails overrides!
+  const primaryFlavourKey = String(product.flavours?.[0] || '').trim().toLowerCase();
+  const primarySizeKey = String(product.variants?.[0] || '').trim().toLowerCase();
+  const isPrimaryFlavour =
+    !selectedFlavour ||
+    (product.flavours?.length || 0) <= 1 ||
+    String(selectedFlavour).trim().toLowerCase() === primaryFlavourKey;
+  const isPrimarySize =
+    !selectedVariant ||
+    (product.variants?.length || 0) <= 1 ||
+    String(selectedVariant).trim().toLowerCase() === primarySizeKey;
+
+  const flavourDetail = isPrimaryFlavour ? {} : getVariantDetail(rawVariantDetails.flavours, selectedFlavour);
+  const sizeDetail = isPrimarySize ? {} : getVariantDetail(rawVariantDetails.sizes, selectedVariant);
 
   // 1. Dynamic Price, MRP & Discount %
   const displayPrice = Number(
@@ -166,10 +179,11 @@ export default function ProductDetail() {
   );
   const isOutOfStock = currentStock <= 0;
 
-  // 3. Dynamic Title (Custom Title OR Auto-Updated "(Weight, Flavor)" Title)
+  // 3. Dynamic Title (Main product name for primary selection; custom title or auto-updated title for 2nd+ flavor/weight)
   const computeDynamicTitle = () => {
     if (flavourDetail.title && flavourDetail.title.trim()) return flavourDetail.title.trim();
     if (sizeDetail.title && sizeDetail.title.trim()) return sizeDetail.title.trim();
+    if (isPrimaryFlavour && isPrimarySize) return product.name;
 
     const baseName = (product.name || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
     const parts = [selectedVariant, selectedFlavour]
@@ -497,10 +511,15 @@ export default function ProductDetail() {
                   <span className="text-emerald-400 font-black">{selectedVariant}</span>
                 </label>
                 <div className="flex flex-wrap gap-2.5">
-                  {product.variants.map((v) => {
-                    const vInfo = getVariantDetail(rawVariantDetails.sizes, v);
-                    const vPrice = vInfo.discountPrice || vInfo.price;
-                    const vImg = Array.isArray(vInfo.images) ? vInfo.images.find(Boolean) : null;
+                  {product.variants.map((v, vIdx) => {
+                    const isFirstSize = vIdx === 0;
+                    const vInfo = isFirstSize ? {} : getVariantDetail(rawVariantDetails.sizes, v);
+                    const vPrice = isFirstSize
+                      ? (product.variants.length > 1 ? (product.discountPrice || product.price) : null)
+                      : (vInfo.discountPrice || vInfo.price);
+                    const vImg = isFirstSize
+                      ? null
+                      : (Array.isArray(vInfo.images) ? vInfo.images.find(Boolean) : null);
                     return (
                       <button
                         key={v}
@@ -540,10 +559,15 @@ export default function ProductDetail() {
                   <span className="text-emerald-400 font-black">{selectedFlavour}</span>
                 </label>
                 <div className="flex flex-wrap gap-2.5">
-                  {product.flavours.map((f) => {
-                    const fInfo = getVariantDetail(rawVariantDetails.flavours, f);
-                    const fPrice = fInfo.discountPrice || fInfo.price;
-                    const fImg = Array.isArray(fInfo.images) ? fInfo.images.find(Boolean) : null;
+                  {product.flavours.map((f, fIdx) => {
+                    const isFirstFlavour = fIdx === 0;
+                    const fInfo = isFirstFlavour ? {} : getVariantDetail(rawVariantDetails.flavours, f);
+                    const fPrice = isFirstFlavour
+                      ? (product.flavours.length > 1 ? (product.discountPrice || product.price) : null)
+                      : (fInfo.discountPrice || fInfo.price);
+                    const fImg = isFirstFlavour
+                      ? (product.flavours.length > 1 ? baseProductImgs[0] : null)
+                      : (Array.isArray(fInfo.images) ? fInfo.images.find(Boolean) : null);
                     return (
                       <button
                         key={f}
