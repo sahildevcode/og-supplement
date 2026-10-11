@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#022c22" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#14b8a6" />
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.4" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded Square / Circle Base for Google Search Favicon -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)" />
+  <rect x="14" y="14" width="484" height="484" rx="102" fill="none" stroke="url(#ringGrad)" stroke-width="12" />
+
+  <!-- Top Dumbbell Icon Accent -->
+  <g transform="translate(256, 128)" fill="url(#emeraldGrad)">
+    <rect x="-70" y="-8" width="140" height="16" rx="8" />
+    <rect x="-98" y="-30" width="22" height="60" rx="8" />
+    <rect x="-72" y="-22" width="16" height="44" rx="6" />
+    <rect x="76" y="-30" width="22" height="60" rx="8" />
+    <rect x="56" y="-22" width="16" height="44" rx="6" />
+  </g>
+
+  <!-- Bold "OG" Brand Monogram -->
+  <text
+    x="256"
+    y="335"
+    text-anchor="middle"
+    font-family="Arial Black, Impact, system-ui, sans-serif"
+    font-weight="900"
+    font-size="185"
+    letter-spacing="-6"
+    fill="url(#emeraldGrad)"
+  >OG</text>
+
+  <!-- Bottom Subtitle Pill -->
+  <text
+    x="256"
+    y="420"
+    text-anchor="middle"
+    font-family="Arial, system-ui, sans-serif"
+    font-weight="800"
+    font-size="40"
+    letter-spacing="8"
+    fill="#f8fafc"
+  >SUPPLEMENT</text>
+</svg>
