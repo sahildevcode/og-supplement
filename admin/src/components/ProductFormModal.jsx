@@ -32,6 +32,7 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
   });
 
   const [saving, setSaving] = useState(false);
+  const [showVariantCustomizer, setShowVariantCustomizer] = useState(false);
   const [activeCustomizer, setActiveCustomizer] = useState({ type: 'flavours', key: '' });
 
   const ensureFourImages = (imgs) => {
@@ -43,6 +44,7 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
   };
 
   useEffect(() => {
+    setShowVariantCustomizer(false);
     if (product) {
       const numPrice = Number(product.price || 0);
       const numDiscPrice = Number(product.discountPrice || numPrice);
@@ -715,9 +717,12 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                   {v.trim() && (
                     <button
                       type="button"
-                      onClick={() => setActiveCustomizer({ type: 'sizes', key: v.trim() })}
+                      onClick={() => {
+                        setActiveCustomizer({ type: 'sizes', key: v.trim() });
+                        setShowVariantCustomizer(true);
+                      }}
                       className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold border transition-all shrink-0 ${
-                        activeCustomizer.type === 'sizes' && activeCustomizer.key === v.trim()
+                        showVariantCustomizer && activeCustomizer.type === 'sizes' && activeCustomizer.key === v.trim()
                           ? 'bg-cyan-500 text-black border-cyan-400'
                           : 'bg-slate-900 text-cyan-400 border-cyan-500/30 hover:bg-slate-800'
                       }`}
@@ -751,9 +756,12 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                   {f.trim() && (
                     <button
                       type="button"
-                      onClick={() => setActiveCustomizer({ type: 'flavours', key: f.trim() })}
+                      onClick={() => {
+                        setActiveCustomizer({ type: 'flavours', key: f.trim() });
+                        setShowVariantCustomizer(true);
+                      }}
                       className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold border transition-all shrink-0 ${
-                        activeCustomizer.type === 'flavours' && activeCustomizer.key === f.trim()
+                        showVariantCustomizer && activeCustomizer.type === 'flavours' && activeCustomizer.key === f.trim()
                           ? 'bg-emerald-500 text-black border-emerald-400'
                           : 'bg-slate-900 text-emerald-400 border-emerald-500/30 hover:bg-slate-800'
                       }`}
@@ -773,19 +781,46 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
             </div>
           </div>
 
-          {/* Flipkart / Amazon Style Per-Flavor & Per-Size Customizer Panel */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900/90 to-cyan-950/20 border border-cyan-500/30 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-              <div>
-                <p className="font-black text-white text-xs sm:text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span>Flipkart / Amazon Style: Flavor & Weight Customizer</span>
-                </p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Kisi bhi Flavor ya Weight (1kg, 3kg) par click karke uska alag <strong className="text-slate-200">Title, 4 Photos, Price, Stock, aur Description</strong> set karein!
-                </p>
-              </div>
-            </div>
+          {/* Toggle Button to Open/Hide Per-Flavor & Per-Size Customizer */}
+          <div className="pt-1">
+            {!showVariantCustomizer ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!activeCustomizer.key) {
+                    const firstFlav = formData.flavours.find(Boolean)?.trim();
+                    const firstSize = formData.variants.find(Boolean)?.trim();
+                    if (firstFlav) setActiveCustomizer({ type: 'flavours', key: firstFlav });
+                    else if (firstSize) setActiveCustomizer({ type: 'sizes', key: firstSize });
+                  }
+                  setShowVariantCustomizer(true);
+                }}
+                className="w-full py-3 px-4 rounded-2xl bg-slate-950/90 hover:bg-slate-900 border border-dashed border-emerald-500/40 hover:border-emerald-400 text-emerald-400 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add More Flavor / Weight Details (Alag Photos, Price, Title & Description Set Karein)</span>
+              </button>
+            ) : (
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900/90 to-cyan-950/20 border border-cyan-500/30 space-y-4">
+                <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                  <div>
+                    <p className="font-black text-white text-xs sm:text-sm flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-emerald-400" />
+                      <span>Flipkart / Amazon Style: Flavor & Weight Customizer</span>
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Kisi bhi Flavor ya Weight (1kg, 3kg) par click karke uska alag <strong className="text-slate-200">Title, 4 Photos, Price, Stock, aur Description</strong> set karein!
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowVariantCustomizer(false)}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Hide
+                  </button>
+                </div>
 
             {/* Quick Select Tabs for All Sizes & Flavors */}
             <div className="space-y-2">
@@ -985,6 +1020,8 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                 </div>
               );
             })()}
+              </div>
+            )}
           </div>
 
           {/* Description */}
