@@ -51,17 +51,27 @@ function AnalyticsTracker() {
   return null;
 }
 
-// Legacy Hash URL Cleaner (/ # / path -> /path)
+// Legacy Hash & GitHub Pages URL Cleaner (/og-supplement/#/#//products -> /products)
 function HashCleaner() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    if (window.location.hash && window.location.hash.startsWith('#/')) {
-      const cleanPath = window.location.hash.replace(/^#/, '');
-      window.history.replaceState(null, '', cleanPath);
-      navigate(cleanPath, { replace: true });
+    const rawHash = window.location.hash || '';
+    const rawPath = window.location.pathname || '/';
+
+    if (rawHash.startsWith('#/') || rawPath.startsWith('/og-supplement')) {
+      let target = rawHash
+        ? rawHash.replace(/^(#\/+)+/, '/')
+        : rawPath.replace(/^\/og-supplement\/?/, '/');
+
+      if (!target.startsWith('/')) target = '/' + target;
+      target = target.replace(/^\/og-supplement\/?/, '/').replace(/\/{2,}/g, '/');
+
+      window.history.replaceState(null, '', target + window.location.search);
+      navigate(target + window.location.search, { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   return null;
 }
