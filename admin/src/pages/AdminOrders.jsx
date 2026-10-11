@@ -58,12 +58,51 @@ export default function AdminOrders() {
   const { addToast } = useAdminToast();
   const isFirstLoad = useRef(true);
 
-  const fetchOrders = async () => {
+  const syncCompletedSalesCounts = async (ordersList) => {
+    try {
+      const prodRes = await api.getProducts();
+      const prods = prodRes?.products || [];
+      if (!prods.length) return;
+
+      const deliveredMap = {};
+      (ordersList || []).forEach((ord) => {
+        if (ord.orderStatus === 'Delivered') {
+          (ord.products || []).forEach((item) => {
+            const pid = String(item.productId || '');
+            const pName = String(item.name || '').toLowerCase().trim();
+            const qty = Number(item.quantity || 1);
+            const matchedProd = prods.find(
+              (p) =>
+                String(p._id || p.id) === pid ||
+                String(p.name || '').toLowerCase().trim() === pName
+            );
+            if (matchedProd) {
+              const key = String(matchedProd._id || matchedProd.id);
+              deliveredMap[key] = (deliveredMap[key] || 0) + qty;
+            }
+          });
+        }
+      });
+
+      for (const p of prods) {
+        const key = String(p._id || p.id);
+        const expectedSales = deliveredMap[key] || 0;
+        if (Number(p.salesCount || 0) !== expectedSales) {
+          await api.updateProduct(key, { salesCount: expectedSales });
+        }
+      }
+    } catch (e) {}
+  };
+
+  const fetchOrders = async (shouldSyncSales = false) => {
     try {
       if (isFirstLoad.current) setLoading(true);
       const res = await api.getAllOrders();
       const list = res.orders || (Array.isArray(res) ? res : []);
       setOrders(list);
+      if (shouldSyncSales) {
+        syncCompletedSalesCounts(list);
+      }
     } catch (error) {
       console.error('[Fetch Orders Error]', error);
     } finally {
@@ -89,7 +128,7 @@ export default function AdminOrders() {
     try {
       await api.updateOrderStatus(id, newStatus);
       addToast(`Order #${id} updated to "${newStatus}"!`, 'success');
-      fetchOrders();
+      fetchOrders(true);
     } catch (err) {
       addToast(err.message || 'Failed to update status', 'error');
     } finally {
@@ -106,7 +145,9 @@ export default function AdminOrders() {
     try {
       await api.deleteOrder(id);
       addToast(`Order #${id} permanently deleted!`, 'success');
-      setOrders((prev) => prev.filter((o) => o.orderId !== id && o._id !== id));
+      const remaining = orders.filter((o) => o.orderId !== id && o._id !== id);
+      setOrders(remaining);
+      syncCompletedSalesCounts(remaining);
       if (selectedOrder && (selectedOrder.orderId === id || selectedOrder._id === id)) {
         setIsModalOpen(false);
       }
@@ -1183,7 +1224,7 @@ export default function AdminOrders() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         order={selectedOrder}
-        onStatusChange={() => fetchOrders()}
+        onStatusChange={() => fetchOrders(true)}
       />
 
     </div>

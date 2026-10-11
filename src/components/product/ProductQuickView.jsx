@@ -92,14 +92,28 @@ export default function ProductQuickView() {
                 {quickViewProduct.name}
               </h2>
 
-              {/* Rating */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
-                  <span>{quickViewProduct.rating || 4.9}</span>
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                </div>
-                <span className="text-xs text-slate-400">({quickViewProduct.reviews || 840} verified reviews)</span>
-              </div>
+              {/* Real Rating & Live Sold Count */}
+              {(() => {
+                const realRevs = Array.isArray(quickViewProduct.reviewsList) ? quickViewProduct.reviewsList : [];
+                const revCount = realRevs.length;
+                const avgRat = revCount > 0
+                  ? (realRevs.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / revCount).toFixed(1)
+                  : '0.0';
+                const soldUnits = Number(quickViewProduct.salesCount || 0);
+                return (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+                      <span>{avgRat}</span>
+                      <Star className={`w-3.5 h-3.5 ${revCount > 0 ? 'fill-amber-400 text-amber-400' : 'text-amber-400'}`} />
+                    </div>
+                    <span className="text-xs text-slate-400">({revCount} verified {revCount === 1 ? 'review' : 'reviews'})</span>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-xs font-bold text-orange-400 bg-orange-500/10 border border-orange-500/30 px-2 py-0.5 rounded">
+                      🔥 {soldUnits.toLocaleString('en-IN')} Sold
+                    </span>
+                  </div>
+                );
+              })()}
 
               {/* Pricing */}
               <div className="flex items-baseline gap-2 pt-1">

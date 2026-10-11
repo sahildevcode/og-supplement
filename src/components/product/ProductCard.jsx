@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, ShoppingBag, Eye, Heart, Check, Sparkles } from 'lucide-react';
+import { Star, ShoppingBag, Eye, Heart, Check, Sparkles, Flame } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useProducts } from '../../context/ProductContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -131,18 +131,31 @@ export default function ProductCard({ product, priority = false }) {
             </h3>
           </Link>
 
-          {/* Rating */}
-          <div className="flex items-center gap-1.5 pt-0.5">
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-500 text-xs font-bold">
-              <span>{product.rating || 4.8}</span>
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-            </div>
-            <span className="text-xs text-slate-400">
-              ({product.reviews || 120})
-            </span>
-            <span className="text-slate-400 text-xs">•</span>
-            <span className="text-xs text-slate-400 truncate">{product.category}</span>
-          </div>
+          {/* Real Rating & Live Sold Count */}
+          {(() => {
+            const realRevs = Array.isArray(product.reviewsList) ? product.reviewsList : [];
+            const revCount = realRevs.length;
+            const avgRat = revCount > 0
+              ? (realRevs.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / revCount).toFixed(1)
+              : '0.0';
+            const soldUnits = Number(product.salesCount || 0);
+            return (
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-500 text-xs font-bold">
+                  <span>{avgRat}</span>
+                  <Star className={`w-3 h-3 ${revCount > 0 ? 'fill-amber-400 text-amber-400' : 'text-amber-400'}`} />
+                </div>
+                <span className="text-xs text-slate-400">
+                  ({revCount})
+                </span>
+                <span className="text-slate-600 text-xs">•</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-400">
+                  <Flame className="w-3 h-3 fill-orange-400 text-orange-400" />
+                  <span>{soldUnits.toLocaleString('en-IN')} sold</span>
+                </span>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Pricing & Add to Cart Section */}

@@ -19,7 +19,9 @@ import {
   MessageSquare,
   Sparkles,
   ThumbsUp,
-  AlertCircle
+  AlertCircle,
+  Flame,
+  TrendingUp
 } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
@@ -442,29 +444,45 @@ export default function ProductDetail() {
                 {displayTitle}
               </h1>
 
-              {/* Rating & Reviews */}
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={scrollToReviews}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-500 text-xs font-black hover:bg-amber-500/25 transition-all cursor-pointer"
-                  title="Click to view all reviews"
-                >
-                  <span>{product.rating || 4.9}</span>
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                </button>
-                <button
-                  type="button"
-                  onClick={scrollToReviews}
-                  className="text-xs text-slate-400 hover:text-emerald-500 transition-colors underline-offset-4 hover:underline cursor-pointer"
-                >
-                  ({product.reviews || (product.reviewsList?.length || 0)} customer reviews)
-                </button>
-                <span className="text-slate-400">•</span>
-                <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> 100% Authentic
-                </span>
-              </div>
+              {/* Rating, Real Reviews & Live Units Sold (Flipkart / Amazon Style) */}
+              {(() => {
+                const realReviews = Array.isArray(product.reviewsList) ? product.reviewsList : [];
+                const realCount = realReviews.length;
+                const realAvg = realCount > 0
+                  ? (realReviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / realCount).toFixed(1)
+                  : '0.0';
+                const soldUnits = Number(product.salesCount || 0);
+
+                return (
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={scrollToReviews}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-500 text-xs font-black hover:bg-amber-500/25 transition-all cursor-pointer"
+                      title="Click to view all reviews"
+                    >
+                      <span>{realAvg}</span>
+                      <Star className={`w-3.5 h-3.5 ${realCount > 0 ? 'fill-amber-400 text-amber-400' : 'text-amber-400'}`} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={scrollToReviews}
+                      className="text-xs text-slate-400 hover:text-emerald-500 transition-colors underline-offset-4 hover:underline cursor-pointer"
+                    >
+                      ({realCount} {realCount === 1 ? 'customer review' : 'customer reviews'})
+                    </button>
+                    <span className="text-slate-600">•</span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/15 border border-orange-500/30 text-orange-400 text-xs font-black">
+                      <Flame className="w-3.5 h-3.5 fill-orange-400 text-orange-400" />
+                      <span>{soldUnits.toLocaleString('en-IN')} Sold</span>
+                    </span>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> 100% Authentic
+                    </span>
+                  </div>
+                );
+              })()}
 
               {/* Price Details */}
               <div className="pt-2 flex items-baseline gap-3">
@@ -497,6 +515,12 @@ export default function ProductDetail() {
                     {Number(product.shippingCost) > 0
                       ? `Delivery: ₹${product.shippingCost}`
                       : 'Free Express Delivery'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-amber-400 font-bold">
+                    {Number(product.salesCount || 0).toLocaleString('en-IN')} Units Sold So Far
                   </span>
                 </div>
               </div>
@@ -1225,19 +1249,24 @@ export default function ProductDetail() {
             </form>
           )}
 
-          {/* Rating Breakdown Overview */}
+          {/* Rating Breakdown Overview (100% Real Customer Reviews) */}
           {(() => {
-            const reviewsList = product.reviewsList || [];
+            const reviewsList = Array.isArray(product.reviewsList) ? product.reviewsList : [];
             const totalCount = reviewsList.length;
-            const avgRating = totalCount > 0
-              ? (reviewsList.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / totalCount).toFixed(1)
-              : (product.rating || 4.9);
+            const avgRatingNum = totalCount > 0
+              ? Number((reviewsList.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / totalCount).toFixed(1))
+              : 0;
+            const avgRatingDisplay = totalCount > 0 ? avgRatingNum.toFixed(1) : '0.0';
 
             const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
             reviewsList.forEach((r) => {
               const star = Math.min(5, Math.max(1, Math.round(Number(r.rating) || 5)));
               starCounts[star] = (starCounts[star] || 0) + 1;
             });
+
+            const recommendedPct = totalCount > 0
+              ? Math.round(((starCounts[5] + starCounts[4]) / totalCount) * 100)
+              : 0;
 
             return (
               <div className={`p-6 sm:p-8 rounded-3xl border ${
@@ -1247,14 +1276,14 @@ export default function ProductDetail() {
                   {/* Left Column: Big Average Score */}
                   <div className="md:col-span-4 text-center md:border-r dark:border-slate-800 border-slate-200 md:pr-8">
                     <div className="text-5xl sm:text-6xl font-black text-amber-400">
-                      {avgRating}
+                      {avgRatingDisplay}
                     </div>
                     <div className="flex items-center justify-center gap-1 my-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
                           className={`w-5 h-5 ${
-                            star <= Math.round(avgRating)
+                            totalCount > 0 && star <= Math.round(avgRatingNum)
                               ? 'text-amber-400 fill-amber-400'
                               : 'text-slate-600'
                           }`}
@@ -1262,19 +1291,19 @@ export default function ProductDetail() {
                       ))}
                     </div>
                     <p className="text-xs text-slate-400 font-semibold">
-                      Based on {totalCount || product.reviews || 890} verified ratings
+                      Based on {totalCount} verified {totalCount === 1 ? 'rating' : 'ratings'}
                     </p>
                     <p className="text-[11px] text-emerald-500 font-bold mt-1 flex items-center justify-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> 98% Recommended
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {totalCount > 0 ? `${recommendedPct}% Recommended` : 'Real Customer Ratings Only'}
                     </p>
                   </div>
 
                   {/* Right Column: Star Distribution Bars */}
                   <div className="md:col-span-8 space-y-2.5">
                     {[5, 4, 3, 2, 1].map((stars) => {
-                      const count = totalCount > 0 ? starCounts[stars] : (stars === 5 ? 750 : stars === 4 ? 110 : stars === 3 ? 20 : stars === 2 ? 8 : 2);
-                      const displayTotal = totalCount > 0 ? totalCount : 890;
-                      const percentage = Math.round((count / displayTotal) * 100);
+                      const count = starCounts[stars] || 0;
+                      const percentage = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
 
                       return (
                         <div key={stars} className="flex items-center gap-3 text-xs">

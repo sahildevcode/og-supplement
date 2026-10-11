@@ -243,15 +243,36 @@ export const updateOrderStatus = async (req, res) => {
 
     const targetId = existingOrder._id || existingOrder.id;
 
-    // If order is newly cancelled, restore stock
+    // If order is newly marked Delivered (Completed), increment product salesCount
+    if (status === 'Delivered' && existingOrder.orderStatus !== 'Delivered') {
+      const io = getIO(req);
+      for (const item of existingOrder.products) {
+        const dbProduct = await findProductInDB(item);
+        if (dbProduct) {
+          const newSalesCount = (Number(dbProduct.salesCount) || 0) + Number(item.quantity || 1);
+          const updatedProd = await Product.findByIdAndUpdate(
+            dbProduct._id || dbProduct.id,
+            { salesCount: newSalesCount },
+            { new: true }
+          );
+          if (io && updatedProd) {
+            io.emit('product:updated', updatedProd);
+          }
+        }
+      }
+    }
+
+    // If order is newly cancelled, restore stock and deduct salesCount if previously counted
     if (status === 'Cancelled' && existingOrder.orderStatus !== 'Cancelled') {
       const io = getIO(req);
       for (const item of existingOrder.products) {
         const dbProduct = await findProductInDB(item);
         if (dbProduct) {
+          const nextSalesCount = Math.max(0, (Number(dbProduct.salesCount) || 0) - Number(item.quantity || 1));
           const restored = await Product.findByIdAndUpdate(
             dbProduct._id || dbProduct.id,
-            { stock: dbProduct.stock + item.quantity }
+            { stock: dbProduct.stock + item.quantity, salesCount: nextSalesCount },
+            { new: true }
           );
           if (io && restored) {
             io.emit('product:stockUpdated', {
