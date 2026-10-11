@@ -9,6 +9,8 @@ import {
   RotateCcw,
   CheckCircle2,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Heart,
   Camera,
   Image as ImageIcon,
@@ -47,6 +49,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [showAllSpecs, setShowAllSpecs] = useState(true);
 
   // Review states
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -116,9 +119,26 @@ export default function ProductDetail() {
     );
   }
 
-  // Flipkart / Amazon Dynamic Variant & Flavor Resolution
-  const flavourDetail = product.variantDetails?.flavours?.[selectedFlavour] || {};
-  const sizeDetail = product.variantDetails?.sizes?.[selectedVariant] || {};
+  // Flipkart / Amazon Dynamic Variant & Flavor Resolution (supports both top-level variantDetails and nutritionalInfo.__variantDetails fallback)
+  const rawVariantDetails =
+    product.variantDetails &&
+    (Object.keys(product.variantDetails.flavours || {}).length > 0 ||
+      Object.keys(product.variantDetails.sizes || {}).length > 0)
+      ? product.variantDetails
+      : product.nutritionalInfo?.__variantDetails || product.variantDetails || { flavours: {}, sizes: {} };
+
+  const getVariantDetail = (groupMap, key) => {
+    if (!groupMap || !key) return {};
+    if (groupMap[key]) return groupMap[key];
+    const trimmedKey = String(key).trim();
+    if (groupMap[trimmedKey]) return groupMap[trimmedKey];
+    const lowerKey = trimmedKey.toLowerCase();
+    const matchedKey = Object.keys(groupMap).find((k) => k.trim().toLowerCase() === lowerKey);
+    return matchedKey ? groupMap[matchedKey] : {};
+  };
+
+  const flavourDetail = getVariantDetail(rawVariantDetails.flavours, selectedFlavour);
+  const sizeDetail = getVariantDetail(rawVariantDetails.sizes, selectedVariant);
 
   // 1. Dynamic Price, MRP & Discount %
   const displayPrice = Number(
@@ -152,7 +172,9 @@ export default function ProductDetail() {
     if (sizeDetail.title && sizeDetail.title.trim()) return sizeDetail.title.trim();
 
     const baseName = (product.name || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
-    const parts = [selectedVariant, selectedFlavour].filter((x) => x && x !== 'Standard');
+    const parts = [selectedVariant, selectedFlavour]
+      .map((x) => (x ? String(x).trim() : ''))
+      .filter((x) => x && x !== 'Standard');
     if (parts.length > 0) {
       return `${baseName} (${parts.join(', ')})`;
     }
@@ -160,7 +182,11 @@ export default function ProductDetail() {
   };
   const displayTitle = computeDynamicTitle();
 
-  // 4. Dynamic Description
+  // 4. Dynamic Description (Prioritizes selected Flavor's custom description, then selected Size's custom description, then base description)
+  const hasCustomVariantDescription = Boolean(
+    (flavourDetail.description && flavourDetail.description.trim()) ||
+    (sizeDetail.description && sizeDetail.description.trim())
+  );
   const displayDescription =
     (flavourDetail.description && flavourDetail.description.trim()) ||
     (sizeDetail.description && sizeDetail.description.trim()) ||
@@ -472,7 +498,7 @@ export default function ProductDetail() {
                 </label>
                 <div className="flex flex-wrap gap-2.5">
                   {product.variants.map((v) => {
-                    const vInfo = product.variantDetails?.sizes?.[v] || {};
+                    const vInfo = getVariantDetail(rawVariantDetails.sizes, v);
                     const vPrice = vInfo.discountPrice || vInfo.price;
                     const vImg = Array.isArray(vInfo.images) ? vInfo.images.find(Boolean) : null;
                     return (
@@ -492,7 +518,7 @@ export default function ProductDetail() {
                           <img src={vImg} alt={v} className="w-6 h-6 rounded-md object-contain bg-black/20 p-0.5" />
                         )}
                         <div className="text-left">
-                          <div>{v}</div>
+                          <div>{String(v).trim()}</div>
                           {vPrice && (
                             <div className={`text-[10px] font-black ${selectedVariant === v ? 'text-black/80' : 'text-emerald-400'}`}>
                               ₹{Number(vPrice).toLocaleString('en-IN')}
@@ -515,7 +541,7 @@ export default function ProductDetail() {
                 </label>
                 <div className="flex flex-wrap gap-2.5">
                   {product.flavours.map((f) => {
-                    const fInfo = product.variantDetails?.flavours?.[f] || {};
+                    const fInfo = getVariantDetail(rawVariantDetails.flavours, f);
                     const fPrice = fInfo.discountPrice || fInfo.price;
                     const fImg = Array.isArray(fInfo.images) ? fInfo.images.find(Boolean) : null;
                     return (
@@ -535,7 +561,7 @@ export default function ProductDetail() {
                           <img src={fImg} alt={f} className="w-7 h-7 rounded-lg object-contain bg-black/20 p-0.5" />
                         )}
                         <div className="text-left">
-                          <div>{f}</div>
+                          <div>{String(f).trim()}</div>
                           {fPrice && (
                             <div className={`text-[10px] font-black ${selectedFlavour === f ? 'text-black/80' : 'text-emerald-400'}`}>
                               ₹{Number(fPrice).toLocaleString('en-IN')}
@@ -691,20 +717,203 @@ export default function ProductDetail() {
           <div className={`border rounded-3xl p-6 sm:p-8 ${
             isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
           }`}>
-            {activeTab === 'description' && (
-              <div className="space-y-4 text-sm leading-relaxed">
-                <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Product Overview ({selectedVariant} • {selectedFlavour})</h3>
-                <p className={isDark ? 'text-slate-300' : 'text-slate-600'}>{displayDescription}</p>
-                <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className={`p-3 rounded-xl border ${isDark ? 'bg-slate-800/40 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
-                    <span className="font-bold text-emerald-500">Category:</span> {product.category}
+            {activeTab === 'description' && (() => {
+              const cleanFlavour = String(selectedFlavour || '').trim();
+              const cleanVariant = String(selectedVariant || '').trim();
+              let rawText = String(displayDescription || '').trim();
+
+              // If fallback description mentions another flavor/weight from this product, dynamically swap to the active flavor/weight
+              if (!hasCustomVariantDescription && rawText) {
+                (product.flavours || []).forEach((f) => {
+                  const fTrim = String(f || '').trim();
+                  if (fTrim && cleanFlavour && fTrim.toLowerCase() !== cleanFlavour.toLowerCase()) {
+                    const escaped = fTrim.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    rawText = rawText.replace(new RegExp(escaped, 'gi'), cleanFlavour);
+                  }
+                });
+                (product.variants || []).forEach((v) => {
+                  const vTrim = String(v || '').trim();
+                  if (vTrim && cleanVariant && vTrim.toLowerCase() !== cleanVariant.toLowerCase()) {
+                    const escaped = vTrim.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    rawText = rawText.replace(new RegExp(escaped, 'gi'), cleanVariant);
+                  }
+                });
+              }
+
+              const parsedMap = {};
+              const extraSpecs = [];
+              const bulletLines = [];
+
+              // Known Amazon / Flipkart specification labels (handles both multi-line and single-line copy-paste)
+              const knownLabels = [
+                'Sales Package',
+                'Pack of',
+                'Brand',
+                'Model Number',
+                'Primary Supplement Type',
+                'Protein Type',
+                'Net Quantity',
+                'Quantity',
+                'Item Form',
+                'Item Weight',
+                'Item dimensions L x W x H',
+                'Special Ingredients',
+                'Diet Type',
+                'Product Benefits',
+                'Usage Timings',
+                'Container Type',
+                'Shelf Life',
+                'Flavor',
+                'Flavour'
+              ];
+
+              const labelPattern = new RegExp(`(${knownLabels.join('|')})\\s*:?\\s*`, 'gi');
+              const matches = [...rawText.matchAll(labelPattern)];
+
+              if (matches.length >= 2) {
+                // Capture any intro text before the first specification label
+                const leadingText = rawText.slice(0, matches[0].index).trim();
+                if (leadingText) {
+                  leadingText.split(/\r?\n/).forEach((l) => {
+                    const t = l.replace(/^[•\-*]\s*/, '').trim();
+                    if (t) bulletLines.push(t);
+                  });
+                }
+                for (let i = 0; i < matches.length; i++) {
+                  const key = matches[i][1].trim();
+                  const valStart = matches[i].index + matches[i][0].length;
+                  const valEnd = i + 1 < matches.length ? matches[i + 1].index : rawText.length;
+                  const val = rawText.slice(valStart, valEnd).replace(/^[:\-\s]+|[,;\s]+$/g, '').trim();
+                  if (val) {
+                    parsedMap[key.toLowerCase()] = val;
+                  }
+                }
+              } else {
+                // Parse line-by-line (supports "Key : Value" or "Key \t Value" or bullet points / custom paragraphs)
+                rawText.split(/\r?\n/).forEach((line) => {
+                  const trimmed = line.trim();
+                  if (!trimmed) return;
+                  const kvMatch = trimmed.match(/^([A-Za-z0-9\s/()xX\-]{2,35}?)(?:\s*:\s*|\t+)(.+)$/);
+                  if (kvMatch) {
+                    const k = kvMatch[1].trim();
+                    const v = kvMatch[2].trim();
+                    parsedMap[k.toLowerCase()] = v;
+                    extraSpecs.push({ label: k, value: v });
+                  } else {
+                    bulletLines.push(trimmed.replace(/^[•\-*]\s*/, ''));
+                  }
+                });
+              }
+
+              const defaultForm =
+                product.category === 'Vitamins'
+                  ? 'Tablets / Capsules'
+                  : product.category === 'Protein Bars'
+                  ? 'Bar'
+                  : 'Powder';
+
+              const amazonSpecs = [
+                { label: 'Brand', value: parsedMap['brand'] || product.brand || 'OG Supplement' },
+                { label: 'Flavour', value: cleanFlavour || parsedMap['flavour'] || parsedMap['flavor'] || 'Unflavored' },
+                { label: 'Primary Supplement Type', value: parsedMap['primary supplement type'] || parsedMap['protein type'] || product.category },
+                { label: 'Net Quantity', value: cleanVariant || parsedMap['net quantity'] || parsedMap['quantity'] || '1 Pack' },
+                { label: 'Item Form', value: parsedMap['item form'] || defaultForm },
+                { label: 'Item Weight', value: cleanVariant || parsedMap['item weight'] || parsedMap['quantity'] || 'Standard' },
+                { label: 'Item dimensions L x W x H', value: parsedMap['item dimensions l x w x h'] || '11.5 x 9.1 x 9.1 Centimeters' },
+                { label: 'Special Ingredients', value: parsedMap['special ingredients'] || product.ingredients || product.category },
+                { label: 'Diet Type', value: parsedMap['diet type'] || 'Gluten Free' },
+                { label: 'Product Benefits', value: parsedMap['product benefits'] || 'Muscle Growth & Recovery' }
+              ];
+
+              if (parsedMap['sales package']) {
+                amazonSpecs.push({ label: 'Sales Package', value: parsedMap['sales package'] });
+              }
+              if (parsedMap['model number']) {
+                amazonSpecs.push({ label: 'Model Number', value: parsedMap['model number'] });
+              }
+              if (parsedMap['usage timings']) {
+                amazonSpecs.push({ label: 'Usage Timings', value: parsedMap['usage timings'] });
+              }
+
+              // Add any custom Key: Value lines entered by Admin for this flavor/weight not already in amazonSpecs
+              extraSpecs.forEach((es) => {
+                const existingIdx = amazonSpecs.findIndex((s) => s.label.toLowerCase() === es.label.toLowerCase());
+                if (existingIdx === -1) {
+                  amazonSpecs.push(es);
+                } else if (hasCustomVariantDescription) {
+                  amazonSpecs[existingIdx].value = es.value;
+                }
+              });
+
+              const visibleSpecs = showAllSpecs ? amazonSpecs : amazonSpecs.slice(0, 5);
+
+              return (
+                <div className="space-y-6 text-sm leading-relaxed">
+                  {/* Amazon-Style 2-Column Product Specifications List */}
+                  <div className="max-w-2xl space-y-3.5">
+                    {visibleSpecs.map((spec, idx) => (
+                      <div
+                        key={idx}
+                        className="grid grid-cols-[145px_1fr] sm:grid-cols-[210px_1fr] gap-4 items-start text-sm"
+                      >
+                        <span className={`font-bold leading-snug ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                          {spec.label}
+                        </span>
+                        <span className={`leading-snug ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                          {spec.value}
+                        </span>
+                      </div>
+                    ))}
+
+                    {amazonSpecs.length > 5 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllSpecs((prev) => !prev)}
+                        className="inline-flex items-center gap-1.5 pt-1 text-sm font-semibold text-sky-400 hover:text-sky-300 hover:underline cursor-pointer"
+                      >
+                        {showAllSpecs ? (
+                          <>
+                            <ChevronUp className="w-4 h-4 text-slate-300" />
+                            <span>See less</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-4 h-4 text-slate-300" />
+                            <span>See more</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
-                  <div className={`p-3 rounded-xl border ${isDark ? 'bg-slate-800/40 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
-                    <span className="font-bold text-emerald-500">Brand:</span> {product.brand}
+
+                  {/* Divider + Amazon-Style "About this item" Section */}
+                  <div className={`pt-5 border-t space-y-3 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+                    <h3 className={`text-base sm:text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      About this item
+                    </h3>
+                    <ul className={`list-disc pl-5 space-y-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      {bulletLines.length > 0 ? (
+                        bulletLines.map((b, bIdx) => <li key={bIdx}>{b}</li>)
+                      ) : (
+                        <>
+                          <li>
+                            <strong>100% Authentic {product.brand} {product.category}:</strong> Formulated in {cleanFlavour || 'Standard'} flavour ({cleanVariant || 'Standard'} pack) for maximum bioavailability, muscle strength, and faster post-workout recovery.
+                          </li>
+                          {parsedMap['sales package'] && (
+                            <li>
+                              <strong>Sales Package:</strong> {parsedMap['sales package']} {parsedMap['model number'] ? `(Model: ${parsedMap['model number']})` : ''}.
+                            </li>
+                          )}
+                          <li>
+                            <strong>Clinically Tested Purity:</strong> Lab-verified supplement free from banned substances and harmful fillers, suitable for gym beginners and advanced athletes.
+                          </li>
+                        </>
+                      )}
+                    </ul>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {activeTab === 'ingredients' && (
               <div className="space-y-4 text-sm leading-relaxed">
@@ -714,25 +923,30 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {activeTab === 'nutrition' && (
-              <div className="space-y-4 text-sm leading-relaxed">
-                <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Nutritional Facts (Per Serving)</h3>
-                {product.nutritionalInfo && Object.keys(product.nutritionalInfo).length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {Object.entries(product.nutritionalInfo).map(([k, v]) => (
-                      <div key={k} className={`p-4 rounded-2xl border text-center ${
-                        isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
-                      }`}>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{k}</p>
-                        <p className="text-xl font-black text-emerald-500 mt-1">{v}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className={isDark ? 'text-slate-300' : 'text-slate-600'}>Standard High-Potency Sports Nutrition Profile.</p>
-                )}
-              </div>
-            )}
+            {activeTab === 'nutrition' && (() => {
+              const nutritionEntries = Object.entries(product.nutritionalInfo || {}).filter(
+                ([k, v]) => k !== '__variantDetails' && typeof v !== 'object'
+              );
+              return (
+                <div className="space-y-4 text-sm leading-relaxed">
+                  <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Nutritional Facts (Per Serving)</h3>
+                  {nutritionEntries.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {nutritionEntries.map(([k, v]) => (
+                        <div key={k} className={`p-4 rounded-2xl border text-center ${
+                          isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-slate-50 border-slate-200'
+                        }`}>
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{k}</p>
+                          <p className="text-xl font-black text-emerald-500 mt-1">{v}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={isDark ? 'text-slate-300' : 'text-slate-600'}>Standard High-Potency Sports Nutrition Profile.</p>
+                  )}
+                </div>
+              );
+            })()}
 
             {activeTab === 'usage' && (
               <div className="space-y-4 text-sm leading-relaxed">

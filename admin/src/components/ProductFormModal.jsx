@@ -52,8 +52,12 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         ? product.discountPercentage
         : (numPrice > numDiscPrice ? Math.round(((numPrice - numDiscPrice) / numPrice) * 100) : '');
 
-      const loadedFlavours = product.flavours?.length ? product.flavours : ['Chocolate'];
-      const loadedVariants = product.variants?.length ? product.variants : ['Standard 1kg'];
+      const loadedFlavours = product.flavours?.length ? product.flavours.map((f) => String(f).trim()) : ['Chocolate'];
+      const loadedVariants = product.variants?.length ? product.variants.map((v) => String(v).trim()) : ['Standard 1kg'];
+      const savedVD =
+        product.variantDetails && (product.variantDetails.flavours || product.variantDetails.sizes)
+          ? product.variantDetails
+          : product.nutritionalInfo?.__variantDetails || { flavours: {}, sizes: {} };
 
       setFormData({
         name: product.name || '',
@@ -80,8 +84,8 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         variants: loadedVariants,
         flavours: loadedFlavours,
         variantDetails: {
-          flavours: product.variantDetails?.flavours || {},
-          sizes: product.variantDetails?.sizes || {}
+          flavours: savedVD.flavours || {},
+          sizes: savedVD.sizes || {}
         }
       });
       setActiveCustomizer({ type: 'flavours', key: loadedFlavours[0] || '' });
@@ -180,9 +184,28 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
   };
 
   const handleArrayChange = (field, index, value) => {
+    const oldVal = (formData[field][index] || '').trim();
+    const newVal = value.trim();
     const updated = [...formData[field]];
     updated[index] = value;
-    setFormData({ ...formData, [field]: updated });
+
+    const nextVariantDetails = {
+      flavours: { ...(formData.variantDetails?.flavours || {}) },
+      sizes: { ...(formData.variantDetails?.sizes || {}) }
+    };
+
+    if ((field === 'flavours' || field === 'variants') && oldVal && newVal && oldVal !== newVal) {
+      const group = field === 'flavours' ? 'flavours' : 'sizes';
+      if (nextVariantDetails[group][oldVal]) {
+        nextVariantDetails[group][newVal] = nextVariantDetails[group][oldVal];
+        delete nextVariantDetails[group][oldVal];
+      }
+      if (activeCustomizer.type === group && activeCustomizer.key === oldVal) {
+        setActiveCustomizer({ type: group, key: newVal });
+      }
+    }
+
+    setFormData({ ...formData, [field]: updated, variantDetails: nextVariantDetails });
   };
 
   const addArrayItem = (field) => {
@@ -198,6 +221,19 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
     setSaving(true);
 
     try {
+      const cleanFlavoursMap = {};
+      Object.entries(formData.variantDetails?.flavours || {}).forEach(([k, v]) => {
+        if (k && k.trim()) cleanFlavoursMap[k.trim()] = v;
+      });
+      const cleanSizesMap = {};
+      Object.entries(formData.variantDetails?.sizes || {}).forEach(([k, v]) => {
+        if (k && k.trim()) cleanSizesMap[k.trim()] = v;
+      });
+      const cleanedVariantDetails = {
+        flavours: cleanFlavoursMap,
+        sizes: cleanSizesMap
+      };
+
       const payload = {
         ...formData,
         price: Number(formData.price),
@@ -206,9 +242,14 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         shippingCost: Number(formData.shippingCost || 0),
         stock: Number(formData.stock),
         lowStockThreshold: Number(formData.lowStockThreshold),
-        variants: formData.variants.filter(Boolean),
-        flavours: formData.flavours.filter(Boolean),
-        images: formData.images.filter(Boolean)
+        variants: formData.variants.map((v) => String(v).trim()).filter(Boolean),
+        flavours: formData.flavours.map((f) => String(f).trim()).filter(Boolean),
+        images: formData.images.filter(Boolean),
+        variantDetails: cleanedVariantDetails,
+        nutritionalInfo: {
+          ...(product?.nutritionalInfo || {}),
+          __variantDetails: cleanedVariantDetails
+        }
       };
 
       if (isEditing) {
@@ -979,14 +1020,14 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                     </div>
 
                     <div className="sm:col-span-3 space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300">
-                        Custom Description for "{key}" (Optional)
+                      <label className="text-[11px] font-bold text-emerald-400">
+                        Separate Description / Amazon Specs for "{key}" (Yahan is {group === 'flavours' ? 'Flavor' : 'Weight'} ki alag description daalein):
                       </label>
                       <textarea
-                        rows={2}
+                        rows={4}
                         value={currentDetail.description || ''}
                         onChange={(e) => updateDetailField('description', e.target.value)}
-                        placeholder={`Specific description, taste notes, or serving details for ${key}...`}
+                        placeholder={`Paste separate description or Amazon/Flipkart details for "${key}" here...`}
                         className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
                       />
                     </div>

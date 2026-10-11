@@ -26,8 +26,25 @@ export const CartProvider = ({ children }) => {
         const live = products.find((p) => String(p._id || p.id) === String(item.productId || item._id));
         if (!live) return item;
 
-        const sizeInfo = live.variantDetails?.sizes?.[item.variant] || {};
-        const flavInfo = live.variantDetails?.flavours?.[item.flavour] || {};
+        const rawVD =
+          live.variantDetails &&
+          (Object.keys(live.variantDetails.flavours || {}).length > 0 ||
+            Object.keys(live.variantDetails.sizes || {}).length > 0)
+            ? live.variantDetails
+            : live.nutritionalInfo?.__variantDetails || live.variantDetails || { flavours: {}, sizes: {} };
+
+        const lookupVD = (groupMap, key) => {
+          if (!groupMap || !key) return {};
+          if (groupMap[key]) return groupMap[key];
+          const tk = String(key).trim();
+          if (groupMap[tk]) return groupMap[tk];
+          const lk = tk.toLowerCase();
+          const mk = Object.keys(groupMap).find((k) => k.trim().toLowerCase() === lk);
+          return mk ? groupMap[mk] : {};
+        };
+
+        const sizeInfo = lookupVD(rawVD.sizes, item.variant);
+        const flavInfo = lookupVD(rawVD.flavours, item.flavour);
 
         const livePrice = Number(
           (sizeInfo.price !== undefined && sizeInfo.price !== '' ? sizeInfo.price : null) ??
