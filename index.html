@@ -97,12 +97,65 @@
     }
     </script>
 
-    <!-- 3. FAQPage Rich Snippet Schema -->
+    <!-- 3. Google Sitelinks Specification (SiteNavigationElement) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SiteNavigationElement",
+          "name": "Whey Protein",
+          "description": "Buy authentic 100% Whey Protein for muscle gain at OG Supplement India",
+          "url": "https://og-supplement.vercel.app/products?category=Protein"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "name": "Creatine Monohydrate",
+          "description": "Pure micronised creatine monohydrate for strength and muscle stamina",
+          "url": "https://og-supplement.vercel.app/products?category=Creatine"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "name": "Mass Gainer",
+          "description": "High calorie muscle mass gainers for fast weight gain",
+          "url": "https://og-supplement.vercel.app/products?category=Mass+Gainer"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "name": "Pre-Workout & Energy",
+          "description": "High performance pre-workout supplements for gym energy & focus",
+          "url": "https://og-supplement.vercel.app/products?category=Pre-Workout"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "name": "Best Sellers",
+          "description": "Trending and top-selling gym supplements at OG Supplement",
+          "url": "https://og-supplement.vercel.app/best-sellers"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "name": "Customer Reviews",
+          "description": "Real verified customer reviews and buyer transformation ratings",
+          "url": "https://og-supplement.vercel.app/reviews"
+        }
+      ]
+    }
+    </script>
+
+    <!-- 4. FAQPage Rich Snippet Schema -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is OG Supplement Whey Protein?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "OG Supplement (og-supplement.vercel.app) offers 100% authentic Whey Protein in India including top imported brands like GNC Pro Performance 100% Whey, Optimum Nutrition (ON) Gold Standard, and Dymatize ISO 100 with official importer tags and GST invoices."
+          }
+        },
         {
           "@type": "Question",
           "name": "What is OG Supplement official site?",
@@ -170,18 +223,30 @@
       <main style="max-width: 1200px; margin: 0 auto; padding: 2rem; font-family: sans-serif; color: #f1f5f9;">
         <h1>OG Supplement — Official Online Supplement Store India (Buy OG Supplement Online)</h1>
         <p>Welcome to <strong>OG Supplement</strong> (og-supplement.vercel.app), India's #1 official site to buy 100% original health supplements and best gym supplements online. Shop authentic whey protein for muscle gain, mass gainer for fast weight gain, micronized creatine monohydrate, pre-workout supplement for energy, multivitamin tablets, and BCAA powder for muscle recovery.</p>
-        <h2>Popular Categories at OG Supplement</h2>
+        
+        <h2>Browse Supplements by Category at OG Supplement</h2>
         <ul>
-          <li><a href="/products?category=Protein">Buy Authentic Whey Protein Online — Best Whey Protein for Muscle Gain</a></li>
-          <li><a href="/products?category=Mass+Gainer">Buy Authentic Mass Gainer Online — Best Supplement for Fast Weight Gain</a></li>
-          <li><a href="/products?category=Creatine">Creatine Monohydrate Online Purchase — Best Supplement for Stamina and Strength</a></li>
-          <li><a href="/products?category=Pre-Workout">Pre-Workout Supplement for Energy — Gym Workout Performance</a></li>
-          <li><a href="/products?category=Supplements">BCAA Powder for Muscle Recovery & Post-Workout Supplements</a></li>
-          <li><a href="/products?category=Vitamins">Multivitamin Tablets for Gym Workout & Daily Immunity</a></li>
+          <li><a href="/products?category=Protein"><strong>OG Supplement Whey Protein</strong> — Buy Authentic Whey Protein Online (GNC, ON Gold Standard, Dymatize)</a></li>
+          <li><a href="/products?category=Creatine"><strong>OG Supplement Creatine</strong> — Wellcore Micronised Monohydrate Creatine Online Purchase</a></li>
+          <li><a href="/products?category=Mass+Gainer"><strong>OG Supplement Mass Gainer</strong> — Buy Authentic Mass Gainer Online (ON Serious Mass, Labrada, Ronnie Coleman)</a></li>
+          <li><a href="/products?category=Pre-Workout"><strong>Pre-Workout Supplements</strong> — High Energy Pre-Workout for Gym Performance</a></li>
+          <li><a href="/products?category=Supplements"><strong>BCAA & Aminos</strong> — Post-Workout Muscle Recovery Powders</a></li>
+          <li><a href="/products?category=Vitamins"><strong>Daily Vitamins & Fish Oil</strong> — Multivitamin Tablets for Gym Workout</a></li>
           <li><a href="/best-sellers">OG Supplement Best Sellers</a></li>
-          <li><a href="/reviews">OG Supplement Customer Reviews & Transformations</a></li>
+          <li><a href="/reviews">OG Supplement Customer Reviews & Verified Transformations</a></li>
           <li><a href="/about">About OG Supplement Official Store</a></li>
           <li><a href="/faq">OG Supplement Authenticity & Gym Supplement FAQs</a></li>
+        </ul>
+
+        <h2>Popular Products on OG Supplement</h2>
+        <ul>
+          <li><a href="/product/6ac247168d3f5b14387611ab">GNC Pro Performance 100% Powder Whey Protein</a></li>
+          <li><a href="/product/6ac24ad68d3f5b14387611b9">Wellcore Micronised Monohydrate Creatine (307 g, Kiwi Kick)</a></li>
+          <li><a href="/product/6ac24a238d3f5b14387611b4">Wellcore Micronised Monohydrate Creatine (307 g, Fruit Fusion)</a></li>
+          <li><a href="/product/6ac243918d3f5b14387611a5">Optimum Nutrition (ON) Serious Mass High Protein Weight Gainer</a></li>
+          <li><a href="/product/6ac247d28d3f5b14387611ae">Labrada Super Mass Gainer Weight Gainer Powder</a></li>
+          <li><a href="/product/6ac248ef8d3f5b14387611b1">Ronnie Coleman Signature Series King Mass Gainer</a></li>
+          <li><a href="/product/6ac91db869f2ac6cfbada7a5">Dymatize Super Mass Gainer</a></li>
         </ul>
       </main>
     </div>
