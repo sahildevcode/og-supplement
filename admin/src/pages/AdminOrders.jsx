@@ -168,9 +168,17 @@ export default function AdminOrders() {
       fetchOrders();
     };
 
-    const handleStatusUpdated = ({ orderId, orderStatus }) => {
+    const handleStatusUpdated = ({ orderId, orderStatus, paymentStatus }) => {
       setOrders((prev) =>
-        prev.map((o) => (o.orderId === orderId ? { ...o, orderStatus } : o))
+        prev.map((o) =>
+          o.orderId === orderId
+            ? {
+                ...o,
+                orderStatus,
+                ...(paymentStatus ? { paymentStatus } : orderStatus === 'Delivered' ? { paymentStatus: 'Paid' } : {})
+              }
+            : o
+        )
       );
       addToast(`Order #${orderId} status changed to "${orderStatus}"!`, 'info');
       fetchOrders();
@@ -249,18 +257,22 @@ export default function AdminOrders() {
 
   // Comprehensive Financial Metrics Calculation
   const financialMetrics = useMemo(() => {
-    // 1. Money Received via Razorpay / Prepaid (Paid & Settled)
+    // 1. Money Received via Razorpay / Prepaid (Paid & Settled) or Delivered Orders
     const paidOrders = targetOrders.filter(
-      (o) => o.paymentStatus === 'Paid' || (o.paymentMethod?.includes('Razorpay') && o.orderStatus !== 'Cancelled' && o.orderStatus !== 'Refunded')
+      (o) =>
+        o.paymentStatus === 'Paid' ||
+        o.orderStatus === 'Delivered' ||
+        (o.paymentMethod?.includes('Razorpay') && o.orderStatus !== 'Cancelled' && o.orderStatus !== 'Refunded')
     );
     const totalReceived = paidOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
 
-    // 2. Money in Processing / Verification Pending / Aane Baaki
+    // 2. Money in Processing / Verification Pending / Aane Baaki (excluding Delivered)
     const processingPaymentOrders = targetOrders.filter(
       (o) =>
         (o.paymentStatus === 'Verification Pending' || o.paymentStatus === 'Pending') &&
         o.orderStatus !== 'Cancelled' &&
-        o.orderStatus !== 'Refunded'
+        o.orderStatus !== 'Refunded' &&
+        o.orderStatus !== 'Delivered'
     );
     const totalPaymentProcessing = processingPaymentOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
 
@@ -294,7 +306,7 @@ export default function AdminOrders() {
 
     // All Time Totals for quick reference
     const allTimeReceived = orders
-      .filter((o) => o.paymentStatus === 'Paid' || (o.paymentMethod?.includes('Razorpay') && o.orderStatus !== 'Cancelled'))
+      .filter((o) => o.paymentStatus === 'Paid' || o.orderStatus === 'Delivered' || (o.paymentMethod?.includes('Razorpay') && o.orderStatus !== 'Cancelled'))
       .reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
 
     return {
@@ -393,10 +405,10 @@ export default function AdminOrders() {
 
       // 2. Payment Filter
       if (paymentFilter === 'Paid') {
-        const isPaid = ord.paymentStatus === 'Paid' || (ord.paymentMethod?.includes('Razorpay') && ord.orderStatus !== 'Cancelled' && ord.orderStatus !== 'Refunded');
+        const isPaid = ord.paymentStatus === 'Paid' || ord.orderStatus === 'Delivered' || (ord.paymentMethod?.includes('Razorpay') && ord.orderStatus !== 'Cancelled' && ord.orderStatus !== 'Refunded');
         if (!isPaid) return false;
       } else if (paymentFilter === 'Processing') {
-        const isProcessing = (ord.paymentStatus === 'Pending' || ord.paymentStatus === 'Verification Pending') && ord.orderStatus !== 'Cancelled' && ord.orderStatus !== 'Refunded';
+        const isProcessing = (ord.paymentStatus === 'Pending' || ord.paymentStatus === 'Verification Pending') && ord.orderStatus !== 'Cancelled' && ord.orderStatus !== 'Refunded' && ord.orderStatus !== 'Delivered';
         if (!isProcessing) return false;
       } else if (paymentFilter === 'RefundPending') {
         const isRefPending = (ord.refundStatus === 'processing' || ord.refundStatus === 'pending' || ((ord.orderStatus === 'Cancelled' || ord.orderStatus === 'Refunded') && (ord.paymentStatus === 'Paid' || ord.paymentMethod?.includes('Razorpay')))) && ord.refundStatus !== 'completed' && ord.refundStatus !== 'Processed';
@@ -1037,8 +1049,9 @@ export default function AdminOrders() {
                   const isRazorpay = ord.paymentMethod?.includes('Razorpay') || !!ord.razorpayPaymentId;
                   const isPrepaid = isRazorpay || ord.paymentMethod === 'Online / UPI' || !!ord.transactionId;
                   const isUpdating = updatingId === (ord.orderId || ord._id);
-                  const isPaid = ord.paymentStatus === 'Paid';
-                  const isPaymentPending = ord.paymentStatus === 'Pending' || ord.paymentStatus === 'Verification Pending';
+                  const isDelivered = ord.orderStatus === 'Delivered';
+                  const isPaid = ord.paymentStatus === 'Paid' || isDelivered;
+                  const isPaymentPending = (ord.paymentStatus === 'Pending' || ord.paymentStatus === 'Verification Pending') && !isDelivered;
                   const isRefundDone = ord.refundStatus === 'completed' || ord.refundStatus === 'Processed';
                   const isRefundInProcess = (ord.refundStatus === 'processing' || ord.refundStatus === 'pending' || (ord.orderStatus === 'Cancelled' && isPrepaid)) && !isRefundDone;
 

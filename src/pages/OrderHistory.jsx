@@ -361,7 +361,7 @@ export default function OrderHistory() {
                           ₹{order.totalAmount?.toLocaleString('en-IN')}
                         </p>
                         <p className="text-[11px] text-slate-400">
-                          {order.paymentMethod} • {order.paymentStatus || 'Pending'}
+                          {order.paymentMethod} • {(order.orderStatus === 'Delivered' || order.paymentStatus === 'Paid') ? 'Paid' : (order.paymentStatus || 'Pending')}
                         </p>
                         {order.transactionId && (
                           <span className="inline-block text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 mt-0.5">

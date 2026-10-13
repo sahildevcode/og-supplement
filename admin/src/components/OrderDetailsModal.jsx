@@ -40,7 +40,12 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
       const res = await api.updateOrderStatus(id, newStatus);
       setCurrentStatus(newStatus);
       addToast(`Order #${id} status changed to "${newStatus}"!`, 'success');
-      if (onStatusChange) onStatusChange(res.order || { ...order, orderStatus: newStatus });
+      const updatedOrder = res.order || {
+        ...order,
+        orderStatus: newStatus,
+        paymentStatus: newStatus === 'Delivered' ? 'Paid' : order.paymentStatus
+      };
+      if (onStatusChange) onStatusChange(updatedOrder);
     } catch (err) {
       addToast(err.message || 'Failed to update order status', 'error');
     } finally {
@@ -235,7 +240,7 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
         <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
             <p className="text-xs text-slate-400">Payment Mode: <span className="font-bold text-white">{order.paymentMethod}</span></p>
-            <p className="text-xs text-slate-400">Status: <span className="font-bold text-cyan-400">{order.paymentStatus || 'Pending'}</span></p>
+            <p className="text-xs text-slate-400">Status: <span className="font-bold text-cyan-400">{(currentStatus === 'Delivered' || order.orderStatus === 'Delivered' || order.paymentStatus === 'Paid') ? 'Paid / Received' : (order.paymentStatus || 'Pending')}</span></p>
             {order.transactionId && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-lg inline-flex mt-1">
                 <span>UTR / Ref: {order.transactionId}</span>

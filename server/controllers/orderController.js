@@ -174,6 +174,14 @@ export const getMyOrders = async (req, res) => {
 
     const allOrders = await Order.find();
     
+    // Auto-sync Delivered orders to Paid
+    allOrders.forEach(o => {
+      if (o.orderStatus === 'Delivered' && o.paymentStatus !== 'Paid' && o.paymentStatus !== 'Refunded') {
+        o.paymentStatus = 'Paid';
+        Order.findByIdAndUpdate(o._id || o.id, { paymentStatus: 'Paid' }).catch(() => {});
+      }
+    });
+
     if (!userId && !email) {
       return res.json({ success: true, count: allOrders.length, orders: allOrders });
     }
@@ -193,7 +201,15 @@ export const getMyOrders = async (req, res) => {
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find();
-    res.json({ success: true, count: orders.length, orders });
+    // Auto-sync any existing Delivered orders whose paymentStatus is still Pending to Paid
+    const syncedOrders = orders.map(o => {
+      if (o.orderStatus === 'Delivered' && o.paymentStatus !== 'Paid' && o.paymentStatus !== 'Refunded') {
+        o.paymentStatus = 'Paid';
+        Order.findByIdAndUpdate(o._id || o.id, { paymentStatus: 'Paid' }).catch(() => {});
+      }
+      return o;
+    });
+    res.json({ success: true, count: syncedOrders.length, orders: syncedOrders });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -206,6 +222,10 @@ export const getOrderById = async (req, res) => {
     const order = allOrders.find(o => matchesOrderId(o, req.params.id));
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    if (order.orderStatus === 'Delivered' && order.paymentStatus !== 'Paid' && order.paymentStatus !== 'Refunded') {
+      order.paymentStatus = 'Paid';
+      Order.findByIdAndUpdate(order._id || order.id, { paymentStatus: 'Paid' }).catch(() => {});
     }
     res.json({ success: true, order });
   } catch (error) {
@@ -286,7 +306,12 @@ export const updateOrderStatus = async (req, res) => {
       }
     }
 
-    const updated = await Order.findByIdAndUpdate(targetId, { orderStatus: status }, { new: true });
+    const updateData = { orderStatus: status };
+    if (status === 'Delivered') {
+      updateData.paymentStatus = 'Paid';
+    }
+
+    const updated = await Order.findByIdAndUpdate(targetId, updateData, { new: true });
 
     // Emit real-time status update to connected customer & admin clients
     const io = getIO(req);
@@ -295,9 +320,10 @@ export const updateOrderStatus = async (req, res) => {
         orderId: updated.orderId,
         _id: updated._id || updated.id,
         orderStatus: updated.orderStatus,
+        paymentStatus: updated.paymentStatus,
         updatedAt: updated.updatedAt
       });
-      console.log(`\x1b[35m[Socket.IO Broadcast]\x1b[0m order:statusUpdated => Order ${updated.orderId} is now "${updated.orderStatus}"`);
+      console.log(`\x1b[35m[Socket.IO Broadcast]\x1b[0m order:statusUpdated => Order ${updated.orderId} is now "${updated.orderStatus}" (Payment: ${updated.paymentStatus})`);
     }
 
     res.json({ success: true, order: updated, message: `Order status updated to ${status}` });
