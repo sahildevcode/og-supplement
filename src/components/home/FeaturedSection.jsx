@@ -42,7 +42,7 @@ export default function FeaturedSection() {
         </div>
 
         {/* Product Cards Grid with Fade-in and Hover */}
-        {loading ? (
+        {loading && featured.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((n) => (
               <div key={n} className={`h-96 rounded-3xl animate-pulse border ${

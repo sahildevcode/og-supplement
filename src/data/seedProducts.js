@@ -13,6 +13,9 @@ export const initialProducts = [
     status: "in_stock",
     rating: 4.9,
     reviews: 1420,
+    isBestSeller: true,
+    bestSellerBadge: "🔥 #1 Best Seller",
+    bestSellerRank: 1,
     images: [
       "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",
       "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80",
@@ -46,6 +49,9 @@ export const initialProducts = [
     status: "in_stock",
     rating: 4.8,
     reviews: 950,
+    isBestSeller: true,
+    bestSellerBadge: "⚡ #2 Top Choice",
+    bestSellerRank: 2,
     images: [
       "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80",
       "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",
@@ -79,6 +85,9 @@ export const initialProducts = [
     status: "low_stock",
     rating: 4.9,
     reviews: 620,
+    isBestSeller: true,
+    bestSellerBadge: "💪 #3 Best Seller",
+    bestSellerRank: 3,
     images: [
       "https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&auto=format&fit=crop&q=80",
       "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",
@@ -109,6 +118,9 @@ export const initialProducts = [
     status: "in_stock",
     rating: 4.7,
     reviews: 480,
+    isBestSeller: true,
+    bestSellerBadge: "🚀 #4 Pre-Workout",
+    bestSellerRank: 4,
     images: [
       "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80",
       "https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=800&auto=format&fit=crop&q=80",

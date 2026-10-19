@@ -21,23 +21,51 @@ import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
 import ProductCard from '../components/product/ProductCard';
+import { initialProducts } from '../data/seedProducts';
 
 export default function BestSellers() {
   const { isDark } = useTheme();
   const { addToCart } = useCart();
   const { setQuickViewProduct } = useProducts();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('og_cached_bestsellers');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      const allCached = localStorage.getItem('og_cached_products');
+      if (allCached) {
+        const parsed = JSON.parse(allCached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const bs = parsed.filter((p) => p.isBestSeller);
+          if (bs.length > 0) return bs;
+          return parsed.slice(0, 8);
+        }
+      }
+    } catch (e) {}
+    const defaultBs = initialProducts.filter((p) => p.isBestSeller);
+    return defaultBs.length > 0 ? defaultBs : initialProducts.slice(0, 4);
+  });
+  const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('rank'); // 'rank' | 'sales' | 'rating' | 'price_low' | 'price_high'
   const [addedId, setAddedId] = useState(null);
 
   const fetchBestSellers = async () => {
     try {
-      setLoading(true);
+      setProducts((current) => {
+        if (!current || current.length === 0) {
+          setLoading(true);
+        }
+        return current;
+      });
       const data = await api.getBestSellers();
-      if (data && data.products) {
+      if (data && data.products && data.products.length > 0) {
         setProducts(data.products);
+        try {
+          localStorage.setItem('og_cached_bestsellers', JSON.stringify(data.products));
+        } catch (e) {}
       }
     } catch (err) {
       console.warn('[Best Sellers Fetch Warning]', err);
@@ -207,7 +235,7 @@ export default function BestSellers() {
 
         {/* Product Cards Grid */}
         <div className="pt-8">
-          {loading ? (
+          {loading && filteredProducts.length === 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[1, 2, 3, 4].map((n) => (
                 <div

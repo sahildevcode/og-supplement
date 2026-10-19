@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 import { useToast } from './ToastContext';
+import { initialProducts } from '../data/seedProducts';
 
 const ProductContext = createContext();
 
@@ -14,7 +15,7 @@ export const ProductProvider = ({ children }) => {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {}
-    return [];
+    return initialProducts || [];
   });
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,12 +26,17 @@ export const ProductProvider = ({ children }) => {
   const [socketStatus, setSocketStatus] = useState('connecting');
   const { addToast } = useToast();
 
-  // Fetch initial product catalog from API
+  // Fetch initial product catalog from API (Stale-While-Revalidate: instant display, silent background refresh)
   const fetchProducts = useCallback(async () => {
     try {
-      setLoading(true);
+      setProducts((current) => {
+        if (!current || current.length === 0) {
+          setLoading(true);
+        }
+        return current;
+      });
       const data = await api.getProducts();
-      if (data && data.products) {
+      if (data && data.products && data.products.length > 0) {
         setProducts(data.products);
         try {
           localStorage.setItem('og_cached_products', JSON.stringify(data.products));

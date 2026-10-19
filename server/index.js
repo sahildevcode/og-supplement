@@ -171,5 +171,20 @@ const PORT = process.env.PORT || 5000;
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
     `);
+
+    // Render Free Tier Keep-Alive: Automatically ping health endpoint every 10 minutes to prevent dormant spin-down
+    const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || 'https://og-supplement-api.onrender.com';
+    const keepAlive = async () => {
+      try {
+        const res = await fetch(`${RENDER_EXTERNAL_URL}/api/health`);
+        if (res.ok) {
+          console.log(`\x1b[36m[Render Keep-Alive]\x1b[0m Pinged ${RENDER_EXTERNAL_URL}/api/health at ${new Date().toLocaleTimeString('en-IN')}`);
+        }
+      } catch (err) {
+        // Silently catch transient networking errors
+      }
+    };
+    // Ping every 10 minutes (Render spins down after 15 minutes of inactivity)
+    setInterval(keepAlive, 10 * 60 * 1000);
   });
 })();

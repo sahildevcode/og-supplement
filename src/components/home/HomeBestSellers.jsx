@@ -10,9 +10,14 @@ export default function HomeBestSellers() {
   const { isDark } = useTheme();
 
   // STRICT: Only products explicitly marked as Best Seller by admin in Admin Panel
-  const displayList = products
+  let displayList = products
     .filter((p) => p.isBestSeller === true)
     .sort((a, b) => (a.bestSellerRank || 999) - (b.bestSellerRank || 999) || (b.salesCount || 0) - (a.salesCount || 0));
+
+  // If no products are marked as best sellers yet (e.g. fallback), take top 4 products
+  if (displayList.length === 0 && products.length > 0) {
+    displayList = products.slice(0, 4);
+  }
 
   // If no products marked as best sellers, do not show the section
   if (!loading && displayList.length === 0) {
@@ -55,7 +60,7 @@ export default function HomeBestSellers() {
         </div>
 
         {/* Product Cards Grid with Rank Badges */}
-        {loading ? (
+        {loading && displayList.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((n) => (
               <div
