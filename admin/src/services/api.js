@@ -4,7 +4,7 @@ const getBaseUrl = () => {
   if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
     return 'http://localhost:5000/api';
   }
-  return 'https://og-supplement-api.onrender.com/api';
+  return 'https://og-supplement-server.onrender.com/api';
 };
 export const BASE_URL = getBaseUrl();
 

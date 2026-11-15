@@ -5,7 +5,7 @@ const getSocketUrl = () => {
   if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
     return 'http://localhost:5000';
   }
-  return 'https://og-supplement-api.onrender.com';
+  return 'https://og-supplement-server.onrender.com';
 };
 const SOCKET_URL = getSocketUrl();
 

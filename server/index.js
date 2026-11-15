@@ -173,7 +173,7 @@ const PORT = process.env.PORT || 5000;
     `);
 
     // Render Free Tier Keep-Alive: Automatically ping health endpoint every 10 minutes to prevent dormant spin-down
-    const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || 'https://og-supplement-api.onrender.com';
+    const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || 'https://og-supplement-server.onrender.com';
     const keepAlive = async () => {
       try {
         const res = await fetch(`${RENDER_EXTERNAL_URL}/api/health`);
