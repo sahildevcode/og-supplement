@@ -75,27 +75,35 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
       isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
     }`}>
       {/* Tracker Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 mb-6 border-slate-800/80">
+      <div className={`flex flex-wrap items-center justify-between gap-3 border-b pb-4 mb-6 ${
+        isDark ? 'border-slate-800/80' : 'border-slate-200'
+      }`}>
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             {isCancelled ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border ${
+                isDark ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-rose-50 text-rose-700 border-rose-200'
+              }`}>
                 <AlertTriangle className="w-3.5 h-3.5" /> Order Cancelled
               </span>
             ) : activeIndex === 3 ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Your product has been delivered today
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border ${
+                isDark ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+              }`}>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Your product has been delivered today
               </span>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-950/40 animate-pulse">
-                  <Truck className="w-3.5 h-3.5" /> Arriving in 2 Days — by {formattedDeliveryDate}
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border shadow-sm ${
+                  isDark ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 shadow-emerald-950/40 animate-pulse' : 'bg-emerald-100 text-emerald-800 border-emerald-300 animate-pulse'
+                }`}>
+                  <Truck className="w-3.5 h-3.5 text-emerald-600" /> Arriving in 2 Days — by {formattedDeliveryDate}
                 </span>
               </div>
             )}
           </div>
-          <p className="text-xs text-slate-400">
-            Order ID: <span className="font-mono font-bold text-cyan-400">{order.orderId}</span>
+          <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600 font-medium'}`}>
+            Order ID: <span className="font-mono font-bold text-cyan-500 dark:text-cyan-400">{order.orderId}</span>
           </p>
         </div>
 
@@ -103,17 +111,21 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
         <div className="flex items-center gap-2">
           {isPrepaid ? (
             <div className="text-right">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border ${
+                isDark ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+              }`}>
                 {isRazorpay ? '⚡ PREPAID (RAZORPAY VERIFIED)' : '⚡ PREPAID (ONLINE UPI)'}
               </span>
               {paymentRef && (
-                <span className="block text-[10px] text-emerald-300 font-mono mt-0.5">
+                <span className={`block text-[10px] font-mono mt-0.5 ${isDark ? 'text-emerald-300' : 'text-emerald-700 font-bold'}`}>
                   {order.razorpayPaymentId ? `ID: ${order.razorpayPaymentId}` : `UTR: ${order.transactionId}`}
                 </span>
               )}
             </div>
           ) : (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${
+              isDark ? 'bg-slate-800 text-slate-300 border-slate-700' : 'bg-slate-200 text-slate-800 border-slate-300'
+            }`}>
               💵 CASH ON DELIVERY (COD)
             </span>
           )}
@@ -153,7 +165,9 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
           {/* Desktop & Tablet Progress Bar */}
           <div className="relative hidden sm:block py-4 px-2">
             {/* Background Line */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-8 right-8 h-1.5 bg-slate-800 rounded-full" />
+            <div className={`absolute top-1/2 -translate-y-1/2 left-8 right-8 h-1.5 rounded-full ${
+              isDark ? 'bg-slate-800' : 'bg-slate-200'
+            }`} />
             
             {/* Completed Line Fill */}
             <div
@@ -175,12 +189,14 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative z-10 ${
                         isCompleted
-                          ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/40 scale-105 ring-4 ring-emerald-500/20'
-                          : 'bg-slate-800 text-slate-500 border-2 border-slate-700'
+                          ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/40 scale-105 ring-4 ring-emerald-500/20'
+                          : isDark
+                          ? 'bg-slate-800 text-slate-500 border-2 border-slate-700'
+                          : 'bg-slate-100 text-slate-400 border-2 border-slate-300'
                       } ${isCurrent ? 'animate-bounce-subtle' : ''}`}
                     >
                       {isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 font-black" />
+                        <CheckCircle2 className="w-5 h-5 font-black text-white" />
                       ) : (
                         <Icon className="w-4 h-4" />
                       )}
@@ -188,15 +204,21 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
 
                     <div className="mt-3 space-y-0.5">
                       <p className={`text-xs font-black tracking-tight ${
-                        isCompleted ? 'text-white' : 'text-slate-500'
+                        isCompleted
+                          ? isDark ? 'text-white' : 'text-slate-900'
+                          : isDark ? 'text-slate-500' : 'text-slate-400'
                       }`}>
                         {step.title}
                       </p>
-                      <p className="text-[11px] text-slate-400 leading-tight">
+                      <p className={`text-[11px] leading-tight ${
+                        isDark ? 'text-slate-400' : 'text-slate-600'
+                      }`}>
                         {step.desc}
                       </p>
                       <p className={`text-[10px] font-bold ${
-                        isCompleted ? 'text-emerald-400' : 'text-slate-600'
+                        isCompleted
+                          ? isDark ? 'text-emerald-400' : 'text-emerald-700'
+                          : isDark ? 'text-slate-600' : 'text-slate-400'
                       }`}>
                         {step.time}
                       </p>
@@ -210,7 +232,9 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
           {/* Mobile Vertical Stepper */}
           <div className="sm:hidden space-y-4 relative pl-3">
             {/* Vertical Line */}
-            <div className="absolute top-4 bottom-4 left-6 w-1 bg-slate-800 -z-0" />
+            <div className={`absolute top-4 bottom-4 left-6 w-1 -z-0 ${
+              isDark ? 'bg-slate-800' : 'bg-slate-200'
+            }`} />
             <div
               className="absolute top-4 left-6 w-1 bg-emerald-500 transition-all duration-500 -z-0 shadow-sm shadow-emerald-500/50"
               style={{
@@ -228,20 +252,32 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
                   <div
                     className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs transition-all ${
                       isCompleted
-                        ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30 ring-2 ring-emerald-500/20'
-                        : 'bg-slate-800 text-slate-500 border border-slate-700'
+                        ? 'bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/30 ring-2 ring-emerald-500/20'
+                        : isDark
+                        ? 'bg-slate-800 text-slate-500 border border-slate-700'
+                        : 'bg-slate-100 text-slate-400 border border-slate-300'
                     }`}
                   >
-                    {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-3.5 h-3.5" />}
+                    {isCompleted ? <CheckCircle2 className="w-4 h-4 text-white" /> : <Icon className="w-3.5 h-3.5" />}
                   </div>
                   <div className="space-y-0.5 pb-2">
-                    <p className={`text-xs font-black ${isCompleted ? 'text-white' : 'text-slate-400'}`}>
+                    <p className={`text-xs font-black ${
+                      isCompleted
+                        ? isDark ? 'text-white' : 'text-slate-900'
+                        : isDark ? 'text-slate-500' : 'text-slate-400'
+                    }`}>
                       {step.title}
                     </p>
-                    <p className="text-[11px] text-slate-400 leading-snug">
+                    <p className={`text-[11px] leading-snug ${
+                      isDark ? 'text-slate-400' : 'text-slate-600'
+                    }`}>
                       {step.desc}
                     </p>
-                    <p className={`text-[10px] font-bold ${isCompleted ? 'text-emerald-400' : 'text-slate-600'}`}>
+                    <p className={`text-[10px] font-bold ${
+                      isCompleted
+                        ? isDark ? 'text-emerald-400' : 'text-emerald-700'
+                        : isDark ? 'text-slate-600' : 'text-slate-400'
+                    }`}>
                       {step.time}
                     </p>
                   </div>
