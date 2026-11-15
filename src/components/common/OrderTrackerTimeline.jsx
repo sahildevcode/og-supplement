@@ -163,17 +163,17 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
         /* Flipkart 4-Stage Stepper */
         <div className="space-y-6">
           {/* Desktop & Tablet Progress Bar */}
-          <div className="relative hidden sm:block py-4 px-2">
-            {/* Background Line */}
-            <div className={`absolute top-1/2 -translate-y-1/2 left-8 right-8 h-1.5 rounded-full ${
+          <div className="relative hidden sm:block pt-3 pb-6 px-4">
+            {/* Background Line (Positioned exactly through the center of 40px circle: top is 20px) */}
+            <div className={`absolute top-8 left-12 right-12 h-1.5 rounded-full ${
               isDark ? 'bg-slate-800' : 'bg-slate-200'
             }`} />
             
-            {/* Completed Line Fill */}
+            {/* Completed Line Fill (Positioned exactly through the center of 40px circle) */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 left-8 h-1.5 bg-emerald-500 rounded-full transition-all duration-700 shadow-sm shadow-emerald-500/50"
+              className="absolute top-8 left-12 h-1.5 bg-emerald-500 rounded-full transition-all duration-700 shadow-sm shadow-emerald-500/50"
               style={{
-                width: `calc(${(activeIndex / (steps.length - 1)) * 100}% - 16px)`
+                width: `calc(${(activeIndex / (steps.length - 1)) * 100}% - 24px)`
               }}
             />
 
@@ -185,7 +185,7 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
                 const Icon = step.icon;
 
                 return (
-                  <div key={step.id} className="flex flex-col items-center text-center max-w-[140px]">
+                  <div key={step.id} className="flex flex-col items-center text-center max-w-[150px]">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative z-10 ${
                         isCompleted
@@ -202,15 +202,15 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
                       )}
                     </div>
 
-                    <div className="mt-3 space-y-0.5">
-                      <p className={`text-xs font-black tracking-tight ${
+                    <div className="mt-4 space-y-1">
+                      <p className={`text-xs font-black tracking-tight leading-snug ${
                         isCompleted
                           ? isDark ? 'text-white' : 'text-slate-900'
                           : isDark ? 'text-slate-500' : 'text-slate-400'
                       }`}>
                         {step.title}
                       </p>
-                      <p className={`text-[11px] leading-tight ${
+                      <p className={`text-[11px] leading-relaxed ${
                         isDark ? 'text-slate-400' : 'text-slate-600'
                       }`}>
                         {step.desc}
