@@ -591,7 +591,7 @@ export default function Navbar() {
                     <Clock className="w-4 h-4 text-emerald-400" />
                     <div>
                       <span className="font-black">Order History & Tracking</span>
-                      <p className="text-[10px] text-slate-400">Track live courier & refund updates</p>
+                      <p className="text-[10px] text-slate-400">Track live courier updates & delivery status</p>
                     </div>
                   </div>
                   <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500 text-black">Live</span>
@@ -649,7 +649,7 @@ export default function Navbar() {
                   >
                     <div className="flex items-center gap-2">
                       <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Cancellation & Refund Policy</span>
+                      <span>Order Cancellation Policy</span>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
                   </Link>
@@ -736,7 +736,7 @@ export default function Navbar() {
                   <span className="font-bold text-xs">Customer Support</span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Koi sawaal ya refund enquiry ke liye direct email karein:
+                  Koi sawaal ya order enquiry ke liye direct email karein:
                 </p>
                 <a
                   href="mailto:sk7161853@gmail.com"

@@ -19,21 +19,21 @@ export default function CancellationPolicy() {
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-white">1. Cancellation Prior to Dispatch</h2>
             <p>
-              You can cancel your order free of charge at any time before it has been dispatched from our warehouse. Upon cancellation, your payment will be refunded immediately without any cancellation penalties.
+              You can cancel your order at any time before it has been dispatched from our warehouse. Upon cancellation, the order will be stopped immediately. Please note that as per our policy, we do not provide cash or money refunds.
             </p>
           </section>
 
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-white">2. Automatic Stock Restoration</h2>
             <p>
-              When an order is cancelled, our real-time inventory management system automatically restores the reserved supplement units back to the live customer catalog via Socket.IO.
+              When an order is cancelled, our real-time inventory management system automatically restores the reserved supplement units back to the live customer catalog.
             </p>
           </section>
 
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-white">3. Cancellation After Dispatch</h2>
             <p>
-              Once an order is in transit with the courier partner, it cannot be directly cancelled. You can simply decline the package at doorstep upon delivery, and a full refund will be initiated once the package returns to our facility.
+              Once an order is in transit with the courier partner, it cannot be cancelled or refunded. Please ensure your delivery details and order selections are correct before dispatch.
             </p>
           </section>
         </div>
