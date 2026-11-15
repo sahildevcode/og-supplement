@@ -78,10 +78,10 @@ export default function HomeBestSellers() {
             displayList.length === 1
               ? 'max-w-xs mx-auto'
               : displayList.length === 2
-              ? 'max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6'
+              ? 'max-w-2xl mx-auto grid grid-cols-2 gap-4 sm:gap-6'
               : displayList.length === 3
-              ? 'max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
-              : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'
+              ? 'max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6'
+              : 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5'
           }>
             {displayList.map((prod, idx) => {
               const rankNum = prod.bestSellerRank || idx + 1;

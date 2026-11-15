@@ -165,7 +165,7 @@ export default function Products() {
 
         {/* Product Listing Grid */}
         {loading && filteredProducts.length === 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div key={i} className={`h-96 rounded-3xl animate-pulse border ${
                 isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'
@@ -191,7 +191,7 @@ export default function Products() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {filteredProducts.map((product, idx) => (
               <div
                 key={product._id || product.id}

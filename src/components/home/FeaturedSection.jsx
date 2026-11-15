@@ -43,15 +43,15 @@ export default function FeaturedSection() {
 
         {/* Product Cards Grid with Fade-in and Hover */}
         {loading && featured.length === 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className={`h-96 rounded-3xl animate-pulse border ${
+              <div key={n} className={`h-80 rounded-2xl animate-pulse border ${
                 isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'
               }`} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {featured.map((prod, idx) => (
               <div key={prod._id || prod.id} className={`scroll-reveal reveal-active delay-${(idx % 4 + 1) * 100}`}>
                 <ProductCard product={prod} priority={idx < 4} />

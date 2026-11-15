@@ -101,6 +101,7 @@ export const AuthProvider = ({ children }) => {
         name: userData.name,
         email: userData.email,
         phone: userData.phone,
+        address: userData.address || '',
         role: 'customer'
       };
       const fakeToken = 'offline_token_' + Date.now();
@@ -110,6 +111,30 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('og_user', JSON.stringify(newUser));
       addToast('Account created successfully!', 'success');
       return { user: newUser, token: fakeToken };
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    try {
+      const data = await api.updateProfile(profileData);
+      if (data && data.user) {
+        setUser(data.user);
+        localStorage.setItem('og_user', JSON.stringify(data.user));
+      }
+      addToast(data?.message || 'Profile updated successfully!', 'success');
+      return data;
+    } catch (error) {
+      // Offline fallback: save locally
+      const updated = {
+        ...user,
+        name: profileData.name || user?.name,
+        phone: profileData.phone !== undefined ? profileData.phone : user?.phone,
+        address: profileData.address !== undefined ? profileData.address : user?.address,
+      };
+      setUser(updated);
+      localStorage.setItem('og_user', JSON.stringify(updated));
+      addToast('Profile updated locally!', 'success');
+      return { success: true, user: updated };
     }
   };
 
@@ -144,6 +169,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         demoLogin,
+        updateProfile,
       }}
     >
       {children}

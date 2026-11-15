@@ -236,7 +236,7 @@ export default function BestSellers() {
         {/* Product Cards Grid */}
         <div className="pt-8">
           {loading && filteredProducts.length === 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
               {[1, 2, 3, 4].map((n) => (
                 <div
                   key={n}
@@ -260,7 +260,7 @@ export default function BestSellers() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
               {filteredProducts.map((prod, idx) => {
                 const rankNum = prod.bestSellerRank || idx + 1;
                 const badgeText = prod.bestSellerBadge || (rankNum === 1 ? '🔥 #1 BEST SELLER' : `#${rankNum} TOP CHOICE`);
