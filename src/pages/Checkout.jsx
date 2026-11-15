@@ -81,21 +81,49 @@ export default function Checkout() {
   const [showSandboxModal, setShowSandboxModal] = useState(false);
   const [sandboxOrderInfo, setSandboxOrderInfo] = useState(null);
 
+  // Retrieve saved checkout info from localStorage fallback
+  const getSavedCheckoutData = () => {
+    try {
+      return JSON.parse(localStorage.getItem('og_checkout_address') || '{}');
+    } catch (e) {
+      return {};
+    }
+  };
+
+  const savedData = getSavedCheckoutData();
+
   const [formData, setFormData] = useState({
-    customerName: user?.name || '',
-    email: user?.email || '',
-    phone: '',
-    address: user?.address || '',
-    city: '',
-    state: '',
-    pincode: '',
-    landmark: '',
+    customerName: user?.name || savedData.customerName || '',
+    email: user?.email || savedData.email || '',
+    phone: user?.phone || savedData.phone || '',
+    address: user?.address || savedData.address || '',
+    city: user?.city || savedData.city || '',
+    state: user?.state || savedData.state || '',
+    pincode: user?.pincode || savedData.pincode || '',
+    landmark: user?.landmark || savedData.landmark || '',
     paymentMethod: 'Razorpay (Online)',
     transactionId: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Auto-sync whenever user context updates
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        customerName: prev.customerName || user.name || '',
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || '',
+        address: prev.address || user.address || '',
+        city: prev.city || user.city || '',
+        state: prev.state || user.state || '',
+        pincode: prev.pincode || user.pincode || '',
+        landmark: prev.landmark || user.landmark || ''
+      }));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (cartItems.length === 0) {
@@ -187,6 +215,20 @@ export default function Checkout() {
       const res = await api.createOrder(orderPayload);
 
       if (res.success && res.order) {
+        // Save successfully used shipping address to localStorage for automatic prefill on next orders
+        try {
+          localStorage.setItem('og_checkout_address', JSON.stringify({
+            customerName: formData.customerName,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            pincode: formData.pincode,
+            landmark: formData.landmark
+          }));
+        } catch (e) {}
+
         confetti({
           particleCount: 120,
           spread: 70,
@@ -335,6 +377,20 @@ export default function Checkout() {
       const res = await api.createOrder(orderPayload);
 
       if (res.success && res.order) {
+        // Save successfully used shipping address to localStorage for automatic prefill on next orders
+        try {
+          localStorage.setItem('og_checkout_address', JSON.stringify({
+            customerName: formData.customerName,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            pincode: formData.pincode,
+            landmark: formData.landmark
+          }));
+        } catch (e) {}
+
         confetti({
           particleCount: 120,
           spread: 70,

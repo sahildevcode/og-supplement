@@ -11,6 +11,10 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
     phone: { type: String, default: '' },
     address: { type: String, default: '' },
+    city: { type: String, default: '' },
+    state: { type: String, default: '' },
+    pincode: { type: String, default: '' },
+    landmark: { type: String, default: '' },
     resetOtp: { type: String, default: null },
     resetOtpExpires: { type: Date, default: null }
   },

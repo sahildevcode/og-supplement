@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, Mail, User, Phone, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, User, Phone, ArrowRight, Sparkles, Eye, EyeOff, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -8,6 +8,10 @@ export default function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [stateVal, setStateVal] = useState('');
+  const [pincode, setPincode] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,7 +36,16 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      await register({ name, email, phone, password });
+      await register({
+        name,
+        email,
+        phone,
+        password,
+        address,
+        city,
+        state: stateVal,
+        pincode
+      });
       navigate(redirectTarget);
     } catch (err) {
       setError(err.message || 'Registration failed. Try again.');
@@ -127,6 +140,68 @@ export default function Signup() {
                   }`}
                 />
                 <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            {/* Optional Delivery Address for 1-Click Fast Checkout */}
+            <div className="space-y-3 pt-1 border-t border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5" />
+                  Delivery Address (Auto-fills Checkout)
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium">Recommended</span>
+              </div>
+
+              <div className="space-y-1.5">
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Flat / House No., Building Name, Street / Sector"
+                  className={`w-full border rounded-xl px-3.5 py-2.5 text-xs focus:outline-none ${
+                    isDark
+                      ? 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600'
+                  }`}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="City"
+                  className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${
+                    isDark
+                      ? 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600'
+                  }`}
+                />
+                <input
+                  type="text"
+                  value={stateVal}
+                  onChange={(e) => setStateVal(e.target.value)}
+                  placeholder="State"
+                  className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${
+                    isDark
+                      ? 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600'
+                  }`}
+                />
+                <input
+                  type="text"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value)}
+                  placeholder="Pincode"
+                  maxLength={6}
+                  className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${
+                    isDark
+                      ? 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600'
+                  }`}
+                />
               </div>
             </div>
 

@@ -38,6 +38,10 @@ export default function Profile() {
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [address, setAddress] = useState(user?.address || '');
+  const [city, setCity] = useState(user?.city || '');
+  const [stateVal, setStateVal] = useState(user?.state || '');
+  const [pincode, setPincode] = useState(user?.pincode || '');
+  const [landmark, setLandmark] = useState(user?.landmark || '');
 
   // Security Form state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -59,6 +63,10 @@ export default function Profile() {
       setEmail(user.email || '');
       setPhone(user.phone || '');
       setAddress(user.address || '');
+      setCity(user.city || '');
+      setStateVal(user.state || '');
+      setPincode(user.pincode || '');
+      setLandmark(user.landmark || '');
     }
   }, [user]);
 
@@ -95,7 +103,11 @@ export default function Profile() {
       await updateProfile({
         name: name.trim(),
         phone: phone.trim(),
-        address: address.trim()
+        address: address.trim(),
+        city: city.trim(),
+        state: stateVal.trim(),
+        pincode: pincode.trim(),
+        landmark: landmark.trim()
       });
     } catch (err) {
       console.error(err);
@@ -350,22 +362,81 @@ export default function Profile() {
                     <div className="space-y-1.5 sm:col-span-2">
                       <label className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>Delivery Address (House / Flat / Street / City / Pincode)</span>
+                        <span>Delivery Address (Flat / House No. / Building / Street)</span>
                       </label>
-                      <textarea
-                        rows="3"
+                      <input
+                        type="text"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        placeholder="Enter your complete delivery address here..."
-                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium outline-none transition-all resize-none ${
+                        placeholder="e.g. Flat 402, Sunshine Heights, MG Road"
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium outline-none transition-all ${
                           isDark
                             ? 'bg-slate-800/80 border-slate-700 text-white focus:border-emerald-500'
                             : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-500'
                         }`}
                       />
-                      <span className="text-[10px] text-slate-400">
-                        This address will automatically pre-fill during your checkout.
-                      </span>
+                    </div>
+
+                    {/* City, State, Pincode */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-400">City</label>
+                      <input
+                        type="text"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="e.g. Mumbai"
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium outline-none transition-all ${
+                          isDark
+                            ? 'bg-slate-800/80 border-slate-700 text-white focus:border-emerald-500'
+                            : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-500'
+                        }`}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-400">State</label>
+                      <input
+                        type="text"
+                        value={stateVal}
+                        onChange={(e) => setStateVal(e.target.value)}
+                        placeholder="e.g. Maharashtra"
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium outline-none transition-all ${
+                          isDark
+                            ? 'bg-slate-800/80 border-slate-700 text-white focus:border-emerald-500'
+                            : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-500'
+                        }`}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-400">Pincode</label>
+                      <input
+                        type="text"
+                        value={pincode}
+                        onChange={(e) => setPincode(e.target.value)}
+                        placeholder="e.g. 400001"
+                        maxLength={6}
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium outline-none transition-all ${
+                          isDark
+                            ? 'bg-slate-800/80 border-slate-700 text-white focus:border-emerald-500'
+                            : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-500'
+                        }`}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-400">Landmark (Optional)</label>
+                      <input
+                        type="text"
+                        value={landmark}
+                        onChange={(e) => setLandmark(e.target.value)}
+                        placeholder="Near Central Mall"
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium outline-none transition-all ${
+                          isDark
+                            ? 'bg-slate-800/80 border-slate-700 text-white focus:border-emerald-500'
+                            : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-500'
+                        }`}
+                      />
                     </div>
 
                   </div>

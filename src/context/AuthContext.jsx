@@ -49,7 +49,12 @@ export const AuthProvider = ({ children }) => {
           name: 'Super Admin',
           email: 'admin@ogsupplement.com',
           role: 'admin',
-          phone: '+91 98765 43210'
+          phone: '+91 98765 43210',
+          address: 'Shop No. 4, Fitness Hub Arcade',
+          city: 'Mumbai',
+          state: 'Maharashtra',
+          pincode: '400001',
+          landmark: 'Opposite Central Gym'
         };
         const fakeToken = 'offline_admin_jwt_token_2026';
         setUser(adminUser);
@@ -68,7 +73,12 @@ export const AuthProvider = ({ children }) => {
           name: email.split('@')[0].toUpperCase(),
           email: email,
           role: 'customer',
-          phone: '+91 99999 00000'
+          phone: '+91 99999 00000',
+          address: '',
+          city: '',
+          state: '',
+          pincode: '',
+          landmark: ''
         };
         const fakeToken = 'offline_customer_jwt_token_2026';
         setUser(customerUser);
@@ -102,6 +112,10 @@ export const AuthProvider = ({ children }) => {
         email: userData.email,
         phone: userData.phone,
         address: userData.address || '',
+        city: userData.city || '',
+        state: userData.state || '',
+        pincode: userData.pincode || '',
+        landmark: userData.landmark || '',
         role: 'customer'
       };
       const fakeToken = 'offline_token_' + Date.now();
@@ -130,6 +144,10 @@ export const AuthProvider = ({ children }) => {
         name: profileData.name || user?.name,
         phone: profileData.phone !== undefined ? profileData.phone : user?.phone,
         address: profileData.address !== undefined ? profileData.address : user?.address,
+        city: profileData.city !== undefined ? profileData.city : user?.city,
+        state: profileData.state !== undefined ? profileData.state : user?.state,
+        pincode: profileData.pincode !== undefined ? profileData.pincode : user?.pincode,
+        landmark: profileData.landmark !== undefined ? profileData.landmark : user?.landmark,
       };
       setUser(updated);
       localStorage.setItem('og_user', JSON.stringify(updated));

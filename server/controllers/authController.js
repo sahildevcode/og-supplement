@@ -6,7 +6,7 @@ import { sendPasswordResetOtpEmail } from '../services/emailService.js';
 // @route   POST /api/auth/register
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role = 'customer', phone = '' } = req.body;
+    const { name, email, password, role = 'customer', phone = '', address = '', city = '', state = '', pincode = '', landmark = '' } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide all required fields' });
     }
@@ -21,7 +21,12 @@ export const registerUser = async (req, res) => {
       email,
       password,
       role,
-      phone
+      phone,
+      address,
+      city,
+      state,
+      pincode,
+      landmark
     });
 
     const token = generateToken(user._id || user.id, user.role);
@@ -33,7 +38,12 @@ export const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        phone: user.phone || ''
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        pincode: user.pincode || '',
+        landmark: user.landmark || ''
       },
       token
     });
@@ -70,7 +80,12 @@ export const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        phone: user.phone || ''
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        pincode: user.pincode || '',
+        landmark: user.landmark || ''
       },
       token
     });
@@ -97,7 +112,7 @@ export const getMe = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
-    const { name, phone, address, currentPassword, newPassword } = req.body;
+    const { name, phone, address, city, state, pincode, landmark, currentPassword, newPassword } = req.body;
 
     const user = await User.findOne({ _id: userId });
     if (!user) {
@@ -108,6 +123,10 @@ export const updateProfile = async (req, res) => {
     if (name) updates.name = name.trim();
     if (phone !== undefined) updates.phone = phone.trim();
     if (address !== undefined) updates.address = address.trim();
+    if (city !== undefined) updates.city = city.trim();
+    if (state !== undefined) updates.state = state.trim();
+    if (pincode !== undefined) updates.pincode = pincode.trim();
+    if (landmark !== undefined) updates.landmark = landmark.trim();
 
     // If changing password
     if (newPassword) {
@@ -140,6 +159,10 @@ export const updateProfile = async (req, res) => {
         email: updatedUser.email,
         phone: updatedUser.phone || '',
         address: updatedUser.address || '',
+        city: updatedUser.city || '',
+        state: updatedUser.state || '',
+        pincode: updatedUser.pincode || '',
+        landmark: updatedUser.landmark || '',
         role: updatedUser.role
       }
     });
