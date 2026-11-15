@@ -11,7 +11,11 @@ import {
   RefreshCw,
   HelpCircle,
   X,
-  RotateCcw
+  RotateCcw,
+  Mail,
+  Copy,
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -34,6 +38,10 @@ export default function OrderHistory() {
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [cancelReason, setCancelReason] = useState('Ordered by mistake / wrong quantity');
   const [isCancelling, setIsCancelling] = useState(false);
+
+  // Help Modal State
+  const [helpOrder, setHelpOrder] = useState(null);
+  const [isCopiedEmail, setIsCopiedEmail] = useState(false);
 
   const isPrepaidOrder = (ord) => {
     if (!ord) return false;
@@ -357,14 +365,18 @@ export default function OrderHistory() {
                       </div>
 
                       {/* Always Visible Help Button */}
-                      <a
-                        href={`mailto:sk7161853@gmail.com?subject=Need%20Help%20with%20Order%20%23${order.orderId}&body=Hello%20OG-Supplement%20Support%20Team%2C%0A%0AI%20need%20help%20with%20my%20order%20%23${order.orderId}.%0A%0AOrder%20Status%3A%20${order.orderStatus}%0ATotal%20Amount%3A%20%E2%82%B9${order.totalAmount}%0A%0AIssue%20Details%3A%0A%5BPlease%20write%20your%20query%20here%5D%0A%0AThank%20you.`}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHelpOrder(order);
+                          setIsCopiedEmail(false);
+                        }}
                         className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold text-cyan-400 hover:text-white bg-cyan-500/10 hover:bg-cyan-500 border border-cyan-500/30 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-sm"
-                        title="Get email support for this order"
+                        title="Get help or email support for this order"
                       >
                         <HelpCircle className="w-4 h-4 text-cyan-400" />
                         <span>Help</span>
-                      </a>
+                      </button>
 
                       {/* Cancel Order Action Button (Only prior to dispatch) */}
                       {canCancel && (
@@ -435,6 +447,126 @@ export default function OrderHistory() {
         )}
 
       </div>
+
+      {/* Help & Support Modal */}
+      {helpOrder && (() => {
+        const emailAddress = 'sk7161853@gmail.com';
+        const emailSubject = `Need Help with Order #${helpOrder.orderId}`;
+        const emailBody = `Hello OG-Supplement Support Team,\n\nI need help with my order #${helpOrder.orderId}.\n\nOrder Status: ${helpOrder.orderStatus}\nTotal Amount: ₹${helpOrder.totalAmount}\n\nIssue Details:\n[Please write your issue or question here]\n\nThank you.`;
+
+        // Direct webmail link for Gmail web users
+        const gmailWebUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailAddress)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+        
+        // Native mailto URL
+        const mailtoUrl = `mailto:${emailAddress}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+
+        const handleCopyEmail = () => {
+          navigator.clipboard.writeText(emailAddress);
+          setIsCopiedEmail(true);
+          addToast('Support email copied to clipboard!', 'success');
+          setTimeout(() => setIsCopiedEmail(false), 2500);
+        };
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+            <div className={`max-w-md w-full p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 ${
+              isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}>
+              
+              <div className="flex items-start justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center">
+                  <HelpCircle className="w-6 h-6" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setHelpOrder(null)}
+                  className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="text-lg sm:text-xl font-black">
+                  Need Help with Order #{helpOrder.orderId}?
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Direct support email ke zariye hamari team se contact karein. Aap direct Gmail ya kisi bhi email app se message bhej sakte hain.
+                </p>
+              </div>
+
+              {/* Email Address Card */}
+              <div className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
+                isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+              }`}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase font-bold text-slate-400">Official Support Email</p>
+                    <p className="text-xs sm:text-sm font-bold font-mono text-cyan-400 truncate">
+                      {emailAddress}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCopyEmail}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 ${
+                    isCopiedEmail
+                      ? 'bg-emerald-500 text-black border-emerald-400'
+                      : 'bg-slate-800 hover:bg-slate-750 text-slate-200 border-slate-700'
+                  }`}
+                >
+                  {isCopiedEmail ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Order Info pill */}
+              <div className="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 space-y-1">
+                <p><strong>Order ID:</strong> #{helpOrder.orderId}</p>
+                <p><strong>Status:</strong> <span className="text-emerald-400 font-bold">{helpOrder.orderStatus}</span></p>
+                <p><strong>Amount:</strong> ₹{helpOrder.totalAmount?.toLocaleString('en-IN')}</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2 pt-2">
+                {/* 1. Open in Gmail (Web Browser) */}
+                <a
+                  href={gmailWebUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 rounded-2xl font-black text-xs bg-red-600 hover:bg-red-500 text-white flex items-center justify-center gap-2 shadow-lg shadow-red-950/40 transition-all active:scale-95"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Open in Gmail (Web)</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+
+                {/* 2. Open in Default Mail App (Mobile / Outlook / Apple Mail) */}
+                <a
+                  href={mailtoUrl}
+                  className="w-full py-3 rounded-2xl font-black text-xs bg-cyan-500 hover:bg-cyan-400 text-black flex items-center justify-center gap-2 shadow-lg shadow-cyan-950/40 transition-all active:scale-95"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Open in Default Email App</span>
+                </a>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Confirmation Modal for Order Cancellation */}
       {cancellingOrder && (() => {
