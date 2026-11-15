@@ -7,6 +7,7 @@ import { ToastProvider } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 // Common Components
 import Navbar from './components/common/Navbar';
@@ -21,6 +22,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import OrderHistory from './pages/OrderHistory';
+import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import BestSellers from './pages/BestSellers';
@@ -124,8 +126,9 @@ export default function App() {
           <AuthProvider>
             <ProductProvider>
               <CartProvider>
-                <ScrollToTop />
-                <Routes>
+                <NotificationProvider>
+                  <ScrollToTop />
+                  <Routes>
                   
                   {/* Customer Storefront Clean Routes */}
                   <Route element={<CustomerLayout />}>
@@ -146,6 +149,14 @@ export default function App() {
                     
                     <Route path="/order-success/:id" element={<OrderSuccess />} />
                     <Route path="/orders" element={<OrderHistory />} />
+                    <Route
+                      path="/profile"
+                      element={
+                        <RequireAuth>
+                          <Profile />
+                        </RequireAuth>
+                      }
+                    />
                     <Route path="/best-sellers" element={<BestSellers />} />
                     <Route path="/reviews" element={<ReviewsResults />} />
                     <Route path="/results" element={<ReviewsResults />} />
@@ -168,6 +179,7 @@ export default function App() {
                   <Route path="*" element={<Navigate to="/" replace />} />
 
                 </Routes>
+                </NotificationProvider>
               </CartProvider>
             </ProductProvider>
           </AuthProvider>

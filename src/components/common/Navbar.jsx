@@ -31,12 +31,14 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useProducts } from '../../context/ProductContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useNotifications } from '../../context/NotificationContext';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { totalItems } = useCart();
   const { searchQuery, setSearchQuery, setSelectedCategory } = useProducts();
   const { isDark, toggleTheme } = useTheme();
+  const { notifications, hasUnread, markAllAsRead, clearNotifications } = useNotifications();
 
   // Navigation states
   const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
@@ -234,39 +236,104 @@ export default function Navbar() {
               <div ref={notifDropdownRef} className="relative">
                 <button
                   type="button"
-                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  onClick={() => {
+                    setIsNotificationsOpen(!isNotificationsOpen);
+                    if (!isNotificationsOpen) markAllAsRead();
+                  }}
                   className={`relative p-2 rounded-xl border transition-all ${
                     isDark
                       ? 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
                       : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-black hover:bg-slate-200'
                   }`}
-                  title="Special Offers & Announcements"
+                  title="Order Updates & Special Offers"
                   aria-label="Notifications"
                 >
                   <Bell className="w-4 h-4" />
-                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-slate-950 animate-pulse" />
+                  {hasUnread && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-slate-950 animate-pulse" />
+                  )}
                 </button>
 
                 {/* Notifications Dropdown */}
                 {isNotificationsOpen && (
-                  <div className={`absolute right-0 mt-2 w-72 sm:w-80 backdrop-blur-xl border rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 ${
+                  <div className={`absolute right-0 mt-2 w-80 sm:w-96 backdrop-blur-xl border rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 ${
                     isDark ? 'bg-slate-900/98 border-slate-800 text-slate-100' : 'bg-white/98 border-slate-200 text-slate-900 shadow-slate-300/50'
                   }`}>
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-800/60 mb-2">
-                      <span className="text-xs font-black uppercase tracking-wider text-emerald-400">⚡ Live Announcements</span>
-                      <button onClick={() => setIsNotificationsOpen(false)} className="text-slate-400 hover:text-white p-0.5">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-800/60 mb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-emerald-400">🔔 Notifications</span>
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          {notifications.length}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {notifications.length > 0 && (
+                          <button
+                            onClick={clearNotifications}
+                            className="text-[10px] font-bold text-slate-400 hover:text-rose-400 transition-colors"
+                          >
+                            Clear All
+                          </button>
+                        )}
+                        <button onClick={() => setIsNotificationsOpen(false)} className="text-slate-400 hover:text-white p-0.5">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="space-y-2 text-xs">
-                      <div className={`p-2.5 rounded-xl border ${isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-                        <p className="font-bold text-emerald-400">🔥 100% Genuine Guarantee</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">All products lab-tested with original brand importer seals.</p>
-                      </div>
-                      <div className={`p-2.5 rounded-xl border ${isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-                        <p className="font-bold text-cyan-400">⚡ Instant Razorpay Refund Active</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Automated online refunds with 3-stage live bank tracking.</p>
-                      </div>
+                    
+                    <div className="space-y-2 max-h-80 overflow-y-auto pr-1 text-xs">
+                      {notifications.length === 0 ? (
+                        <div className="py-8 text-center text-slate-400 text-xs">
+                          No notifications yet.
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            className={`p-3 rounded-xl border transition-all ${
+                              notif.type === 'order'
+                                ? isDark ? 'bg-slate-950/90 border-cyan-500/30' : 'bg-cyan-50/60 border-cyan-200'
+                                : notif.type === 'offer'
+                                ? isDark ? 'bg-slate-950/90 border-amber-500/30' : 'bg-amber-50/60 border-amber-200'
+                                : isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <p className={`font-bold text-xs ${
+                                notif.type === 'order' ? 'text-cyan-400' : notif.type === 'offer' ? 'text-amber-400' : 'text-emerald-400'
+                              }`}>
+                                {notif.title}
+                              </p>
+                              {!notif.read && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0 mt-1" />
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                              {notif.message}
+                            </p>
+                            <span className="text-[9px] text-slate-500 block mt-1.5">
+                              {new Date(notif.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="pt-2.5 mt-2.5 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
+                      <Link
+                        to="/orders"
+                        onClick={() => setIsNotificationsOpen(false)}
+                        className="text-cyan-400 hover:underline font-bold flex items-center gap-1"
+                      >
+                        Track My Orders →
+                      </Link>
+                      <Link
+                        to="/products"
+                        onClick={() => setIsNotificationsOpen(false)}
+                        className="text-emerald-400 hover:underline font-bold flex items-center gap-1"
+                      >
+                        Explore Offers ⚡
+                      </Link>
                     </div>
                   </div>
                 )}
@@ -334,6 +401,17 @@ export default function Navbar() {
                       </div>
 
                       <div className="py-1">
+                        <Link
+                          to="/profile"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                          className={`flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                            isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+                          }`}
+                        >
+                          <User className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>My Profile</span>
+                        </Link>
+
                         <Link
                           to="/orders"
                           onClick={() => setIsProfileDropdownOpen(false)}
@@ -541,6 +619,23 @@ export default function Navbar() {
                     </div>
                   </div>
                   <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500 text-black">RESULTS</span>
+                </Link>
+
+                <Link
+                  to="/profile"
+                  onClick={() => setIsSideDrawerOpen(false)}
+                  className={`flex items-center justify-between p-2.5 rounded-xl border border-emerald-500/30 transition-all ${
+                    isDark ? 'bg-slate-900 text-slate-200 hover:bg-slate-850' : 'bg-slate-50 text-slate-800 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <User className="w-4 h-4 text-emerald-400" />
+                    <div>
+                      <span className="font-black">My Profile & Account</span>
+                      <p className="text-[10px] text-slate-400">Name, Address, Email, Password</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
                 </Link>
 
                 <Link
