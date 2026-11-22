@@ -35,6 +35,8 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
   const [showVariantCustomizer, setShowVariantCustomizer] = useState(false);
   const [activeCustomizer, setActiveCustomizer] = useState({ type: 'flavours', key: '' });
   const [existingBrands, setExistingBrands] = useState([]);
+  const [isCreatingNewBrand, setIsCreatingNewBrand] = useState(false);
+  const [newBrandInput, setNewBrandInput] = useState('');
 
   // Fetch unique existing brands to give instant dropdown selection
   useEffect(() => {
@@ -49,6 +51,27 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
       }).catch(() => {});
     }
   }, [isOpen]);
+
+  const handleSelectBrand = (brandValue) => {
+    if (brandValue === '__ADD_NEW__') {
+      setIsCreatingNewBrand(true);
+      setNewBrandInput('');
+    } else {
+      setIsCreatingNewBrand(false);
+      setFormData((prev) => ({ ...prev, brand: brandValue }));
+    }
+  };
+
+  const handleConfirmNewBrand = () => {
+    const trimmed = newBrandInput.trim();
+    if (trimmed) {
+      if (!existingBrands.includes(trimmed)) {
+        setExistingBrands((prev) => [...prev, trimmed]);
+      }
+      setFormData((prev) => ({ ...prev, brand: trimmed }));
+      setIsCreatingNewBrand(false);
+    }
+  };
 
   const ensureFourImages = (imgs) => {
     const list = Array.isArray(imgs) ? imgs.filter(Boolean) : [];
@@ -351,25 +374,80 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="font-bold text-slate-300">Brand Name *</label>
-                {existingBrands.length > 0 && (
-                  <span className="text-[11px] text-cyan-400 font-semibold">Select or type new</span>
+                {!isCreatingNewBrand && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCreatingNewBrand(true);
+                      setNewBrandInput('');
+                    }}
+                    className="text-[11px] text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" /> Create Brand Name
+                  </button>
                 )}
               </div>
-              <input
-                type="text"
-                name="brand"
-                required
-                list="brand-suggestions-list"
-                value={formData.brand}
-                onChange={handleChange}
-                placeholder="e.g. Wellcore, Optimum Nutrition..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500"
-              />
-              <datalist id="brand-suggestions-list">
-                {existingBrands.map((b) => (
-                  <option key={b} value={b} />
-                ))}
-              </datalist>
+
+              {isCreatingNewBrand ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      autoFocus
+                      value={newBrandInput}
+                      onChange={(e) => setNewBrandInput(e.target.value)}
+                      placeholder="Type new brand name (e.g. Wellcore)..."
+                      className="flex-1 bg-slate-950 border border-cyan-500 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleConfirmNewBrand();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleConfirmNewBrand}
+                      className="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-xl shadow-md cursor-pointer transition-all"
+                    >
+                      Save Brand
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingNewBrand(false)}
+                      className="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    💡 This brand will be saved and available across all your products.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <select
+                    name="brand"
+                    required
+                    value={formData.brand || ''}
+                    onChange={(e) => handleSelectBrand(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500 text-sm"
+                  >
+                    <option value="" disabled>-- Select Brand Name --</option>
+                    {existingBrands.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                    {formData.brand && !existingBrands.includes(formData.brand) && (
+                      <option value={formData.brand}>{formData.brand}</option>
+                    )}
+                    <option value="__ADD_NEW__" className="text-cyan-400 font-bold">
+                      ➕ Create New Brand...
+                    </option>
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
