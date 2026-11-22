@@ -9,10 +9,10 @@ const reviewSchema = new mongoose.Schema(
     rating: { type: Number, required: true, min: 1, max: 5, default: 5 },
     transformationGoal: {
       type: String,
-      enum: ['Muscle Building', 'Fat Loss & Shred', 'Strength & Power', 'Daily Fitness & Stamina', 'General Wellness'],
       default: 'Muscle Building'
     },
     duration: { type: String, default: '12 Weeks' },
+    gainMetric: { type: String, default: '' },
     productUsed: { type: String, required: true },
     productId: { type: String, default: '' },
     title: { type: String, default: '' },
@@ -72,6 +72,7 @@ export const Review = {
       rating: Math.max(1, Math.min(5, Number(data.rating) || 5)),
       transformationGoal: data.transformationGoal || 'Muscle Building',
       duration: data.duration?.trim() || '12 Weeks',
+      gainMetric: data.gainMetric?.trim() || '',
       productUsed: data.productUsed?.trim() || '100% Authentic Whey',
       productId: data.productId || '',
       title: data.title?.trim() || '',
@@ -106,6 +107,19 @@ export const Review = {
     const r = (localStore.reviews || []).find(x => x._id === id || x.id === id);
     if (r) {
       r.likes = (Number(r.likes) || 0) + 1;
+      localStore.save();
+      return r;
+    }
+    return null;
+  },
+
+  async findByIdAndUpdate(id, data) {
+    if (isConnectedToMongo) {
+      return await MongooseReview.findByIdAndUpdate(id, { $set: data }, { new: true });
+    }
+    const r = (localStore.reviews || []).find(x => x._id === id || x.id === id);
+    if (r) {
+      Object.assign(r, data);
       localStore.save();
       return r;
     }

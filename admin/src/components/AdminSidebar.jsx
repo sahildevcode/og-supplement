@@ -33,6 +33,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Hero Banner Slider', path: '/hero-banners', icon: Sparkles },
+    { name: 'Customer Transformations', path: '/transformations', icon: Flame },
     { name: 'Products Catalog', path: '/products', icon: Package },
     { name: 'Best Sellers Manager', path: '/best-sellers', icon: Flame },
     { name: 'Homepage Categories', path: '/categories', icon: Layers },

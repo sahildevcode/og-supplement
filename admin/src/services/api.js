@@ -83,6 +83,8 @@ export const api = {
 
   // Customer Reviews & Transformations
   getReviews: (params = '') => apiRequest(`/reviews${params}`),
+  createReview: (data) => apiRequest('/reviews', { method: 'POST', body: JSON.stringify(data) }),
+  updateReview: (id, data) => apiRequest(`/reviews/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteReview: (id) => apiRequest(`/reviews/${id}`, { method: 'DELETE' }),
 
   // Payment & QR Code Settings

@@ -1350,14 +1350,14 @@ export default function ProductDetail() {
             </form>
           )}
 
-          {/* Rating Breakdown Overview (100% Real Customer Reviews) */}
+          {/* Rating Breakdown Overview (Only when real reviews exist) */}
           {(() => {
             const reviewsList = Array.isArray(product.reviewsList) ? product.reviewsList : [];
             const totalCount = reviewsList.length;
-            const avgRatingNum = totalCount > 0
-              ? Number((reviewsList.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / totalCount).toFixed(1))
-              : 0;
-            const avgRatingDisplay = totalCount > 0 ? avgRatingNum.toFixed(1) : '0.0';
+            if (totalCount === 0) return null;
+
+            const avgRatingNum = Number((reviewsList.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / totalCount).toFixed(1));
+            const avgRatingDisplay = avgRatingNum.toFixed(1);
 
             const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
             reviewsList.forEach((r) => {
@@ -1365,9 +1365,7 @@ export default function ProductDetail() {
               starCounts[star] = (starCounts[star] || 0) + 1;
             });
 
-            const recommendedPct = totalCount > 0
-              ? Math.round(((starCounts[5] + starCounts[4]) / totalCount) * 100)
-              : 0;
+            const recommendedPct = Math.round(((starCounts[5] + starCounts[4]) / totalCount) * 100);
 
             return (
               <div className={`p-6 sm:p-8 rounded-3xl border ${
@@ -1384,7 +1382,7 @@ export default function ProductDetail() {
                         <Star
                           key={star}
                           className={`w-5 h-5 ${
-                            totalCount > 0 && star <= Math.round(avgRatingNum)
+                            star <= Math.round(avgRatingNum)
                               ? 'text-amber-400 fill-amber-400'
                               : 'text-slate-600'
                           }`}
@@ -1396,7 +1394,7 @@ export default function ProductDetail() {
                     </p>
                     <p className="text-[11px] text-emerald-500 font-bold mt-1 flex items-center justify-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      {totalCount > 0 ? `${recommendedPct}% Recommended` : 'Real Customer Ratings Only'}
+                      {recommendedPct}% Recommended
                     </p>
                   </div>
 
@@ -1404,7 +1402,7 @@ export default function ProductDetail() {
                   <div className="md:col-span-8 space-y-2.5">
                     {[5, 4, 3, 2, 1].map((stars) => {
                       const count = starCounts[stars] || 0;
-                      const percentage = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
+                      const percentage = Math.round((count / totalCount) * 100);
 
                       return (
                         <div key={stars} className="flex items-center gap-3 text-xs">
@@ -1432,35 +1430,12 @@ export default function ProductDetail() {
           })()}
 
           {/* Customer Reviews Feed */}
-          <div className="space-y-4">
-            <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              Community Reviews ({product.reviewsList?.length || 0})
-            </h3>
+          {product.reviewsList && product.reviewsList.length > 0 && (
+            <div className="space-y-4">
+              <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Community Reviews ({product.reviewsList.length})
+              </h3>
 
-            {(!product.reviewsList || product.reviewsList.length === 0) ? (
-              <div className={`p-10 rounded-3xl border text-center space-y-4 ${
-                isDark ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-200'
-              }`}>
-                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
-                  <MessageSquare className="w-7 h-7" />
-                </div>
-                <div>
-                  <h4 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    No Reviews Yet
-                  </h4>
-                  <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
-                    Be the first customer to share your thoughts, flavor rating, and photos with our fitness community!
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowReviewForm(true)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs active:scale-95 transition-all cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" /> Write the First Review
-                </button>
-              </div>
-            ) : (
               <div className="space-y-4">
                 {[...product.reviewsList].reverse().map((rev, idx) => (
                   <div
@@ -1542,8 +1517,8 @@ export default function ProductDetail() {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         )}
 

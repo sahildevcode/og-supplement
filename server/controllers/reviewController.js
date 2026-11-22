@@ -39,13 +39,15 @@ export const createReview = async (req, res) => {
       rating,
       transformationGoal,
       duration,
+      gainMetric,
       productUsed,
       productId,
       title,
       comment,
       beforeImage,
       afterImage,
-      reviewImages
+      reviewImages,
+      isFeatured
     } = req.body;
 
     if (!customerName || !comment || !productUsed) {
@@ -61,13 +63,15 @@ export const createReview = async (req, res) => {
       rating: Number(rating) || 5,
       transformationGoal: transformationGoal || 'Muscle Building',
       duration: duration || '12 Weeks',
+      gainMetric: gainMetric || '',
       productUsed,
       productId,
       title,
       comment,
       beforeImage,
       afterImage,
-      reviewImages
+      reviewImages,
+      isFeatured: Boolean(isFeatured)
     });
 
     const io = getIO(req);
@@ -83,6 +87,27 @@ export const createReview = async (req, res) => {
     });
   } catch (error) {
     console.error('[Create Review Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @route   PUT /api/reviews/:id
+export const updateReview = async (req, res) => {
+  try {
+    const updated = await Review.findByIdAndUpdate(req.params.id, req.body);
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+
+    const io = getIO(req);
+    if (io) {
+      io.emit('review:updated', updated);
+      console.log(`\x1b[36m[Socket.IO Broadcast]\x1b[0m review:updated => ${updated._id || req.params.id}`);
+    }
+
+    res.json({ success: true, review: updated, message: 'Review updated successfully' });
+  } catch (error) {
+    console.error('[Update Review Error]', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

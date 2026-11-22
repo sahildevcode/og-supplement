@@ -20,6 +20,7 @@ import AdminOrders from './pages/AdminOrders';
 import AdminCustomers from './pages/AdminCustomers';
 import AdminBestSellers from './pages/AdminBestSellers';
 import AdminHeroBanners from './pages/AdminHeroBanners';
+import AdminTransformations from './pages/AdminTransformations';
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="hero-banners" element={<AdminHeroBanners />} />
+                <Route path="transformations" element={<AdminTransformations />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="best-sellers" element={<AdminBestSellers />} />
                 <Route path="categories" element={<AdminCategories />} />
