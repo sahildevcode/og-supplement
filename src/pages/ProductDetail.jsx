@@ -357,10 +357,16 @@ export default function ProductDetail() {
   };
 
   const scrollToReviews = () => {
-    const el = document.getElementById('reviews-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+    const hasReviews = product?.reviewsList && product.reviewsList.length > 0;
+    if (!hasReviews) {
+      setShowReviewForm(true);
     }
+    setTimeout(() => {
+      const el = document.getElementById('reviews-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 50);
   };
 
   return (
@@ -1016,9 +1022,10 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        {/* Customer Reviews & Ratings Section */}
-        <div id="reviews-section" className={`pt-12 border-t space-y-8 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-          {/* Section Header */}
+        {/* Customer Reviews & Ratings Section - Hidden until real reviews exist or user opens Write Review */}
+        {(showReviewForm || (product.reviewsList && product.reviewsList.length > 0)) && (
+          <div id="reviews-section" className={`pt-12 border-t space-y-8 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+            {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-emerald-500 text-xs font-bold uppercase tracking-wider">
@@ -1450,6 +1457,7 @@ export default function ProductDetail() {
             )}
           </div>
         </div>
+        )}
 
         {/* Fullscreen Photo Lightbox Modal */}
         {selectedReviewImage && (
