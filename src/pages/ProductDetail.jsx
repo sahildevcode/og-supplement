@@ -29,6 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import StockBadge from '../components/product/StockBadge';
+import ProductCard from '../components/product/ProductCard';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 
@@ -1472,6 +1473,42 @@ export default function ProductDetail() {
                 alt="Enlarged review photo"
                 className="w-full h-full object-contain max-h-[85vh] rounded-3xl"
               />
+            </div>
+          </div>
+        )}
+
+        {/* You May Also Like / Recommended Products Section */}
+        {products && products.length > 1 && (
+          <div className="pt-12 border-t border-slate-800/80 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-emerald-500">
+                  Recommended For You
+                </span>
+                <h3 className={`text-xl sm:text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  Explore Other High-Performance Supplements
+                </h3>
+              </div>
+              <Link
+                to="/products"
+                className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors group"
+              >
+                View Full Catalog
+                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products
+                .filter((p) => {
+                  const pId = p._id || p.id;
+                  const curId = product._id || product.id;
+                  return pId !== curId && !pId.startsWith(curId);
+                })
+                .slice(0, 4)
+                .map((recProduct) => (
+                  <ProductCard key={recProduct._id || recProduct.id} product={recProduct} />
+                ))}
             </div>
           </div>
         )}
