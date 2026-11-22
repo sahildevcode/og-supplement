@@ -137,18 +137,22 @@ export default function ProductCard({ product, priority = false }) {
             const revCount = realRevs.length;
             const avgRat = revCount > 0
               ? (realRevs.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / revCount).toFixed(1)
-              : '0.0';
+              : null;
             const soldUnits = Number(product.salesCount || 0);
             return (
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[11px] font-bold">
-                  <span>{avgRat}</span>
-                  <Star className={`w-2.5 h-2.5 ${revCount > 0 ? 'fill-amber-400 text-amber-400' : 'text-amber-400'}`} />
-                </div>
-                <span className="text-[11px] text-slate-400">
-                  ({revCount})
-                </span>
-                <span className="text-slate-600 text-[10px]">•</span>
+                {revCount > 0 && (
+                  <>
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[11px] font-bold">
+                      <span>{avgRat}</span>
+                      <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                    </div>
+                    <span className="text-[11px] text-slate-400">
+                      ({revCount})
+                    </span>
+                    <span className="text-slate-600 text-[10px]">•</span>
+                  </>
+                )}
                 <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-orange-400">
                   <Flame className="w-2.5 h-2.5 fill-orange-400 text-orange-400" />
                   <span>{soldUnits.toLocaleString('en-IN')} sold</span>

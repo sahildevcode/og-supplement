@@ -462,28 +462,32 @@ export default function ProductDetail() {
                 const realCount = realReviews.length;
                 const realAvg = realCount > 0
                   ? (realReviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / realCount).toFixed(1)
-                  : '0.0';
+                  : null;
                 const soldUnits = Number(product.salesCount || 0);
 
                 return (
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={scrollToReviews}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-500 text-xs font-black hover:bg-amber-500/25 transition-all cursor-pointer"
-                      title="Click to view all reviews"
-                    >
-                      <span>{realAvg}</span>
-                      <Star className={`w-3.5 h-3.5 ${realCount > 0 ? 'fill-amber-400 text-amber-400' : 'text-amber-400'}`} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={scrollToReviews}
-                      className="text-xs text-slate-400 hover:text-emerald-500 transition-colors underline-offset-4 hover:underline cursor-pointer"
-                    >
-                      ({realCount} {realCount === 1 ? 'customer review' : 'customer reviews'})
-                    </button>
-                    <span className="text-slate-600">•</span>
+                    {realCount > 0 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={scrollToReviews}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-500 text-xs font-black hover:bg-amber-500/25 transition-all cursor-pointer"
+                          title="Click to view all reviews"
+                        >
+                          <span>{realAvg}</span>
+                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={scrollToReviews}
+                          className="text-xs text-slate-400 hover:text-emerald-500 transition-colors underline-offset-4 hover:underline cursor-pointer"
+                        >
+                          ({realCount} {realCount === 1 ? 'customer review' : 'customer reviews'})
+                        </button>
+                        <span className="text-slate-600">•</span>
+                      </>
+                    )}
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/15 border border-orange-500/30 text-orange-400 text-xs font-black">
                       <Flame className="w-3.5 h-3.5 fill-orange-400 text-orange-400" />
                       <span>{soldUnits.toLocaleString('en-IN')} Sold</span>
