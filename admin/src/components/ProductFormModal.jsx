@@ -34,6 +34,21 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
   const [saving, setSaving] = useState(false);
   const [showVariantCustomizer, setShowVariantCustomizer] = useState(false);
   const [activeCustomizer, setActiveCustomizer] = useState({ type: 'flavours', key: '' });
+  const [existingBrands, setExistingBrands] = useState([]);
+
+  // Fetch unique existing brands to give instant dropdown selection
+  useEffect(() => {
+    if (isOpen) {
+      api.getProducts().then((res) => {
+        if (res && Array.isArray(res.products)) {
+          const bSet = new Set(
+            res.products.map((p) => (p.brand || '').trim()).filter(Boolean)
+          );
+          setExistingBrands(Array.from(bSet));
+        }
+      }).catch(() => {});
+    }
+  }, [isOpen]);
 
   const ensureFourImages = (imgs) => {
     const list = Array.isArray(imgs) ? imgs.filter(Boolean) : [];
@@ -334,16 +349,27 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300">Brand Name *</label>
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-slate-300">Brand Name *</label>
+                {existingBrands.length > 0 && (
+                  <span className="text-[11px] text-cyan-400 font-semibold">Select or type new</span>
+                )}
+              </div>
               <input
                 type="text"
                 name="brand"
                 required
+                list="brand-suggestions-list"
                 value={formData.brand}
                 onChange={handleChange}
-                placeholder="Optimum Nutrition / MuscleBlaze"
+                placeholder="e.g. Wellcore, Optimum Nutrition..."
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500"
               />
+              <datalist id="brand-suggestions-list">
+                {existingBrands.map((b) => (
+                  <option key={b} value={b} />
+                ))}
+              </datalist>
             </div>
 
             <div className="space-y-1.5">

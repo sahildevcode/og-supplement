@@ -242,6 +242,81 @@ export default function ProductDetail() {
     return pBase && pBase === cleanBaseName && (p.brand || '').toLowerCase() === (product.brand || '').toLowerCase();
   });
 
+  // Unified Brand & Category Flavor Family
+  // Collects all flavors across all products of the same Brand + Category so everything shows together
+  const brandFamilyProducts = (products || []).filter((p) => {
+    return (
+      (p.brand || '').trim().toLowerCase() === (product.brand || '').trim().toLowerCase() &&
+      (p.category || '').trim().toLowerCase() === (product.category || '').trim().toLowerCase()
+    );
+  });
+
+  const unifiedBrandFlavours = React.useMemo(() => {
+    const list = [];
+    const seenFlavour = new Set();
+
+    // 1. Current product's own flavors first
+    const curFlavours = product.flavours || [];
+    curFlavours.forEach((f, idx) => {
+      const fNorm = String(f).trim().toLowerCase();
+      if (!seenFlavour.has(fNorm)) {
+        seenFlavour.add(fNorm);
+        const isFirst = idx === 0;
+        const fInfo = isFirst ? {} : getVariantDetail(rawVariantDetails.flavours, f);
+        const fPrice = isFirst
+          ? (curFlavours.length > 1 ? (product.discountPrice || product.price) : null)
+          : (fInfo.discountPrice || fInfo.price);
+        const fImg = isFirst
+          ? (curFlavours.length > 1 ? baseProductImgs[0] : null)
+          : (Array.isArray(fInfo.images) ? fInfo.images.find(Boolean) : null);
+
+        list.push({
+          name: String(f).trim(),
+          price: fPrice,
+          image: fImg,
+          isCurrentProduct: true,
+          productId: product._id || product.id
+        });
+      }
+    });
+
+    // 2. Bring in flavors from other products of the same Brand & Category
+    brandFamilyProducts.forEach((bp) => {
+      if ((bp._id || bp.id) === (product._id || product.id)) return;
+      const bpFlavours = bp.flavours || [];
+      const bpRawVariantDetails =
+        bp.variantDetails &&
+        (Object.keys(bp.variantDetails.flavours || {}).length > 0 || Object.keys(bp.variantDetails.sizes || {}).length > 0)
+          ? bp.variantDetails
+          : bp.nutritionalInfo?.__variantDetails || bp.variantDetails || { flavours: {}, sizes: {} };
+
+      bpFlavours.forEach((f, idx) => {
+        const fNorm = String(f).trim().toLowerCase();
+        if (!seenFlavour.has(fNorm)) {
+          seenFlavour.add(fNorm);
+          const isFirst = idx === 0;
+          const fInfo = isFirst ? {} : getVariantDetail(bpRawVariantDetails.flavours, f);
+          const fPrice = isFirst
+            ? (bp.discountPrice || bp.price)
+            : (fInfo.discountPrice || fInfo.price || bp.discountPrice);
+          const fImg = isFirst
+            ? (bp.images && bp.images[0])
+            : (Array.isArray(fInfo.images) ? fInfo.images.find(Boolean) : bp.images?.[0]);
+
+          list.push({
+            name: String(f).trim(),
+            price: fPrice,
+            image: fImg,
+            isCurrentProduct: false,
+            productId: bp._id || bp.id
+          });
+        }
+      });
+    });
+
+    return list;
+  }, [product, products, brandFamilyProducts, rawVariantDetails, baseProductImgs]);
+
   const variantProductForCart = {
     ...product,
     name: displayTitle,
@@ -591,44 +666,53 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* Flavour Picker (Flipkart / Amazon Style with Thumbnail & Price Preview) */}
-            {product.flavours && product.flavours.length > 0 && (
+            {/* Flavour Picker (Flipkart / Amazon Style with Brand-Level Unified Flavors) */}
+            {unifiedBrandFlavours && unifiedBrandFlavours.length > 0 && (
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                   <span>Select Flavor:</span>
                   <span className="text-emerald-400 font-black">{selectedFlavour}</span>
                 </label>
                 <div className="flex flex-wrap gap-2.5">
-                  {product.flavours.map((f, fIdx) => {
-                    const isFirstFlavour = fIdx === 0;
-                    const fInfo = isFirstFlavour ? {} : getVariantDetail(rawVariantDetails.flavours, f);
-                    const fPrice = isFirstFlavour
-                      ? (product.flavours.length > 1 ? (product.discountPrice || product.price) : null)
-                      : (fInfo.discountPrice || fInfo.price);
-                    const fImg = isFirstFlavour
-                      ? (product.flavours.length > 1 ? baseProductImgs[0] : null)
-                      : (Array.isArray(fInfo.images) ? fInfo.images.find(Boolean) : null);
+                  {unifiedBrandFlavours.map((uf) => {
+                    const isSelected =
+                      String(selectedFlavour).trim().toLowerCase() === String(uf.name).trim().toLowerCase();
                     return (
                       <button
-                        key={f}
+                        key={uf.name}
                         onClick={() => {
-                          setSelectedFlavour(f);
-                          setActiveImage(0);
+                          if (uf.isCurrentProduct) {
+                            setSelectedFlavour(uf.name);
+                            setActiveImage(0);
+                          } else {
+                            setActiveImage(0);
+                            navigate(`/products/${uf.productId}`);
+                          }
                         }}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                          selectedFlavour === f
+                          isSelected
                             ? 'bg-emerald-500 text-black border border-emerald-400 shadow-md shadow-emerald-950/40 scale-[1.02]'
-                            : isDark ? 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                            : isDark
+                            ? 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
+                            : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                         }`}
                       >
-                        {fImg && (
-                          <img src={fImg} alt={f} className="w-7 h-7 rounded-lg object-contain bg-black/20 p-0.5" />
+                        {uf.image && (
+                          <img
+                            src={uf.image}
+                            alt={uf.name}
+                            className="w-7 h-7 rounded-lg object-contain bg-black/20 p-0.5"
+                          />
                         )}
                         <div className="text-left">
-                          <div>{String(f).trim()}</div>
-                          {fPrice && (
-                            <div className={`text-[10px] font-black ${selectedFlavour === f ? 'text-black/80' : 'text-emerald-400'}`}>
-                              ₹{Number(fPrice).toLocaleString('en-IN')}
+                          <div>{String(uf.name).trim()}</div>
+                          {uf.price && (
+                            <div
+                              className={`text-[10px] font-black ${
+                                isSelected ? 'text-black/80' : 'text-emerald-400'
+                              }`}
+                            >
+                              ₹{Number(uf.price).toLocaleString('en-IN')}
                             </div>
                           )}
                         </div>
