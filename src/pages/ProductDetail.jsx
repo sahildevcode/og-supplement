@@ -41,8 +41,13 @@ export default function ProductDetail() {
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
+  // Support variant deep-linking: /products/6ac24a...__flv__Tropical%20Tango
+  const isVariantId = typeof id === 'string' && id.includes('__flv__');
+  const baseProductId = isVariantId ? id.split('__flv__')[0] : id;
+  const initialFlavourFromUrl = isVariantId ? decodeURIComponent(id.split('__flv__')[1]) : '';
+
   // Find from active live product context or fetch
-  const liveProduct = products.find((p) => (p._id || p.id) === id);
+  const liveProduct = products.find((p) => (p._id || p.id) === baseProductId);
 
   const [product, setProduct] = useState(liveProduct || null);
   const [activeImage, setActiveImage] = useState(0);
@@ -95,20 +100,20 @@ export default function ProductDetail() {
     if (liveProduct) {
       setProduct(liveProduct);
       setSelectedVariant((prev) => (prev && liveProduct.variants?.includes(prev) ? prev : (liveProduct.variants?.[0] || 'Standard')));
-      setSelectedFlavour((prev) => (prev && liveProduct.flavours?.includes(prev) ? prev : (liveProduct.flavours?.[0] || 'Standard')));
+      setSelectedFlavour(initialFlavourFromUrl || liveProduct.flavours?.[0] || 'Standard');
     } else {
       // Fetch fallback
-      api.getProductById(id)
+      api.getProductById(baseProductId)
         .then((res) => {
           if (res.product) {
             setProduct(res.product);
             setSelectedVariant(res.product.variants?.[0] || 'Standard');
-            setSelectedFlavour(res.product.flavours?.[0] || 'Standard');
+            setSelectedFlavour(initialFlavourFromUrl || res.product.flavours?.[0] || 'Standard');
           }
         })
         .catch(console.error);
     }
-  }, [id, liveProduct]);
+  }, [id, baseProductId, liveProduct, initialFlavourFromUrl]);
 
   if (!product) {
     return (
@@ -635,7 +640,7 @@ export default function ProductDetail() {
                       key={sib._id || sib.id}
                       onClick={() => {
                         setActiveImage(0);
-                        navigate(`/product/${sib._id || sib.id}`);
+                        navigate(`/products/${sib._id || sib.id}`);
                       }}
                       className={`p-2 pr-3 rounded-xl text-xs font-bold border transition-all flex items-center gap-2.5 cursor-pointer ${
                         isDark
