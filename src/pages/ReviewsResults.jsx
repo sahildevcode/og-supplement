@@ -32,6 +32,15 @@ const GOAL_OPTIONS = [
   'Daily Fitness & Stamina'
 ];
 
+// Helper to resolve image URL if it's relative
+const resolveImg = (src) => {
+  if (!src) return '';
+  if (src.startsWith('data:') || src.startsWith('http://') || src.startsWith('https://')) {
+    return src;
+  }
+  return `https://og-supplement-server.onrender.com${src.startsWith('/') ? '' : '/'}${src}`;
+};
+
 export default function ReviewsResults() {
   const { isDark } = useTheme();
   const { addToast } = useToast();
@@ -148,7 +157,8 @@ export default function ReviewsResults() {
     return true;
   });
 
-  const transformationCards = reviews.filter((r) => r.beforeImage && r.afterImage);
+  // Show transformation cards that have either beforeImage or afterImage
+  const transformationCards = reviews.filter((r) => r.beforeImage || r.afterImage);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
@@ -257,7 +267,7 @@ export default function ReviewsResults() {
                 <div className="relative grid grid-cols-2 gap-1 p-2 bg-slate-950">
                   <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
                     <img
-                      src={rev.beforeImage}
+                      src={resolveImg(rev.beforeImage) || resolveImg(rev.afterImage)}
                       alt="Before Transformation"
                       className="w-full h-full object-cover"
                     />
@@ -268,7 +278,7 @@ export default function ReviewsResults() {
 
                   <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
                     <img
-                      src={rev.afterImage}
+                      src={resolveImg(rev.afterImage) || resolveImg(rev.beforeImage)}
                       alt="After Transformation"
                       className="w-full h-full object-cover"
                     />

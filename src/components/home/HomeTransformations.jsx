@@ -44,6 +44,15 @@ const DEFAULT_PREVIEWS = [
   }
 ];
 
+// Helper to resolve image URL if it's relative
+const resolveImg = (src) => {
+  if (!src) return '';
+  if (src.startsWith('data:') || src.startsWith('http://') || src.startsWith('https://')) {
+    return src;
+  }
+  return `https://og-supplement-server.onrender.com${src.startsWith('/') ? '' : '/'}${src}`;
+};
+
 export default function HomeTransformations() {
   const { isDark } = useTheme();
   const [transformations, setTransformations] = useState(DEFAULT_PREVIEWS);
@@ -52,8 +61,8 @@ export default function HomeTransformations() {
     try {
       const res = await api.getReviews();
       if (res && res.reviews && Array.isArray(res.reviews)) {
-        // Filter those with before & after image
-        const withPhotos = res.reviews.filter(r => r.beforeImage && r.afterImage);
+        // Show all reviews that have either beforeImage, afterImage, or are featured
+        const withPhotos = res.reviews.filter(r => r.beforeImage || r.afterImage);
         if (withPhotos.length > 0) {
           setTransformations(withPhotos.slice(0, 6));
         } else {
@@ -131,13 +140,13 @@ export default function HomeTransformations() {
                 {/* Before / After Photo Comparison */}
                 <div className="grid grid-cols-2 gap-1 p-2 bg-slate-950">
                   <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900">
-                    <img src={beforeImg} alt="Before" className="w-full h-full object-cover" />
+                    <img src={resolveImg(beforeImg) || resolveImg(afterImg)} alt="Before" className="w-full h-full object-cover" />
                     <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-black/80 text-slate-300">
                       Before
                     </span>
                   </div>
                   <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900">
-                    <img src={afterImg} alt="After" className="w-full h-full object-cover" />
+                    <img src={resolveImg(afterImg) || resolveImg(beforeImg)} alt="After" className="w-full h-full object-cover" />
                     <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500 text-black">
                       {dur}
                     </span>

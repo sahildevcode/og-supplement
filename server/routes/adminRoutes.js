@@ -44,8 +44,19 @@ router.post('/upload', upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No image file uploaded' });
   }
-  const imageUrl = `/uploads/${req.file.filename}`;
-  res.json({ success: true, imageUrl, message: 'Image uploaded successfully' });
+  // Return absolute URL so it resolves properly across Vercel frontend and admin domains
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+  const host = req.get('host') || 'og-supplement-server.onrender.com';
+  const fullUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+  const relativeUrl = `/uploads/${req.file.filename}`;
+
+  res.json({
+    success: true,
+    imageUrl: fullUrl,
+    url: fullUrl,
+    relativeUrl,
+    message: 'Image uploaded successfully'
+  });
 });
 
 // Stats Endpoint

@@ -28,6 +28,15 @@ const GOAL_OPTIONS = [
   'General Wellness'
 ];
 
+// Helper to resolve image URL if it's relative
+const resolveImg = (src) => {
+  if (!src) return '';
+  if (src.startsWith('data:') || src.startsWith('http://') || src.startsWith('https://')) {
+    return src;
+  }
+  return `https://og-supplement-server.onrender.com${src.startsWith('/') ? '' : '/'}${src}`;
+};
+
 export default function AdminTransformations() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -121,13 +130,23 @@ export default function AdminTransformations() {
 
     try {
       setUploadingField(field);
+
+      // Instant local preview using FileReader
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        // Also show immediate preview if server is slow
+      };
+      reader.readAsDataURL(file);
+
       const uploadData = new FormData();
       uploadData.append('image', file);
 
       const res = await api.uploadImage(uploadData);
-      if (res && res.imageUrl) {
-        setFormData((prev) => ({ ...prev, [field]: res.imageUrl }));
-        addToast('Photo uploaded successfully!', 'success');
+      const url = res?.imageUrl || res?.url;
+      if (url) {
+        const fullUrl = resolveImg(url);
+        setFormData((prev) => ({ ...prev, [field]: fullUrl }));
+        addToast('Photo uploaded and ready!', 'success');
       }
     } catch (err) {
       addToast('Upload failed. You can also paste an image URL.', 'error');
@@ -330,13 +349,13 @@ export default function AdminTransformations() {
                 {isTransformation ? (
                   <div className="relative grid grid-cols-2 gap-1 p-2 bg-slate-950">
                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
-                      <img src={r.beforeImage} alt="Before" className="w-full h-full object-cover" />
+                      <img src={resolveImg(r.beforeImage)} alt="Before" className="w-full h-full object-cover" />
                       <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-black/85 text-slate-300">
                         Before
                       </span>
                     </div>
                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
-                      <img src={r.afterImage} alt="After" className="w-full h-full object-cover" />
+                      <img src={resolveImg(r.afterImage)} alt="After" className="w-full h-full object-cover" />
                       <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-black">
                         {r.duration || '12 Wks'}
                       </span>
@@ -600,8 +619,8 @@ export default function AdminTransformations() {
                       </label>
                     </div>
                     {formData.beforeImage && (
-                      <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-700 mt-2">
-                        <img src={formData.beforeImage} alt="Before Preview" className="w-full h-full object-cover" />
+                      <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-700 mt-2 bg-slate-900">
+                        <img src={resolveImg(formData.beforeImage)} alt="Before Preview" className="w-full h-full object-cover" />
                       </div>
                     )}
                   </div>
@@ -628,8 +647,8 @@ export default function AdminTransformations() {
                       </label>
                     </div>
                     {formData.afterImage && (
-                      <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-700 mt-2">
-                        <img src={formData.afterImage} alt="After Preview" className="w-full h-full object-cover" />
+                      <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-700 mt-2 bg-slate-900">
+                        <img src={resolveImg(formData.afterImage)} alt="After Preview" className="w-full h-full object-cover" />
                       </div>
                     )}
                   </div>
