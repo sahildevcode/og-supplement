@@ -263,30 +263,52 @@ export default function ReviewsResults() {
                   isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
                 }`}
               >
-                {/* Before / After Images Side by Side */}
-                <div className="relative grid grid-cols-2 gap-1 p-2 bg-slate-950">
-                  <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
-                    <img
-                      src={resolveImg(rev.beforeImage) || resolveImg(rev.afterImage)}
-                      alt="Before Transformation"
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-black/80 text-slate-300">
-                      Before
-                    </span>
-                  </div>
+                {/* Single Image OR Side-by-Side Before/After */}
+                {rev.beforeImage && rev.afterImage ? (
+                  /* Two Images: Split View */
+                  <div className="relative grid grid-cols-2 gap-1 p-2 bg-slate-950">
+                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
+                      <img
+                        src={resolveImg(rev.beforeImage)}
+                        alt="Before Transformation"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-black/80 text-slate-300">
+                        Before
+                      </span>
+                    </div>
 
-                  <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
-                    <img
-                      src={resolveImg(rev.afterImage) || resolveImg(rev.beforeImage)}
-                      alt="After Transformation"
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-black">
-                      After ({rev.duration || '12 Wks'})
-                    </span>
+                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
+                      <img
+                        src={resolveImg(rev.afterImage)}
+                        alt="After Transformation"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-black">
+                        After ({rev.duration || '12 Wks'})
+                      </span>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* Single Image: Full Width Display (Portrait or Landscape fits perfectly) */
+                  <div className="relative p-2 bg-slate-950">
+                    <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center">
+                      <img
+                        src={resolveImg(rev.beforeImage || rev.afterImage)}
+                        alt="Customer Transformation"
+                        className="w-full h-full object-cover sm:object-contain"
+                      />
+                      <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-black shadow-md">
+                        {rev.duration || 'Verified Result'}
+                      </span>
+                      {rev.gainMetric && (
+                        <span className="absolute top-2 right-2 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-500 text-black shadow-md">
+                          {rev.gainMetric}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Details */}
                 <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">

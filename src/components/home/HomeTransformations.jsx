@@ -137,21 +137,43 @@ export default function HomeTransformations() {
                   isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
                 }`}
               >
-                {/* Before / After Photo Comparison */}
-                <div className="grid grid-cols-2 gap-1 p-2 bg-slate-950">
-                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900">
-                    <img src={resolveImg(beforeImg) || resolveImg(afterImg)} alt="Before" className="w-full h-full object-cover" />
-                    <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-black/80 text-slate-300">
-                      Before
-                    </span>
+                {/* Single Image OR Side-by-Side Before/After */}
+                {t.beforeImage && t.afterImage ? (
+                  /* Two Images: Split View */
+                  <div className="grid grid-cols-2 gap-1 p-2 bg-slate-950">
+                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900">
+                      <img src={resolveImg(beforeImg)} alt="Before" className="w-full h-full object-cover" />
+                      <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-black/80 text-slate-300">
+                        Before
+                      </span>
+                    </div>
+                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900">
+                      <img src={resolveImg(afterImg)} alt="After" className="w-full h-full object-cover" />
+                      <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500 text-black">
+                        {dur}
+                      </span>
+                    </div>
                   </div>
-                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900">
-                    <img src={resolveImg(afterImg) || resolveImg(beforeImg)} alt="After" className="w-full h-full object-cover" />
-                    <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500 text-black">
-                      {dur}
-                    </span>
+                ) : (
+                  /* Single Image: Full Width View (Landscape or Portrait auto-fits) */
+                  <div className="p-2 bg-slate-950">
+                    <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-slate-900 flex items-center justify-center">
+                      <img
+                        src={resolveImg(beforeImg || afterImg)}
+                        alt="Transformation Result"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500 text-black shadow-md">
+                        {dur}
+                      </span>
+                      {gain && (
+                        <span className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-500 text-black shadow-md">
+                          {gain}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Text Content */}
                 <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">

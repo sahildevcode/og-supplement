@@ -181,7 +181,7 @@ export default function AdminTransformations() {
   };
 
   const filteredReviews = reviews.filter((r) => {
-    const isTransformation = Boolean(r.beforeImage && r.afterImage);
+    const isTransformation = Boolean(r.beforeImage || r.afterImage);
     if (filterType === 'transformations' && !isTransformation) return false;
     if (filterType === 'reviews' && isTransformation) return false;
 
@@ -196,7 +196,7 @@ export default function AdminTransformations() {
     return true;
   });
 
-  const transformationCount = reviews.filter((r) => r.beforeImage && r.afterImage).length;
+  const transformationCount = reviews.filter((r) => r.beforeImage || r.afterImage).length;
 
   return (
     <div className="space-y-8 animate-fade-in pb-16">
@@ -346,7 +346,7 @@ export default function AdminTransformations() {
                 className="rounded-3xl border border-slate-800 bg-slate-900/70 hover:border-slate-700 transition-all overflow-hidden flex flex-col justify-between group shadow-xl"
               >
                 {/* Visual Header / Before After photos */}
-                {isTransformation ? (
+                {r.beforeImage && r.afterImage ? (
                   <div className="relative grid grid-cols-2 gap-1 p-2 bg-slate-950">
                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
                       <img src={resolveImg(r.beforeImage)} alt="Before" className="w-full h-full object-cover" />
@@ -359,6 +359,24 @@ export default function AdminTransformations() {
                       <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-black">
                         {r.duration || '12 Wks'}
                       </span>
+                    </div>
+                  </div>
+                ) : (r.beforeImage || r.afterImage) ? (
+                  <div className="p-2 bg-slate-950">
+                    <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center">
+                      <img
+                        src={resolveImg(r.beforeImage || r.afterImage)}
+                        alt="Transformation"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-black">
+                        {r.duration || 'Verified Result'}
+                      </span>
+                      {r.gainMetric && (
+                        <span className="absolute top-2 right-2 px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-amber-500 text-black">
+                          {r.gainMetric}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ) : (
