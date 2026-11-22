@@ -277,6 +277,28 @@ export const api = {
     };
   },
 
+  // Hero Banner Slider
+  getHeroBanners: async () => {
+    try {
+      const res = await apiRequest('/settings/banner');
+      if (res && res.slides && res.slides.length > 0) {
+        try {
+          localStorage.setItem('og_hero_banners', JSON.stringify(res.slides));
+        } catch (e) {}
+        return res;
+      }
+    } catch (e) {
+      console.warn('[Hero Banner Notice] Backend offline, checking local cache');
+    }
+    try {
+      const cached = JSON.parse(localStorage.getItem('og_hero_banners') || 'null');
+      if (cached && cached.length > 0) {
+        return { success: true, slides: cached };
+      }
+    } catch (e) {}
+    return { success: true, slides: null };
+  },
+
   // Razorpay Gateway
   createRazorpayOrder: async (data) => {
     try {

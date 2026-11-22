@@ -88,4 +88,8 @@ export const api = {
   // Payment & QR Code Settings
   getPaymentSettings: () => apiRequest('/settings/payment'),
   updatePaymentSettings: (data) => apiRequest('/settings/payment', { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Hero Banner Slider Settings
+  getHeroBanners: () => apiRequest('/settings/banner'),
+  updateHeroBanners: (slides) => apiRequest('/settings/banner', { method: 'PUT', body: JSON.stringify({ slides }) }),
 };

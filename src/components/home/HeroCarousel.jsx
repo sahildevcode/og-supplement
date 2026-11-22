@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Zap, ShieldCheck, Flame, Sparkles } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
 import { useTheme } from '../../context/ThemeContext';
+import { api } from '../../services/api';
+import { socket } from '../../services/socket';
 
-const slides = [
+const initialSlides = [
   {
     id: 1,
     category: "Protein",
@@ -64,11 +66,42 @@ const slides = [
 ];
 
 export default function HeroCarousel() {
+  const [slides, setSlides] = useState(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem('og_hero_banners'));
+      if (Array.isArray(cached) && cached.length > 0) return cached;
+    } catch (e) {}
+    return initialSlides;
+  });
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const { setSelectedCategory } = useProducts();
   const { isDark } = useTheme();
   const navigate = useNavigate();
+
+  // Fetch dynamic hero banners from server
+  useEffect(() => {
+    let isMounted = true;
+    api.getHeroBanners().then((res) => {
+      if (isMounted && res?.slides && Array.isArray(res.slides) && res.slides.length > 0) {
+        setSlides(res.slides);
+      }
+    }).catch(() => {});
+
+    // Real-time socket sync when admin updates hero banner
+    const handleBannerUpdate = (updatedSlides) => {
+      if (Array.isArray(updatedSlides) && updatedSlides.length > 0) {
+        setSlides(updatedSlides);
+        localStorage.setItem('og_hero_banners', JSON.stringify(updatedSlides));
+      }
+    };
+
+    socket.on('hero-banner:updated', handleBannerUpdate);
+    return () => {
+      isMounted = false;
+      socket.off('hero-banner:updated', handleBannerUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     if (isPaused) return;
@@ -76,7 +109,7 @@ export default function HeroCarousel() {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5500);
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, slides.length]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
