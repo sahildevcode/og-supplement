@@ -1,8 +1,10 @@
-import React from 'react';
-import { CheckCircle2, Circle, PackageCheck, Truck, Home, Clock, AlertTriangle, RotateCcw, Mail, HelpCircle, Check, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, Circle, PackageCheck, Truck, Home, Clock, AlertTriangle, RotateCcw, Mail, HelpCircle, Check, XCircle, ChevronDown, ChevronUp, FileText, ShieldAlert } from 'lucide-react';
 
 export default function OrderTrackerTimeline({ order, isDark = true }) {
   if (!order) return null;
+
+  const [showCancellationHistory, setShowCancellationHistory] = useState(false);
 
   const isCancelled = order.orderStatus === 'Cancelled';
   const orderDate = new Date(order.createdAt || Date.now());
@@ -150,14 +152,95 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
               </div>
             </div>
 
-            <a
-              href={`mailto:sk7161853@gmail.com?subject=Inquiry%20for%20Cancelled%20Order%20%23${order.orderId}&body=Hello%20OG-Supplement%20Team%2C%0A%0AMy%20order%20%23${order.orderId}%20was%20cancelled.%20I%20have%20a%20query%20regarding%20this.%0A%0AThank%20you.`}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-black flex items-center gap-2 transition-all shadow-md active:scale-95 shrink-0 cursor-pointer"
-            >
-              <Mail className="w-3.5 h-3.5" />
-              <span>Contact Support</span>
-            </a>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setShowCancellationHistory(!showCancellationHistory)}
+                className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-750 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 transition-all shadow-md active:scale-95 shrink-0 cursor-pointer"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>{showCancellationHistory ? 'Hide Details' : 'View History / Refund Details'}</span>
+                {showCancellationHistory ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+
+              <a
+                href={`mailto:sk7161853@gmail.com?subject=Inquiry%20for%20Cancelled%20Order%20%23${order.orderId}&body=Hello%20OG-Supplement%20Team%2C%0A%0AMy%20order%20%23${order.orderId}%20was%20cancelled.%20I%20have%20a%20query%20regarding%20this.%0A%0AThank%20you.`}
+                className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-black flex items-center gap-1.5 transition-all shadow-md active:scale-95 shrink-0 cursor-pointer"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Contact Support</span>
+              </a>
+            </div>
           </div>
+
+          {/* Cancellation History & Refund Calculation Card */}
+          {showCancellationHistory && (
+            <div className={`p-4 sm:p-5 rounded-2xl border space-y-4 animate-in fade-in duration-200 ${
+              isDark ? 'bg-slate-900/90 border-slate-700/80 text-white' : 'bg-slate-100 border-slate-300 text-slate-900'
+            }`}>
+              <div className="flex items-center justify-between border-b pb-3 border-slate-800">
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="w-4 h-4 text-emerald-400" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                    Payment & Cancellation Breakdown
+                  </h4>
+                </div>
+                <span className="text-[11px] font-mono text-slate-400">
+                  {order.cancelledAt ? new Date(order.cancelledAt).toLocaleString('en-IN') : 'Recently Cancelled'}
+                </span>
+              </div>
+
+              {/* Grid Summary */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-0.5">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">Original Paid Amount</span>
+                  <p className="text-sm font-black text-white">₹{order.totalAmount?.toLocaleString('en-IN')}</p>
+                  <span className="text-[10px] text-slate-500">Total Charged</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-rose-500/30 space-y-0.5">
+                  <span className="text-[10px] text-rose-400 font-bold uppercase">Fee Cut / Deducted</span>
+                  <p className="text-sm font-black text-rose-400">- ₹{(order.cancellationFee || Math.round(order.totalAmount * 0.05)).toLocaleString('en-IN')}</p>
+                  <span className="text-[10px] text-slate-400">5% Handling & Gateway Fee</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 space-y-0.5">
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase">Refund To Bank</span>
+                  <p className="text-sm font-black text-emerald-400">
+                    ₹{(order.refundAmount !== undefined ? order.refundAmount : (order.totalAmount - (order.cancellationFee || Math.round(order.totalAmount * 0.05)))).toLocaleString('en-IN')}
+                  </p>
+                  <span className="text-[10px] text-emerald-400/90 font-medium">To Original Payment Method</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/80 border border-cyan-500/30 space-y-0.5">
+                  <span className="text-[10px] text-cyan-400 font-bold uppercase">Expected Timeline</span>
+                  <p className="text-sm font-black text-cyan-400">2 to 4 Days</p>
+                  <span className="text-[10px] text-slate-400">Bank Settlement Cycle</span>
+                </div>
+              </div>
+
+              {/* Detailed Breakdown Notes */}
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs space-y-2">
+                <div className="flex items-start gap-2">
+                  <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="text-[11px] text-slate-300 leading-relaxed space-y-1">
+                    <p>
+                      <strong>Paisa kis wajah se cut hua?</strong> Razorpay payment gateway handling, processing charges aur banking network fees ke liye policy ke mutabiq 5% fee cut ki gayi hai.
+                    </p>
+                    <p>
+                      <strong>Refund kab aayega?</strong> ₹{(order.refundAmount !== undefined ? order.refundAmount : (order.totalAmount - (order.cancellationFee || Math.round(order.totalAmount * 0.05)))).toLocaleString('en-IN')} ka refund aapke usi payment account (Google Pay / PhonePe / Card / Bank) par <strong>2 se 4 business days</strong> mein credit ho jayega.
+                    </p>
+                    {order.cancelReason && (
+                      <p className="text-slate-400 pt-1 border-t border-slate-800/80">
+                        Reason for cancellation: <span className="text-white italic">"{order.cancelReason}"</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
         </div>
       ) : (
         /* Flipkart 4-Stage Stepper */
