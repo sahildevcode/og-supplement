@@ -24,16 +24,16 @@ export default function BrandTrust() {
     },
     {
       icon: Truck,
-      title: "Free Express Shipping",
-      desc: "Complimentary 24-48h dispatch on all orders above ₹999 across 20,000+ pincodes.",
+      title: "Fast 7-Day Delivery",
+      desc: "Guaranteed doorstep delivery within 7 days across 20,000+ pincodes.",
       color: "text-amber-500",
       bgDark: "bg-amber-500/10 border-amber-500/20",
       bgLight: "bg-amber-50 border-amber-200"
     },
     {
       icon: RotateCcw,
-      title: "7-Day Easy Returns",
-      desc: "100% money back or replacement for damaged, unsealed or mismatched packages.",
+      title: "Easy Cancellation / Return",
+      desc: "Order can be cancelled or returned anytime before delivery with 100% full refund.",
       color: "text-rose-500",
       bgDark: "bg-rose-500/10 border-rose-500/20",
       bgLight: "bg-rose-50 border-rose-200"

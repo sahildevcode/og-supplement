@@ -818,9 +818,9 @@ export default function Checkout() {
                                 0% Tax Free
                               </span>
                             )}
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/30">
                               <Truck className="w-3 h-3 text-cyan-400" />
-                              <span>7 din mein pahuch jayega (Est. 7 Days Delivery)</span>
+                              <span>7 din mein delivery • Delivery se pehle cancel/return available</span>
                             </span>
                           </div>
                         </div>

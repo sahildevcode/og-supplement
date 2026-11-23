@@ -525,7 +525,7 @@ export default function ProductDetail() {
               </div>
 
               {/* Product Title (Dynamically updates with selected Weight & Flavor) */}
-              <h1 className={`text-2xl sm:text-4xl font-black tracking-tight leading-tight transition-all ${
+              <h1 className={`text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight leading-snug transition-all ${
                 isDark ? 'text-white' : 'text-slate-900'
               }`}>
                 {displayTitle}
@@ -824,8 +824,8 @@ export default function ProductDetail() {
             }`}>
               <div className="space-y-1">
                 <Truck className="w-5 h-5 text-cyan-500 mx-auto" />
-                <p className={`text-[11px] font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Express Delivery</p>
-                <p className="text-[10px] text-slate-400">24-48h dispatch</p>
+                <p className={`text-[11px] font-black ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>Delivery in 7 Days</p>
+                <p className="text-[10px] text-slate-400 font-medium">Safe Express Shipping</p>
               </div>
               <div className={`space-y-1 border-x px-2 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
                 <ShieldCheck className="w-5 h-5 text-emerald-500 mx-auto" />
@@ -834,8 +834,8 @@ export default function ProductDetail() {
               </div>
               <div className="space-y-1">
                 <RotateCcw className="w-5 h-5 text-rose-500 mx-auto" />
-                <p className={`text-[11px] font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Easy Returns</p>
-                <p className="text-[10px] text-slate-400">7-Day Guarantee</p>
+                <p className={`text-[11px] font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Easy Cancellation</p>
+                <p className="text-[10px] text-slate-400">Cancel before delivery</p>
               </div>
             </div>
 
