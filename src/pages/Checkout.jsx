@@ -720,36 +720,7 @@ export default function Checkout() {
                   </label>
                 )}
 
-                {/* Option 2: Direct UPI QR Code (PhonePe, Google Pay, Paytm, BHIM) */}
-                <label className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
-                  formData.paymentMethod === 'Online / UPI'
-                    ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-950/20 ring-1 ring-emerald-500/30'
-                    : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-                }`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="Online / UPI"
-                    checked={formData.paymentMethod === 'Online / UPI'}
-                    onChange={handleChange}
-                    className="mt-1 accent-emerald-500 w-4 h-4"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        Direct UPI & QR Code (PhonePe, Google Pay, Paytm, BHIM)
-                      </p>
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30">
-                        📱 Scan & Pay
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Direct QR Code scan or 1-tap open PhonePe, GPay, Paytm on phone. Zero extra payment fees.
-                    </p>
-                  </div>
-                </label>
-
-                {/* Option 3: Cash on Delivery */}
+                {/* Option 2: Cash on Delivery */}
                 {paymentSettings.isCodEnabled !== false && (
                   <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
                     formData.paymentMethod === 'Cash on Delivery'
@@ -772,149 +743,6 @@ export default function Checkout() {
                 )}
 
               </div>
-
-              {/* Direct UPI Information Card (When Direct UPI is selected) */}
-              {formData.paymentMethod === 'Online / UPI' && (
-                <div className={`p-6 rounded-2xl border space-y-5 animate-in fade-in zoom-in-95 duration-200 ${
-                  isDark ? 'bg-slate-950/90 border-teal-500/30' : 'bg-teal-50/60 border-teal-200'
-                }`}>
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-teal-400">
-                      <QrCode className="w-4 h-4" />
-                      <span>Scan & Pay via any UPI App</span>
-                    </div>
-                    <span className="text-xs font-bold text-teal-400">
-                      Exact Amount: ₹{totalAmount.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-                    {/* QR Code Container */}
-                    <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-inner border border-slate-200">
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
-                          `upi://pay?pa=${paymentSettings.upiId || 'ogsupplement@okaxis'}&pn=${encodeURIComponent(paymentSettings.merchantName || 'OG Supplement')}&am=${totalAmount}&cu=INR`
-                        )}`}
-                        alt="UPI Payment QR Code"
-                        className="w-44 h-44 object-contain"
-                      />
-                      <p className="text-[11px] font-bold text-slate-800 mt-2 text-center">
-                        Scan with PhonePe, GPay, Paytm, BharatPe
-                      </p>
-                      <span className="text-[9px] text-slate-500 text-center font-medium">
-                        Works with BHIM, Cred, Amazon Pay & all Bank UPI apps
-                      </span>
-                    </div>
-
-                    {/* App Deep-links & UPI ID */}
-                    <div className="space-y-3.5 text-xs">
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-slate-400">Official Merchant UPI ID:</span>
-                          <span className="text-[10px] text-teal-400 font-bold">Verified Merchant</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <code className={`px-3 py-1.5 rounded-xl font-mono font-bold text-sm border flex-1 truncate ${
-                            isDark ? 'bg-slate-900 border-slate-700 text-teal-300' : 'bg-white border-slate-300 text-teal-700'
-                          }`}>
-                            {paymentSettings.upiId || 'ogsupplement@okaxis'}
-                          </code>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard.writeText(paymentSettings.upiId || 'ogsupplement@okaxis');
-                              addToast('Merchant UPI ID copied to clipboard!', 'success');
-                            }}
-                            className="p-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-400 border border-teal-500/30 transition-colors cursor-pointer"
-                            title="Copy UPI ID"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Direct Click-to-Pay links for mobile users */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-slate-400">Pay directly via mobile app:</span>
-                          <span className="text-[10px] text-slate-500">(Mobile phones only)</span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const upiUrl = `upi://pay?pa=${paymentSettings.upiId || 'ogsupplement@okaxis'}&pn=${encodeURIComponent(paymentSettings.merchantName || 'OG Supplement')}&am=${totalAmount}&cu=INR`;
-                              const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                              if (isMobile) {
-                                window.location.href = upiUrl;
-                              } else {
-                                addToast('📱 PhonePe mobile app hai. Computer/Laptop par screen par dikh rahe QR code ko apne phone ke PhonePe se scan karein!', 'info');
-                              }
-                            }}
-                            className="px-2 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 text-center font-bold text-[11px] transition-colors cursor-pointer"
-                          >
-                            PhonePe
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const upiUrl = `upi://pay?pa=${paymentSettings.upiId || 'ogsupplement@okaxis'}&pn=${encodeURIComponent(paymentSettings.merchantName || 'OG Supplement')}&am=${totalAmount}&cu=INR`;
-                              const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                              if (isMobile) {
-                                window.location.href = upiUrl;
-                              } else {
-                                addToast('📱 Google Pay mobile app hai. Computer/Laptop par screen par dikh rahe QR code ko apne phone ke Google Pay se scan karein!', 'info');
-                              }
-                            }}
-                            className="px-2 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 text-center font-bold text-[11px] transition-colors cursor-pointer"
-                          >
-                            Google Pay
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const upiUrl = `upi://pay?pa=${paymentSettings.upiId || 'ogsupplement@okaxis'}&pn=${encodeURIComponent(paymentSettings.merchantName || 'OG Supplement')}&am=${totalAmount}&cu=INR`;
-                              const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                              if (isMobile) {
-                                window.location.href = upiUrl;
-                              } else {
-                                addToast('📱 Paytm mobile app hai. Computer/Laptop par screen par dikh rahe QR code ko apne phone ke Paytm se scan karein!', 'info');
-                              }
-                            }}
-                            className="px-2 py-2 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/30 text-sky-300 text-center font-bold text-[11px] transition-colors cursor-pointer"
-                          >
-                            Paytm
-                          </button>
-                        </div>
-                        <p className="text-[10px] text-slate-500 italic">
-                          💡 BharatPe, Cred ya kisi bhi dusre app se pay karne ke liye upar QR scan karein ya UPI ID copy karein.
-                        </p>
-                      </div>
-
-                      {/* 12-digit UTR Input */}
-                      <div className="space-y-1 pt-1">
-                        <label className="text-[11px] font-bold text-slate-300 block">
-                          Enter 12-Digit UPI UTR / Ref No. *
-                        </label>
-                        <input
-                          type="text"
-                          name="transactionId"
-                          value={formData.transactionId}
-                          onChange={handleChange}
-                          placeholder="e.g. 4289XXXXXXXX (from receipt)"
-                          maxLength={20}
-                          className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-mono focus:outline-none ${
-                            isDark ? 'bg-slate-900 border-teal-500/40 text-white focus:border-teal-400' : 'bg-white border-teal-300 text-slate-900 focus:border-teal-500'
-                          }`}
-                        />
-                        <p className="text-[10px] text-slate-400">
-                          Submit payment in your UPI app, then paste the 12-digit UTR number here to confirm.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Razorpay Information Box (When Razorpay is selected) */}
               {formData.paymentMethod === 'Razorpay (Online)' && (
@@ -980,7 +808,7 @@ export default function Checkout() {
                         <div className="flex-1 min-w-0">
                           <p className={`font-bold truncate ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{item.name}</p>
                           <p className="text-[11px] text-slate-400">{item.variant} • {item.flavour}</p>
-                          <div className="flex items-center gap-1.5 mt-0.5">
+                          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                             {item.isGstApplicable !== false ? (
                               <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                                 +{item.gstRate || 18}% GST (₹{itemGst})
@@ -990,6 +818,10 @@ export default function Checkout() {
                                 0% Tax Free
                               </span>
                             )}
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                              <Truck className="w-3 h-3 text-cyan-400" />
+                              <span>7 din mein pahuch jayega (Est. 7 Days Delivery)</span>
+                            </span>
                           </div>
                         </div>
 
@@ -1076,9 +908,12 @@ export default function Checkout() {
 
                 <div className="flex justify-between items-center">
                   <span>Delivery Charge:</span>
-                  <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                    {deliveryCharge === 0 ? <span className="text-emerald-500 font-bold">FREE (₹0)</span> : `₹${deliveryCharge}`}
-                  </span>
+                  <div className="text-right">
+                    <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                      {deliveryCharge === 0 ? <span className="text-emerald-500 font-bold">FREE (₹0)</span> : `₹${deliveryCharge}`}
+                    </span>
+                    <span className="block text-[10px] text-cyan-400 font-medium">📦 Delivery in 7 Days</span>
+                  </div>
                 </div>
 
                 {/* GST Breakdown Line calculated and added to Payable */}
