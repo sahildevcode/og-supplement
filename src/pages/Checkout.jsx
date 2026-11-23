@@ -700,9 +700,12 @@ export default function Checkout() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between flex-wrap gap-2">
                         <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          Razorpay Payment Gateway (Cards / NetBanking / UPI)
+                          Online Payment (UPI, Cards & Easy EMI)
                         </p>
                         <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                            💳 Credit Card EMI
+                          </span>
                           <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                             ⚡ Instant Confirmation
                           </span>
@@ -714,7 +717,7 @@ export default function Checkout() {
                         </div>
                       </div>
                       <p className="text-xs text-slate-400 mt-1">
-                        Pay with Debit / Credit Card, Netbanking, Wallets or Razorpay Gateway.
+                        Pay via UPI (GPay/PhonePe/Paytm), Cards, Netbanking or Credit Card EMI.
                       </p>
                     </div>
                   </label>

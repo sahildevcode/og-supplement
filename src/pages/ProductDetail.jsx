@@ -21,7 +21,8 @@ import {
   ThumbsUp,
   AlertCircle,
   Flame,
-  TrendingUp
+  TrendingUp,
+  CreditCard
 } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
@@ -58,6 +59,7 @@ export default function ProductDetail() {
   const [activeTab, setActiveTab] = useState('description');
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(true);
+  const [showEmiModal, setShowEmiModal] = useState(false);
 
   // Review states
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -615,6 +617,41 @@ export default function ProductDetail() {
                   </span>
                 </div>
               </div>
+
+              {/* Easy EMI Option Banner (Click to view EMI Plans) */}
+              {displayDiscountPrice >= 1500 && (
+                <div className={`mt-2 p-3 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
+                  isDark
+                    ? 'bg-gradient-to-r from-purple-950/40 to-slate-900 border-purple-500/30 text-white'
+                    : 'bg-gradient-to-r from-purple-50 to-slate-50 border-purple-200 text-slate-900'
+                }`}>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
+                      <CreditCard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black">
+                          EMI starts at ₹{Math.round(displayDiscountPrice / 3).toLocaleString('en-IN')}/month
+                        </span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase tracking-wider">
+                          Zero Paperwork
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Available on ICICI, Axis, Kotak, SBI & major Credit Cards
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmiModal(true)}
+                    className="text-xs font-bold text-purple-400 hover:text-purple-300 underline underline-offset-2 shrink-0 cursor-pointer transition-colors"
+                  >
+                    View Plans
+                  </button>
+                </div>
+              )}
 
             </div>
 
@@ -1580,6 +1617,109 @@ export default function ProductDetail() {
                 .map((recProduct) => (
                   <ProductCard key={recProduct._id || recProduct.id} product={recProduct} />
                 ))}
+            </div>
+          </div>
+        )}
+
+        {/* EMI PLANS MODAL POPUP */}
+        {showEmiModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+            <div className={`relative w-full max-w-lg rounded-3xl border p-6 sm:p-7 space-y-5 shadow-2xl ${
+              isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+            }`}>
+              <div className="flex items-center justify-between border-b pb-4 border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black">Credit Card Easy EMI Plans</h3>
+                    <p className="text-xs text-slate-400">Order Value: ₹{displayDiscountPrice.toLocaleString('en-IN')}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowEmiModal(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs text-slate-400">
+                  Select your preferred tenure at checkout under <strong>Razorpay (Cards / EMI)</strong>:
+                </p>
+
+                {/* 3 Months Plan */}
+                <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                  isDark ? 'bg-slate-950 border-purple-500/30' : 'bg-purple-50/50 border-purple-200'
+                }`}>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-black">3 Months Plan</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        Most Popular
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 3).toLocaleString('en-IN')} x 3 months</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-base font-black text-purple-400">
+                      ₹{Math.round(displayDiscountPrice / 3).toLocaleString('en-IN')}/mo
+                    </span>
+                  </div>
+                </div>
+
+                {/* 6 Months Plan */}
+                <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                  isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                }`}>
+                  <div>
+                    <span className="text-sm font-black">6 Months Plan</span>
+                    <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 6).toLocaleString('en-IN')} x 6 months</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-base font-black text-purple-400">
+                      ₹{Math.round(displayDiscountPrice / 6).toLocaleString('en-IN')}/mo
+                    </span>
+                  </div>
+                </div>
+
+                {/* 9 Months Plan */}
+                <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                  isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                }`}>
+                  <div>
+                    <span className="text-sm font-black">9 Months Plan</span>
+                    <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 9).toLocaleString('en-IN')} x 9 months</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-base font-black text-purple-400">
+                      ₹{Math.round(displayDiscountPrice / 9).toLocaleString('en-IN')}/mo
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1.5 text-xs text-slate-400">
+                <div className="flex items-center gap-2 text-slate-300 font-bold">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Supported Credit Cards:</span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  ICICI Bank, Axis Bank, HDFC Bank, Kotak Mahindra, IDFC FIRST, IndusInd, SBI & American Express. 
+                  Final interest rates or bank processing fees are applied dynamically by your card-issuing bank at checkout.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowEmiModal(false)}
+                className="w-full py-3.5 rounded-2xl font-black text-xs text-black bg-gradient-to-r from-purple-400 to-indigo-400 hover:from-purple-300 hover:to-indigo-300 transition-all cursor-pointer"
+              >
+                Got It
+              </button>
             </div>
           </div>
         )}
