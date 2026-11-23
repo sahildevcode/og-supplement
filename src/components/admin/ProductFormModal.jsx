@@ -19,6 +19,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, onSav
     variants: '1 kg, 2 kg',
     flavours: 'Rich Chocolate, Vanilla',
     ingredients: '',
+    isEmiAvailable: false,
   });
 
   const [saving, setSaving] = useState(false);
@@ -40,6 +41,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, onSav
         variants: Array.isArray(productToEdit.variants) ? productToEdit.variants.join(', ') : '',
         flavours: Array.isArray(productToEdit.flavours) ? productToEdit.flavours.join(', ') : '',
         ingredients: productToEdit.ingredients || '',
+        isEmiAvailable: productToEdit.isEmiAvailable !== undefined ? Boolean(productToEdit.isEmiAvailable) : (Number(productToEdit.discountPrice || productToEdit.price) >= 2500),
       });
     } else {
       setFormData({
@@ -285,6 +287,31 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, onSav
                 className="w-full bg-slate-900 border border-cyan-500/50 rounded-xl px-3.5 py-2 text-cyan-300 font-bold focus:outline-none focus:border-cyan-500"
               />
             </div>
+          </div>
+
+          {/* EMI Option Toggle for Product */}
+          <div className="p-4 rounded-2xl bg-purple-950/20 border border-purple-500/30 flex items-center justify-between">
+            <div>
+              <p className="font-bold text-sm text-purple-300 flex items-center gap-2">
+                <span>Credit Card EMI Option</span>
+                <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                  ₹2500+ Recommended
+                </span>
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Enable monthly installments (Credit Card EMI) for this product during checkout.
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                name="isEmiAvailable"
+                checked={formData.isEmiAvailable}
+                onChange={(e) => setFormData({ ...formData, isEmiAvailable: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
           </div>
 
           {/* Description */}

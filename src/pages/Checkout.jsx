@@ -83,6 +83,8 @@ export default function Checkout() {
       isUpiEnabled: true,
       isCodEnabled: true,
       isRazorpayEnabled: true,
+      isEmiEnabled: true,
+      emiMinAmount: 2500,
       razorpayKeyId: 'rzp_test_TkDCf1hSSdbjJC',
       razorpayMode: 'test',
       instructions: ''
@@ -672,202 +674,216 @@ export default function Checkout() {
             </form>
 
             {/* Step 2: Payment Method Section */}
-            <div className={`p-6 sm:p-8 rounded-3xl border space-y-6 ${
-              isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
-            }`}>
-              <div className={`flex items-center gap-2 pb-3 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-                <Lock className="w-5 h-5 text-emerald-500" />
-                <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>2. Select Payment Option</h3>
-              </div>
+            {(() => {
+              const emiThreshold = paymentSettings.emiMinAmount !== undefined ? Number(paymentSettings.emiMinAmount) : 2500;
+              const hasEmiProduct = cartItems.some(
+                (item) => item.isEmiAvailable === true || Number(item.discountPrice || item.price) >= emiThreshold
+              );
+              const isEmiOptionAvailable =
+                paymentSettings.isRazorpayEnabled !== false &&
+                paymentSettings.isEmiEnabled !== false &&
+                hasEmiProduct &&
+                totalAmount >= emiThreshold;
 
-              {/* Payment Channel Selection */}
-              <div className="grid grid-cols-1 gap-3.5">
-                
-                {/* Option 1: Razorpay Automatic Online Gateway */}
-                {paymentSettings.isRazorpayEnabled !== false && (
-                  <label className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
-                    formData.paymentMethod === 'Razorpay (Online)'
-                      ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-950/20 ring-1 ring-emerald-500/30'
-                      : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Razorpay (Online)"
-                      checked={formData.paymentMethod === 'Razorpay (Online)'}
-                      onChange={handleChange}
-                      className="mt-1 accent-emerald-500 w-4 h-4"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          Full Online Payment (UPI, Cards & NetBanking)
-                        </p>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            ⚡ Instant Confirmation
-                          </span>
-                          {paymentSettings.razorpayMode === 'test' && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                              🧪 Sandbox Test Mode
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Pay via UPI (GPay/PhonePe/Paytm), Debit/Credit Cards or Netbanking.
-                      </p>
-                    </div>
-                  </label>
-                )}
-
-                {/* Option 2: Dedicated Easy EMI / Monthly Installments Option */}
-                {paymentSettings.isRazorpayEnabled !== false && (
-                  <label className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
-                    formData.paymentMethod === 'Credit Card EMI'
-                      ? 'border-purple-500 bg-purple-500/10 shadow-lg shadow-purple-950/20 ring-1 ring-purple-500/40'
-                      : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Credit Card EMI"
-                      checked={formData.paymentMethod === 'Credit Card EMI'}
-                      onChange={handleChange}
-                      className="mt-1 accent-purple-500 w-4 h-4"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          Easy Monthly Installments (Credit Card EMI)
-                        </p>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                            💳 Starts ₹{Math.round(totalAmount / 3).toLocaleString('en-IN')}/mo
-                          </span>
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            Zero Cost
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Pay in 3, 6, or 9 easy monthly installments with your Credit Card.
-                      </p>
-                    </div>
-                  </label>
-                )}
-
-                {/* Option 2: Cash on Delivery */}
-                {paymentSettings.isCodEnabled !== false && (
-                  <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
-                    formData.paymentMethod === 'Cash on Delivery'
-                      ? 'border-emerald-500 bg-emerald-500/10 shadow-md shadow-emerald-950/20'
-                      : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Cash on Delivery"
-                      checked={formData.paymentMethod === 'Cash on Delivery'}
-                      onChange={handleChange}
-                      className="mt-1 accent-emerald-500 w-4 h-4"
-                    />
-                    <div>
-                      <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Cash on Delivery (COD)</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Pay with cash upon delivery at your doorstep.</p>
-                    </div>
-                  </label>
-                )}
-
-              </div>
-
-              {/* Razorpay Information Box (When Razorpay is selected) */}
-              {formData.paymentMethod === 'Razorpay (Online)' && (
-                <div className={`p-5 rounded-2xl border space-y-3 animate-in fade-in zoom-in-95 duration-200 ${
-                  isDark ? 'bg-slate-950/80 border-emerald-500/30' : 'bg-emerald-50/50 border-emerald-200'
+              return (
+                <div className={`p-6 sm:p-8 rounded-3xl border space-y-6 ${
+                  isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
                 }`}>
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400">
-                    <Sparkles className="w-4 h-4" />
-                    <span>Razorpay Online Gateway</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-300">
-                    <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
-                      <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Cards & Netbanking</span>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
-                      <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Zero UTR typing required</span>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
-                      <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Automated Instant Confirmation</span>
-                    </div>
-                  </div>
-                  {paymentSettings.razorpayMode === 'test' && (
-                    <p className="text-[11px] text-cyan-400 bg-cyan-950/40 p-2.5 rounded-xl border border-cyan-500/20 font-medium">
-                      🧪 <strong>Test Mode Active:</strong> You can simulate payment safely. No real money will be charged from your account!
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Credit Card EMI Details Box (When Credit Card EMI is selected) */}
-              {formData.paymentMethod === 'Credit Card EMI' && (
-                <div className={`p-4 sm:p-5 rounded-2xl border space-y-3.5 animate-in fade-in zoom-in-95 duration-200 ${
-                  isDark ? 'bg-purple-950/40 border-purple-500/30 text-white' : 'bg-purple-50/70 border-purple-200 text-slate-900'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-purple-400">
-                      <CreditCard className="w-4 h-4" />
-                      <span>Choose Your EMI Tenure</span>
-                    </div>
-                    <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      Zero Cost EMI
-                    </span>
+                  <div className={`flex items-center gap-2 pb-3 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <Lock className="w-5 h-5 text-emerald-500" />
+                    <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>2. Select Payment Option</h3>
                   </div>
 
-                  {/* Interactive Tenure Selector */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                    {[3, 6, 9, 12].map((tenure) => {
-                      const perMonth = Math.round(totalAmount / tenure);
-                      const isSelected = selectedEmiTenure === tenure;
-                      return (
-                        <button
-                          key={tenure}
-                          type="button"
-                          onClick={() => setSelectedEmiTenure(tenure)}
-                          className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-purple-600/30 border-purple-400 shadow-md ring-1 ring-purple-400'
-                              : isDark
-                              ? 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
-                              : 'bg-white border-slate-200 hover:border-purple-300'
-                          }`}
-                        >
-                          <span className={`block text-[10px] uppercase font-black ${isSelected ? 'text-purple-300' : 'text-slate-400'}`}>
-                            {tenure} Months
-                          </span>
-                          <p className={`text-sm font-black mt-0.5 ${isSelected ? 'text-white' : isDark ? 'text-slate-200' : 'text-slate-900'}`}>
-                            ₹{perMonth.toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-400">/mo</span>
+                  {/* Payment Channel Selection */}
+                  <div className="grid grid-cols-1 gap-3.5">
+                    
+                    {/* Option 1: Razorpay Automatic Online Gateway */}
+                    {paymentSettings.isRazorpayEnabled !== false && (
+                      <label className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
+                        formData.paymentMethod === 'Razorpay (Online)'
+                          ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-950/20 ring-1 ring-emerald-500/30'
+                          : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="Razorpay (Online)"
+                          checked={formData.paymentMethod === 'Razorpay (Online)'}
+                          onChange={handleChange}
+                          className="mt-1 accent-emerald-500 w-4 h-4"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              Full Online Payment (UPI, Cards & NetBanking)
+                            </p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                ⚡ Instant Confirmation
+                              </span>
+                              {paymentSettings.razorpayMode === 'test' && (
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                                  🧪 Sandbox Test Mode
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Pay via UPI (GPay/PhonePe/Paytm), Debit/Credit Cards or Netbanking.
                           </p>
-                        </button>
-                      );
-                    })}
+                        </div>
+                      </label>
+                    )}
+
+                    {/* Option 2: Dedicated Easy EMI / Monthly Installments Option (Only for ₹2500+ / eligible products) */}
+                    {isEmiOptionAvailable && (
+                      <label className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
+                        formData.paymentMethod === 'Credit Card EMI'
+                          ? 'border-purple-500 bg-purple-500/10 shadow-lg shadow-purple-950/20 ring-1 ring-purple-500/40'
+                          : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="Credit Card EMI"
+                          checked={formData.paymentMethod === 'Credit Card EMI'}
+                          onChange={handleChange}
+                          className="mt-1 accent-purple-500 w-4 h-4"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              Easy Monthly Installments (Credit Card EMI)
+                            </p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                💳 Starts ₹{Math.round(totalAmount / 3).toLocaleString('en-IN')}/mo
+                              </span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                Zero Cost
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Pay in 3, 6, or 9 easy monthly installments with your Credit Card.
+                          </p>
+                        </div>
+                      </label>
+                    )}
+
+                    {/* Option 3: Cash on Delivery */}
+                    {paymentSettings.isCodEnabled !== false && (
+                      <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3.5 ${
+                        formData.paymentMethod === 'Cash on Delivery'
+                          ? 'border-emerald-500 bg-emerald-500/10 shadow-md shadow-emerald-950/20'
+                          : isDark ? 'border-slate-800 bg-slate-950 hover:border-slate-700' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="Cash on Delivery"
+                          checked={formData.paymentMethod === 'Cash on Delivery'}
+                          onChange={handleChange}
+                          className="mt-1 accent-emerald-500 w-4 h-4"
+                        />
+                        <div>
+                          <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Cash on Delivery (COD)</p>
+                          <p className="text-xs text-slate-400 mt-0.5">Pay with cash upon delivery at your doorstep.</p>
+                        </div>
+                      </label>
+                    )}
+
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[11px] text-slate-300 space-y-1">
-                    <p className="font-semibold text-purple-300">
-                      Selected Plan: <strong>{selectedEmiTenure} Months @ ₹{Math.round(totalAmount / selectedEmiTenure).toLocaleString('en-IN')}/month</strong>
-                    </p>
-                    <p className="text-slate-400 text-[10px]">
-                      Supported Credit Cards: ICICI, HDFC, SBI, Axis, Kotak, IDFC. Total order amount ₹{totalAmount.toLocaleString('en-IN')} will be split across {selectedEmiTenure} monthly installments.
-                    </p>
-                  </div>
+                  {/* Razorpay Information Box (When Razorpay is selected) */}
+                  {formData.paymentMethod === 'Razorpay (Online)' && (
+                    <div className={`p-5 rounded-2xl border space-y-3 animate-in fade-in zoom-in-95 duration-200 ${
+                      isDark ? 'bg-slate-950/80 border-emerald-500/30' : 'bg-emerald-50/50 border-emerald-200'
+                    }`}>
+                      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400">
+                        <Sparkles className="w-4 h-4" />
+                        <span>Razorpay Online Gateway</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-300">
+                        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
+                          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span>Cards & Netbanking</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
+                          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span>Zero UTR typing required</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2">
+                          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span>Automated Instant Confirmation</span>
+                        </div>
+                      </div>
+                      {paymentSettings.razorpayMode === 'test' && (
+                        <p className="text-[11px] text-cyan-400 bg-cyan-950/40 p-2.5 rounded-xl border border-cyan-500/20 font-medium">
+                          🧪 <strong>Test Mode Active:</strong> You can simulate payment safely. No real money will be charged from your account!
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Credit Card EMI Details Box (When Credit Card EMI is selected) */}
+                  {formData.paymentMethod === 'Credit Card EMI' && isEmiOptionAvailable && (
+                    <div className={`p-4 sm:p-5 rounded-2xl border space-y-3.5 animate-in fade-in zoom-in-95 duration-200 ${
+                      isDark ? 'bg-purple-950/40 border-purple-500/30 text-white' : 'bg-purple-50/70 border-purple-200 text-slate-900'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-purple-400">
+                          <CreditCard className="w-4 h-4" />
+                          <span>Choose Your EMI Tenure</span>
+                        </div>
+                        <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                          Zero Cost EMI
+                        </span>
+                      </div>
+
+                      {/* Interactive Tenure Selector */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                        {[3, 6, 9, 12].map((tenure) => {
+                          const perMonth = Math.round(totalAmount / tenure);
+                          const isSelected = selectedEmiTenure === tenure;
+                          return (
+                            <button
+                              key={tenure}
+                              type="button"
+                              onClick={() => setSelectedEmiTenure(tenure)}
+                              className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-purple-600/30 border-purple-400 shadow-md ring-1 ring-purple-400'
+                                  : isDark
+                                  ? 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
+                                  : 'bg-white border-slate-200 hover:border-purple-300'
+                              }`}
+                            >
+                              <span className={`block text-[10px] uppercase font-black ${isSelected ? 'text-purple-300' : 'text-slate-400'}`}>
+                                {tenure} Months
+                              </span>
+                              <p className={`text-sm font-black mt-0.5 ${isSelected ? 'text-white' : isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                                ₹{perMonth.toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-400">/mo</span>
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[11px] text-slate-300 space-y-1">
+                        <p className="font-semibold text-purple-300">
+                          Selected Plan: <strong>{selectedEmiTenure} Months @ ₹{Math.round(totalAmount / selectedEmiTenure).toLocaleString('en-IN')}/month</strong>
+                        </p>
+                        <p className="text-slate-400 text-[10px]">
+                          Supported Credit Cards: ICICI, HDFC, SBI, Axis, Kotak, IDFC. Total order amount ₹{totalAmount.toLocaleString('en-IN')} will be split across {selectedEmiTenure} monthly installments.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
-              )}
-
-            </div>
+              );
+            })()}
 
           </div>
 

@@ -34,6 +34,7 @@ const productSchema = new mongoose.Schema(
     gstRate: { type: Number, default: 18 },
     taxLabel: { type: String, default: '18% GST' },
     shippingCost: { type: Number, default: 0 },
+    isEmiAvailable: { type: Boolean, default: false },
     isCancellationFeeApplicable: { type: Boolean, default: true },
     cancellationFeeType: { type: String, enum: ['percentage', 'flat'], default: 'percentage' },
     cancellationFeeValue: { type: Number, default: 5 },
@@ -117,6 +118,9 @@ export const Product = {
       gstRate: data.gstRate !== undefined ? Number(data.gstRate) : 18,
       taxLabel: data.taxLabel || '18% GST',
       shippingCost: Number(data.shippingCost || 0),
+      isEmiAvailable: data.isEmiAvailable !== undefined
+        ? Boolean(data.isEmiAvailable)
+        : (Number(data.discountPrice || data.price) >= 2500),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -147,6 +151,9 @@ export const Product = {
     }
     if (updateData.shippingCost !== undefined) {
       updateData.shippingCost = Number(updateData.shippingCost);
+    }
+    if (updateData.isEmiAvailable !== undefined) {
+      updateData.isEmiAvailable = Boolean(updateData.isEmiAvailable);
     }
     if (updateData.isGstApplicable !== undefined) {
       updateData.isGstApplicable = Boolean(updateData.isGstApplicable);

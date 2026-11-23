@@ -129,6 +129,7 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         isBestSeller: Boolean(product.isBestSeller),
         bestSellerBadge: product.bestSellerBadge || '🔥 #1 Best Seller',
         bestSellerRank: product.bestSellerRank || 1,
+        isEmiAvailable: product.isEmiAvailable !== undefined ? Boolean(product.isEmiAvailable) : (Number(product.discountPrice || product.price) >= 2500),
         isCancellationFeeApplicable: product.isCancellationFeeApplicable !== undefined ? product.isCancellationFeeApplicable : true,
         cancellationFeeType: product.cancellationFeeType || 'percentage',
         cancellationFeeValue: product.cancellationFeeValue !== undefined ? product.cancellationFeeValue : 5,
@@ -166,6 +167,7 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         isBestSeller: false,
         bestSellerBadge: '🔥 #1 Best Seller',
         bestSellerRank: 1,
+        isEmiAvailable: false,
         isCancellationFeeApplicable: true,
         cancellationFeeType: 'percentage',
         cancellationFeeValue: 5,
@@ -311,6 +313,7 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         shippingCost: Number(formData.shippingCost || 0),
         stock: Number(formData.stock),
         lowStockThreshold: Number(formData.lowStockThreshold),
+        isEmiAvailable: Boolean(formData.isEmiAvailable),
         variants: cleanedVariants,
         flavours: cleanedFlavours,
         images: formData.images.filter(Boolean),
@@ -740,6 +743,43 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
               ) : (
                 <p className="text-[11px] text-emerald-400/90 bg-emerald-950/20 p-2.5 rounded-xl border border-emerald-500/20">
                   ✅ Free Cancellation: Is product par cancellation ke waqt koi bhi charge nahi katega (100% Full Refund).
+                </p>
+              )}
+            </div>
+
+            {/* Credit Card EMI Availability Setting */}
+            <div className="sm:col-span-2 p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>Credit Card EMI Option</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                      ₹2500+ Recommended
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    Is product par customer ko checkout me 3, 6, 9 ya 12 months ka Easy EMI option dena hai ya nahi
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isEmiAvailable"
+                    checked={formData.isEmiAvailable === true}
+                    onChange={(e) => setFormData({ ...formData, isEmiAvailable: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                </label>
+              </div>
+
+              {formData.isEmiAvailable ? (
+                <p className="text-[11px] text-purple-300 bg-purple-950/30 p-2.5 rounded-xl border border-purple-500/30">
+                  ⚡ <strong>EMI Active:</strong> Customer ko product detail aur checkout dono jagah Easy Monthly Installments (Credit Card EMI) ka option dikhega.
+                </p>
+              ) : (
+                <p className="text-[11px] text-slate-400 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                  🔒 <strong>EMI Disabled:</strong> Is product ke liye checkout par EMI ka option nahi dikhega (Sirf Full Online ya COD rahega).
                 </p>
               )}
             </div>

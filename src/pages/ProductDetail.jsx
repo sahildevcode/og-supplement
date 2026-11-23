@@ -618,8 +618,8 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Easy EMI Option Banner (Click to view EMI Plans) */}
-              {displayDiscountPrice >= 1500 && (
+              {/* Easy EMI Option Banner (Click to view EMI Plans - only for products >= ₹2500 or explicitly enabled) */}
+              {(product.isEmiAvailable === true || displayDiscountPrice >= 2500) && (
                 <div className={`mt-2 p-3 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
                   isDark
                     ? 'bg-gradient-to-r from-purple-950/40 to-slate-900 border-purple-500/30 text-white'

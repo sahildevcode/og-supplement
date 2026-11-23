@@ -15,7 +15,9 @@ import {
   Mail,
   Copy,
   Check,
-  ExternalLink
+  ExternalLink,
+  ShieldAlert,
+  Wallet
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -468,8 +470,8 @@ export default function OrderHistory() {
         };
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-            <div className={`max-w-md w-full p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 ${
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+            <div className={`max-w-md w-full my-auto max-h-[92vh] overflow-y-auto p-5 sm:p-8 rounded-3xl border shadow-2xl space-y-5 ${
               isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
             }`}>
               
@@ -571,26 +573,31 @@ export default function OrderHistory() {
       {/* Confirmation Modal for Order Cancellation */}
       {cancellingOrder && (() => {
         const isPrepaid = isPrepaidOrder(cancellingOrder);
+        const breakdown = cancelPreview || getOrderCancelBreakdown(cancellingOrder);
+        const totalAmt = Number(cancellingOrder.totalAmount || 0);
+        const fee = breakdown.cancellationFee !== undefined ? breakdown.cancellationFee : (breakdown.fee || 0);
+        const refundAmt = breakdown.refundAmount !== undefined ? breakdown.refundAmount : (breakdown.refund || Math.max(0, totalAmt - fee));
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-            <div className={`max-w-md w-full p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 ${
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+            <div className={`max-w-md w-full my-auto max-h-[92vh] overflow-y-auto p-5 sm:p-7 rounded-3xl border shadow-2xl space-y-4 ${
               isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
             }`}>
               
               <div className="flex items-start justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5" />
                 </div>
                 <button
+                  type="button"
                   onClick={() => setCancellingOrder(null)}
-                  className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800"
+                  className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <h3 className="text-lg sm:text-xl font-black">
                   Cancel Order #{cancellingOrder.orderId}?
                 </h3>
@@ -599,29 +606,93 @@ export default function OrderHistory() {
                 </p>
               </div>
 
-              {/* Order Cancellation Notice */}
-              <div className={`p-4 rounded-2xl border text-xs flex items-center gap-3.5 ${
-                isDark ? 'bg-slate-950 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
-              }`}>
-                <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center font-black flex-shrink-0 text-xs border border-amber-500/20">
-                  <AlertTriangle className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-white text-xs">Pre-Dispatch Cancellation</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Your order will be stopped immediately. For any payment or replacement queries, our support team is available via the Help button.
-                  </p>
-                </div>
-              </div>
+              {/* High-visibility Refund & Deduction Breakdown Highlight Box */}
+              {isPrepaid ? (
+                <div className="space-y-2.5">
+                  <div className={`p-4 rounded-2xl border ${
+                    isDark ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-50 border-slate-200'
+                  }`}>
+                    <div className="flex items-center justify-between border-b pb-2.5 mb-2.5 border-slate-800/60">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="w-4 h-4 text-emerald-400" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Refund Summary</span>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        Prepaid Order
+                      </span>
+                    </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <div className="space-y-2 text-xs">
+                      {/* Total Paid Amount */}
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span>Total Paid by Customer</span>
+                        <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                          ₹{totalAmt.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+
+                      {/* Deduction / Cancellation Fee */}
+                      <div className="flex items-center justify-between text-rose-400 font-semibold">
+                        <span className="flex items-center gap-1">
+                          <span>Cancellation & Handling Fee (Cut)</span>
+                        </span>
+                        <span className="font-bold font-mono">
+                          - ₹{fee.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+
+                      {/* Net Refund Amount Returned */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                        <div>
+                          <p className="text-xs font-black text-emerald-400 uppercase tracking-wide">
+                            Total Refund Amount
+                          </p>
+                          <p className="text-[10px] text-slate-400">
+                            (Ye paisa aapke account mein wapas aayega)
+                          </p>
+                        </div>
+                        <span className="text-base sm:text-lg font-black text-emerald-400 font-mono">
+                          ₹{refundAmt.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Clarification Alert Pill */}
+                  <div className={`p-3 rounded-xl border text-[11px] leading-relaxed flex items-start gap-2.5 ${
+                    isDark ? 'bg-amber-500/10 border-amber-500/25 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-800'
+                  }`}>
+                    <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                    <p>
+                      <strong>Clear Notice:</strong> Cancellation charge <strong>₹{fee}</strong> cut hoga aur <strong>₹{refundAmt}</strong> aapke source payment method (UPI / Bank / Card) mein <strong>2 se 4 business days</strong> mein credit ho jayega.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* Cash on Delivery Notice */
+                <div className={`p-3.5 rounded-2xl border text-xs flex items-center gap-3 ${
+                  isDark ? 'bg-slate-950 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+                }`}>
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center font-black flex-shrink-0 text-xs border border-amber-500/20">
+                    <AlertTriangle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-xs">Cash on Delivery Order</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      No payment has been collected yet. This order will be cancelled with zero penalty.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                   Reason for cancellation:
                 </label>
                 <select
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
-                  className={`w-full p-3 rounded-xl border text-xs font-medium focus:outline-none ${
+                  className={`w-full p-2.5 sm:p-3 rounded-xl border text-xs font-medium focus:outline-none ${
                     isDark
                       ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-rose-500'
                       : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-rose-600'
@@ -633,7 +704,7 @@ export default function OrderHistory() {
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="flex items-center justify-end gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setCancellingOrder(null)}
@@ -652,7 +723,7 @@ export default function OrderHistory() {
                   className="px-5 py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-950/50 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <XCircle className={`w-4 h-4 ${isCancelling ? 'animate-spin' : ''}`} />
-                  {isCancelling ? 'Cancelling Order...' : (isPrepaid ? 'Confirm Cancellation & Refund' : 'Cancel Order')}
+                  {isCancelling ? 'Cancelling...' : (isPrepaid ? `Confirm & Refund ₹${refundAmt}` : 'Cancel Order')}
                 </button>
               </div>
 

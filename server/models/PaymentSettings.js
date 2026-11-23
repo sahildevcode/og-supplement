@@ -27,6 +27,14 @@ const paymentSettingsSchema = new mongoose.Schema(
       type: Boolean,
       default: true
     },
+    isEmiEnabled: {
+      type: Boolean,
+      default: true
+    },
+    emiMinAmount: {
+      type: Number,
+      default: 2500
+    },
     razorpayKeyId: {
       type: String,
       default: 'rzp_test_TkDCf1hSSdbjJC'
@@ -57,6 +65,8 @@ export const defaultSettings = {
   isUpiEnabled: true,
   isCodEnabled: true,
   isRazorpayEnabled: true,
+  isEmiEnabled: true,
+  emiMinAmount: 2500,
   razorpayKeyId: 'rzp_test_TkDCf1hSSdbjJC',
   razorpayKeySecret: 'HYANv2AAhXJiPKG1zveHNzZS',
   razorpayMode: 'test',
