@@ -91,6 +91,7 @@ export default function Checkout() {
 
   const [showSandboxModal, setShowSandboxModal] = useState(false);
   const [sandboxOrderInfo, setSandboxOrderInfo] = useState(null);
+  const [selectedEmiTenure, setSelectedEmiTenure] = useState(3); // 3, 6, 9, 12 months
 
   // Retrieve saved checkout info from localStorage fallback
   const getSavedCheckoutData = () => {
@@ -813,37 +814,56 @@ export default function Checkout() {
 
               {/* Credit Card EMI Details Box (When Credit Card EMI is selected) */}
               {formData.paymentMethod === 'Credit Card EMI' && (
-                <div className={`p-5 rounded-2xl border space-y-3 animate-in fade-in zoom-in-95 duration-200 ${
-                  isDark ? 'bg-purple-950/40 border-purple-500/30 text-white' : 'bg-purple-50/60 border-purple-200 text-slate-900'
+                <div className={`p-4 sm:p-5 rounded-2xl border space-y-3.5 animate-in fade-in zoom-in-95 duration-200 ${
+                  isDark ? 'bg-purple-950/40 border-purple-500/30 text-white' : 'bg-purple-50/70 border-purple-200 text-slate-900'
                 }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-purple-400">
                       <CreditCard className="w-4 h-4" />
-                      <span>Credit Card EMI Plans</span>
+                      <span>Choose Your EMI Tenure</span>
                     </div>
-                    <span className="text-xs font-bold text-purple-400">
-                      Zero Processing Fee
+                    <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      Zero Cost EMI
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2.5 text-center text-xs">
-                    <div className="p-3 rounded-xl bg-slate-900/90 border border-purple-500/40">
-                      <span className="block text-[10px] text-slate-400 uppercase font-bold">3 Months</span>
-                      <p className="text-sm font-black text-purple-300 mt-0.5">₹{Math.round(totalAmount / 3).toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-400">/mo</span></p>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
-                      <span className="block text-[10px] text-slate-400 uppercase font-bold">6 Months</span>
-                      <p className="text-sm font-black text-purple-300 mt-0.5">₹{Math.round(totalAmount / 6).toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-400">/mo</span></p>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
-                      <span className="block text-[10px] text-slate-400 uppercase font-bold">9 Months</span>
-                      <p className="text-sm font-black text-purple-300 mt-0.5">₹{Math.round(totalAmount / 9).toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-400">/mo</span></p>
-                    </div>
+                  {/* Interactive Tenure Selector */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                    {[3, 6, 9, 12].map((tenure) => {
+                      const perMonth = Math.round(totalAmount / tenure);
+                      const isSelected = selectedEmiTenure === tenure;
+                      return (
+                        <button
+                          key={tenure}
+                          type="button"
+                          onClick={() => setSelectedEmiTenure(tenure)}
+                          className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-purple-600/30 border-purple-400 shadow-md ring-1 ring-purple-400'
+                              : isDark
+                              ? 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
+                              : 'bg-white border-slate-200 hover:border-purple-300'
+                          }`}
+                        >
+                          <span className={`block text-[10px] uppercase font-black ${isSelected ? 'text-purple-300' : 'text-slate-400'}`}>
+                            {tenure} Months
+                          </span>
+                          <p className={`text-sm font-black mt-0.5 ${isSelected ? 'text-white' : isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                            ₹{perMonth.toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-400">/mo</span>
+                          </p>
+                        </button>
+                      );
+                    })}
                   </div>
 
-                  <p className="text-[11px] text-slate-400 leading-relaxed">
-                    Supported Banks: <strong>ICICI, Axis, Kotak, IDFC, HDFC, SBI</strong>. Click Pay below to choose your card & tenure securely in Razorpay gateway.
-                  </p>
+                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[11px] text-slate-300 space-y-1">
+                    <p className="font-semibold text-purple-300">
+                      Selected Plan: <strong>{selectedEmiTenure} Months @ ₹{Math.round(totalAmount / selectedEmiTenure).toLocaleString('en-IN')}/month</strong>
+                    </p>
+                    <p className="text-slate-400 text-[10px]">
+                      Supported Credit Cards: ICICI, HDFC, SBI, Axis, Kotak, IDFC. Total order amount ₹{totalAmount.toLocaleString('en-IN')} will be split across {selectedEmiTenure} monthly installments.
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -1050,7 +1070,7 @@ export default function Checkout() {
                       {formData.paymentMethod === 'Razorpay (Online)'
                         ? `Pay ₹${totalAmount.toLocaleString('en-IN')} with Razorpay`
                         : formData.paymentMethod === 'Credit Card EMI'
-                        ? `Proceed with EMI (₹${Math.round(totalAmount / 3).toLocaleString('en-IN')}/mo)`
+                        ? `Proceed with ${selectedEmiTenure}-Mo EMI (₹${Math.round(totalAmount / selectedEmiTenure).toLocaleString('en-IN')}/mo)`
                         : `Place COD Order (₹${totalAmount.toLocaleString('en-IN')})`}
                     </span>
                   </>
@@ -1205,46 +1225,75 @@ export default function Checkout() {
 
       {/* Razorpay Test Mode / Sandbox Simulation Modal */}
       {showSandboxModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-lg border border-emerald-500/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 space-y-4 sm:space-y-5 shadow-2xl animate-in zoom-in-95 duration-200 my-auto custom-scrollbar">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-base border border-emerald-500/30">
                   ⚡
                 </div>
                 <div>
-                  <h4 className="text-base font-black text-white">Razorpay Test Gateway</h4>
-                  <p className="text-xs text-emerald-400 font-bold">🧪 Sandbox Payment Simulation</p>
+                  <h4 className="text-sm sm:text-base font-black text-white">Razorpay Test Gateway</h4>
+                  <p className="text-[11px] text-emerald-400 font-bold">🧪 Sandbox Payment Simulation</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowSandboxModal(false)}
-                className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1 text-center">
-              <span className="text-[11px] text-slate-400 uppercase tracking-widest font-black">Order Amount</span>
-              <p className="text-3xl font-black text-white font-mono">₹{totalAmount.toLocaleString('en-IN')}</p>
-              <span className="inline-block mt-1 text-[11px] text-cyan-400 font-bold bg-cyan-950/60 px-2.5 py-0.5 rounded-full border border-cyan-500/30">
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-0.5 text-center">
+              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Order Amount</span>
+              <p className="text-2xl sm:text-3xl font-black text-white font-mono">₹{totalAmount.toLocaleString('en-IN')}</p>
+              <span className="inline-block mt-0.5 text-[10px] text-cyan-400 font-bold bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/30">
                 Safe Test Mode • Zero Charges
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300 space-y-1">
-              <p className="font-bold text-emerald-400 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
+            <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300 space-y-1">
+              <p className="font-bold text-emerald-400 flex items-center gap-1.5 text-[11px]">
+                <Sparkles className="w-3 h-3" />
                 <span>Real UPI Live Redirection:</span>
               </p>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="text-[10px] sm:text-[11px] text-slate-400 leading-relaxed">
                 Admin Panel me apni real Razorpay Key ID aur Secret daalte hi, customer ke mobile me direct Google Pay / PhonePe app automatically open hoga aur PIN daalte hi order confirm ho jayega.
               </p>
             </div>
 
-            <div className="space-y-3">
+            {/* If user selected Credit Card EMI, show tenure selector right inside sandbox simulator */}
+            <div className="p-3 rounded-xl bg-purple-950/40 border border-purple-500/30 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-black text-purple-300 flex items-center gap-1 text-[11px]">
+                  <CreditCard className="w-3.5 h-3.5" /> EMI Tenure Plan:
+                </span>
+                <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                  Zero Extra Cost
+                </span>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5 text-center">
+                {[3, 6, 9, 12].map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setSelectedEmiTenure(t)}
+                    className={`py-1.5 px-1 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                      selectedEmiTenure === t
+                        ? 'bg-purple-600 text-white border-purple-400 shadow'
+                        : 'bg-slate-900/90 text-slate-400 border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    <span className="block text-[9px] uppercase font-bold">{t} Mo</span>
+                    <span className="block text-[11px] font-black">₹{Math.round(totalAmount / t).toLocaleString('en-IN')}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2.5 pt-1">
               <button
                 type="button"
                 onClick={() => handleCompleteRazorpayOrder({
@@ -1253,10 +1302,10 @@ export default function Checkout() {
                   razorpay_signature: 'test_sig_' + Date.now()
                 })}
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-2xl font-black text-xs sm:text-sm text-black bg-emerald-500 hover:bg-emerald-400 shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
+                className="w-full py-3.5 rounded-2xl font-black text-xs sm:text-sm text-black bg-emerald-500 hover:bg-emerald-400 shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
               >
                 <Check className="w-4 h-4" />
-                <span>Simulate Successful Full Payment</span>
+                <span>Simulate Full Payment (100% Paid)</span>
               </button>
 
               <button
@@ -1265,13 +1314,13 @@ export default function Checkout() {
                   razorpay_payment_id: 'pay_test_emi_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
                   razorpay_order_id: sandboxOrderInfo?.orderId || 'order_test_' + Date.now().toString(36),
                   razorpay_signature: 'test_sig_' + Date.now(),
-                  notes: { emiTenure: '3_months', paymentType: 'Credit Card EMI' }
+                  notes: { emiTenure: `${selectedEmiTenure}_months`, paymentType: 'Credit Card EMI' }
                 })}
                 disabled={isSubmitting}
-                className="w-full py-3.5 rounded-2xl font-black text-xs sm:text-sm text-purple-300 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
+                className="w-full py-3 rounded-2xl font-black text-xs sm:text-sm text-purple-200 bg-purple-600/30 hover:bg-purple-600/40 border border-purple-500/50 shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
               >
-                <CreditCard className="w-4 h-4 text-purple-400" />
-                <span>Simulate Credit Card EMI (₹{Math.round(totalAmount / 3).toLocaleString('en-IN')}/mo x 3)</span>
+                <CreditCard className="w-4 h-4 text-purple-300" />
+                <span>Simulate Credit Card EMI (₹{Math.round(totalAmount / selectedEmiTenure).toLocaleString('en-IN')}/mo x {selectedEmiTenure}m)</span>
               </button>
 
               <button
@@ -1280,13 +1329,13 @@ export default function Checkout() {
                   setShowSandboxModal(false);
                   addToast('Payment simulation cancelled', 'info');
                 }}
-                className="w-full py-2.5 rounded-2xl font-bold text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
+                className="w-full py-2 rounded-xl font-bold text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
               >
                 Cancel Simulation
               </button>
             </div>
 
-            <p className="text-[11px] text-slate-500 text-center leading-relaxed">
+            <p className="text-[10px] text-slate-500 text-center leading-relaxed">
               Once approved by Razorpay, your live Key ID will automatically open the official payment interface with real UPI PIN, GPay, PhonePe, and Card payments.
             </p>
           </div>
