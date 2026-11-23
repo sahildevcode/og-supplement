@@ -941,6 +941,17 @@ export default function Checkout() {
                 <p className="text-[11px] text-slate-400 text-right">
                   * Subtotal (₹{subtotal}) + Delivery (₹{deliveryCharge}) + GST (₹{totalGst}) = ₹{totalAmount}
                 </p>
+
+                {/* Cancellation & Refund Disclaimer Note */}
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400/90 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Cancellation & Handling Policy:</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-slate-300">
+                    Order dispatch hone se pehle aap kabhi bhi cancel kar sakte hain. Payment gateway handling aur transaction charges ke liye <strong>5% fee cut</strong> hokar baaki pura refund aapke bank account mein credit ho jayega.
+                  </p>
+                </div>
               </div>
 
               {/* Submit CTA */}
@@ -1168,7 +1179,22 @@ export default function Checkout() {
                 className="w-full py-4 rounded-2xl font-black text-xs sm:text-sm text-black bg-emerald-500 hover:bg-emerald-400 shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
               >
                 <Check className="w-4 h-4" />
-                <span>Simulate Successful UPI / Card Payment</span>
+                <span>Simulate Successful Full Payment</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCompleteRazorpayOrder({
+                  razorpay_payment_id: 'pay_test_emi_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+                  razorpay_order_id: sandboxOrderInfo?.orderId || 'order_test_' + Date.now().toString(36),
+                  razorpay_signature: 'test_sig_' + Date.now(),
+                  notes: { emiTenure: '3_months', paymentType: 'Credit Card EMI' }
+                })}
+                disabled={isSubmitting}
+                className="w-full py-3.5 rounded-2xl font-black text-xs sm:text-sm text-purple-300 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
+              >
+                <CreditCard className="w-4 h-4 text-purple-400" />
+                <span>Simulate Credit Card EMI (₹{Math.round(totalAmount / 3).toLocaleString('en-IN')}/mo x 3)</span>
               </button>
 
               <button
@@ -1177,7 +1203,7 @@ export default function Checkout() {
                   setShowSandboxModal(false);
                   addToast('Payment simulation cancelled', 'info');
                 }}
-                className="w-full py-3 rounded-2xl font-bold text-xs text-slate-300 bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
+                className="w-full py-2.5 rounded-2xl font-bold text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
               >
                 Cancel Simulation
               </button>
