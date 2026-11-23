@@ -4,25 +4,38 @@ import nodemailer from 'nodemailer';
 const DEFAULT_GMAIL_USER = 'sahildevcode@gmail.com';
 const DEFAULT_GMAIL_PASS = 'pttgytsjobhefaya';
 
-// Create transporter dynamically based on available env variables
+// Cached persistent transporter with Connection Pooling for instant delivery
+let cachedTransporter = null;
+
 const getTransporter = () => {
+  if (cachedTransporter) return cachedTransporter;
+
   const user = process.env.SMTP_USER || process.env.GMAIL_USER || DEFAULT_GMAIL_USER;
   const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || DEFAULT_GMAIL_PASS;
 
   if (user && pass) {
     if (process.env.SMTP_HOST) {
-      return nodemailer.createTransport({
+      cachedTransporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: Number(process.env.SMTP_PORT) === 465,
+        port: Number(process.env.SMTP_PORT) || 465,
+        secure: Number(process.env.SMTP_PORT) === 465 || !process.env.SMTP_PORT,
+        pool: true,
+        maxConnections: 3,
+        auth: { user, pass }
+      });
+    } else {
+      // High-performance Gmail pooled SMTP
+      cachedTransporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
         auth: { user, pass }
       });
     }
-    // Default to Gmail service
-    return nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user, pass }
-    });
+    return cachedTransporter;
   }
   return null;
 };
