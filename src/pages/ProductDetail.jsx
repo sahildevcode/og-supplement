@@ -1623,13 +1623,14 @@ export default function ProductDetail() {
 
         {/* EMI PLANS MODAL POPUP */}
         {showEmiModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-            <div className={`relative w-full max-w-lg rounded-3xl border p-6 sm:p-7 space-y-5 shadow-2xl ${
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+            <div className={`relative w-full max-w-lg max-h-[88vh] flex flex-col rounded-3xl border shadow-2xl ${
               isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
             }`}>
-              <div className="flex items-center justify-between border-b pb-4 border-slate-800">
+              {/* Header */}
+              <div className="p-4 sm:p-5 pb-3 flex items-center justify-between border-b border-slate-800 shrink-0">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                  <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 shrink-0">
                     <CreditCard className="w-5 h-5" />
                   </div>
                   <div>
@@ -1640,19 +1641,20 @@ export default function ProductDetail() {
                 <button
                   type="button"
                   onClick={() => setShowEmiModal(false)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="space-y-3">
+              {/* Scrollable Content */}
+              <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
                 <p className="text-xs text-slate-400">
                   Select your preferred tenure at checkout under <strong>Razorpay (Cards / EMI)</strong>:
                 </p>
 
                 {/* 3 Months Plan */}
-                <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
                   isDark ? 'bg-slate-950 border-purple-500/30' : 'bg-purple-50/50 border-purple-200'
                 }`}>
                   <div>
@@ -1672,7 +1674,7 @@ export default function ProductDetail() {
                 </div>
 
                 {/* 6 Months Plan */}
-                <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
                   isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
                 }`}>
                   <div>
@@ -1687,7 +1689,7 @@ export default function ProductDetail() {
                 </div>
 
                 {/* 9 Months Plan */}
-                <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
                   isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
                 }`}>
                   <div>
@@ -1700,26 +1702,29 @@ export default function ProductDetail() {
                     </span>
                   </div>
                 </div>
-              </div>
 
-              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1.5 text-xs text-slate-400">
-                <div className="flex items-center gap-2 text-slate-300 font-bold">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Supported Credit Cards:</span>
+                <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1.5 text-xs text-slate-400">
+                  <div className="flex items-center gap-2 text-slate-300 font-bold">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span>Supported Credit Cards:</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    ICICI Bank, Axis Bank, HDFC Bank, Kotak Mahindra, IDFC FIRST, IndusInd, SBI & American Express. 
+                    Final interest rates or bank processing fees are applied dynamically by your card-issuing bank at checkout.
+                  </p>
                 </div>
-                <p className="text-[11px] leading-relaxed">
-                  ICICI Bank, Axis Bank, HDFC Bank, Kotak Mahindra, IDFC FIRST, IndusInd, SBI & American Express. 
-                  Final interest rates or bank processing fees are applied dynamically by your card-issuing bank at checkout.
-                </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowEmiModal(false)}
-                className="w-full py-3.5 rounded-2xl font-black text-xs text-black bg-gradient-to-r from-purple-400 to-indigo-400 hover:from-purple-300 hover:to-indigo-300 transition-all cursor-pointer"
-              >
-                Got It
-              </button>
+              {/* Footer */}
+              <div className="p-4 sm:p-5 pt-3 border-t border-slate-800 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowEmiModal(false)}
+                  className="w-full py-3 rounded-2xl font-black text-xs text-black bg-gradient-to-r from-purple-400 to-indigo-400 hover:from-purple-300 hover:to-indigo-300 transition-all cursor-pointer shadow-lg shadow-purple-950/40"
+                >
+                  Got It
+                </button>
+              </div>
             </div>
           </div>
         )}

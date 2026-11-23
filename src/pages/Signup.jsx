@@ -340,8 +340,8 @@ export default function Signup() {
 
         {/* 6-DIGIT EMAIL OTP VERIFICATION MODAL */}
         {showOtpModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-            <div className={`relative w-full max-w-md rounded-3xl border p-6 sm:p-8 space-y-6 shadow-2xl ${
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+            <div className={`relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-3xl border p-5 sm:p-8 space-y-5 shadow-2xl ${
               isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
             }`}>
               {/* Close Button */}

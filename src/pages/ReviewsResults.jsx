@@ -496,8 +496,8 @@ export default function ReviewsResults() {
 
       {/* WRITE A REVIEW MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 text-slate-100 shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-xl max-h-[88vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 p-5 sm:p-8 text-slate-100 shadow-2xl">
             
             <button
               onClick={() => setIsModalOpen(false)}
