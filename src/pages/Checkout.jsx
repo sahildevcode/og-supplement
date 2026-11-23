@@ -1012,13 +1012,21 @@ export default function Checkout() {
                 </p>
 
                 {/* Cancellation & Refund Disclaimer Note */}
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400/90 space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-300">
-                    <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                <div className={`p-3.5 rounded-2xl border text-xs space-y-1.5 transition-colors ${
+                  isDark
+                    ? 'bg-amber-950/30 border-amber-500/30 text-amber-200'
+                    : 'bg-amber-50 border-amber-200 text-slate-800'
+                }`}>
+                  <div className={`flex items-center gap-1.5 font-black text-xs ${
+                    isDark ? 'text-amber-400' : 'text-amber-800'
+                  }`}>
+                    <ShieldCheck className={`w-4 h-4 shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
                     <span>Cancellation & Handling Policy:</span>
                   </div>
-                  <p className="text-[11px] leading-relaxed text-slate-300">
-                    Order dispatch hone se pehle aap kabhi bhi cancel kar sakte hain. Payment gateway handling aur transaction charges ke liye <strong>5% fee cut</strong> hokar baaki pura refund aapke bank account mein credit ho jayega.
+                  <p className={`text-[11px] leading-relaxed font-medium ${
+                    isDark ? 'text-slate-300' : 'text-slate-700'
+                  }`}>
+                    Order dispatch hone se pehle aap kabhi bhi cancel kar sakte hain. Payment gateway handling aur transaction charges ke liye <strong className={isDark ? 'text-amber-300' : 'text-slate-900 font-bold'}>5% fee cut</strong> hokar baaki pura refund aapke bank account mein credit ho jayega.
                   </p>
                 </div>
               </div>
