@@ -45,6 +45,17 @@ export default function OrderHistory() {
   const [helpOrder, setHelpOrder] = useState(null);
   const [isCopiedEmail, setIsCopiedEmail] = useState(false);
 
+  // Lock body scroll and prevent background scroll bounce on mobile
+  useEffect(() => {
+    if (cancellingOrder || helpOrder) {
+      const scrollY = window.scrollY;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [cancellingOrder, helpOrder]);
+
   const isPrepaidOrder = (ord) => {
     if (!ord) return false;
     if (ord.paymentMethod === 'Cash on Delivery') return false;
@@ -470,14 +481,23 @@ export default function OrderHistory() {
         };
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-            <div className={`max-w-md w-full my-auto max-h-[92vh] overflow-y-auto p-5 sm:p-8 rounded-3xl border shadow-2xl space-y-5 ${
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+            <div className={`max-w-md w-full max-h-[88vh] flex flex-col rounded-3xl border shadow-2xl ${
               isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
             }`}>
               
-              <div className="flex items-start justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center">
-                  <HelpCircle className="w-6 h-6" />
+              {/* Header */}
+              <div className="p-5 pb-3 flex items-start justify-between border-b border-slate-800/40">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0">
+                    <HelpCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black">
+                      Help with Order #{helpOrder.orderId}
+                    </h3>
+                    <p className="text-[11px] text-slate-400">Direct official support</p>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -488,81 +508,77 @@ export default function OrderHistory() {
                 </button>
               </div>
 
-              <div className="space-y-1.5">
-                <h3 className="text-lg sm:text-xl font-black">
-                  Need Help with Order #{helpOrder.orderId}?
-                </h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+              {/* Scrollable Body */}
+              <div className="p-5 overflow-y-auto space-y-4 text-xs">
+                <p className="text-slate-400 leading-relaxed text-xs">
                   Direct support email ke zariye hamari team se contact karein. Aap direct Gmail ya kisi bhi email app se message bhej sakte hain.
                 </p>
-              </div>
 
-              {/* Email Address Card */}
-              <div className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
-                isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
-              }`}>
-                <div className="flex items-center gap-3 min-w-0">
-                  <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">Official Support Email</p>
-                    <p className="text-xs sm:text-sm font-bold font-mono text-cyan-400 truncate">
-                      {emailAddress}
-                    </p>
+                {/* Email Address Card */}
+                <div className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 ${
+                  isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                }`}>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Official Support Email</p>
+                      <p className="text-xs sm:text-sm font-bold font-mono text-cyan-400 truncate">
+                        {emailAddress}
+                      </p>
+                    </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyEmail}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 ${
+                      isCopiedEmail
+                        ? 'bg-emerald-500 text-black border-emerald-400'
+                        : 'bg-slate-800 hover:bg-slate-750 text-slate-200 border-slate-700'
+                    }`}
+                  >
+                    {isCopiedEmail ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleCopyEmail}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 ${
-                    isCopiedEmail
-                      ? 'bg-emerald-500 text-black border-emerald-400'
-                      : 'bg-slate-800 hover:bg-slate-750 text-slate-200 border-slate-700'
-                  }`}
-                >
-                  {isCopiedEmail ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-              </div>
+                {/* Order Info pill */}
+                <div className="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 space-y-1">
+                  <p><strong>Order ID:</strong> #{helpOrder.orderId}</p>
+                  <p><strong>Status:</strong> <span className="text-emerald-400 font-bold">{helpOrder.orderStatus}</span></p>
+                  <p><strong>Amount:</strong> ₹{helpOrder.totalAmount?.toLocaleString('en-IN')}</p>
+                </div>
 
-              {/* Order Info pill */}
-              <div className="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 space-y-1">
-                <p><strong>Order ID:</strong> #{helpOrder.orderId}</p>
-                <p><strong>Status:</strong> <span className="text-emerald-400 font-bold">{helpOrder.orderStatus}</span></p>
-                <p><strong>Amount:</strong> ₹{helpOrder.totalAmount?.toLocaleString('en-IN')}</p>
-              </div>
+                {/* Action Buttons */}
+                <div className="space-y-2 pt-1">
+                  <a
+                    href={gmailWebUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 rounded-xl font-black text-xs bg-red-600 hover:bg-red-500 text-white flex items-center justify-center gap-2 shadow-lg shadow-red-950/40 transition-all active:scale-95"
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span>Open in Gmail (Web)</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
 
-              {/* Action Buttons */}
-              <div className="space-y-2 pt-2">
-                {/* 1. Open in Gmail (Web Browser) */}
-                <a
-                  href={gmailWebUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3 rounded-2xl font-black text-xs bg-red-600 hover:bg-red-500 text-white flex items-center justify-center gap-2 shadow-lg shadow-red-950/40 transition-all active:scale-95"
-                >
-                  <Mail className="w-4 h-4" />
-                  <span>Open in Gmail (Web)</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-
-                {/* 2. Open in Default Mail App (Mobile / Outlook / Apple Mail) */}
-                <a
-                  href={mailtoUrl}
-                  className="w-full py-3 rounded-2xl font-black text-xs bg-cyan-500 hover:bg-cyan-400 text-black flex items-center justify-center gap-2 shadow-lg shadow-cyan-950/40 transition-all active:scale-95"
-                >
-                  <Mail className="w-4 h-4" />
-                  <span>Open in Default Email App</span>
-                </a>
+                  <a
+                    href={mailtoUrl}
+                    className="w-full py-2.5 rounded-xl font-black text-xs bg-cyan-500 hover:bg-cyan-400 text-black flex items-center justify-center gap-2 shadow-lg shadow-cyan-950/40 transition-all active:scale-95"
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span>Open in Default Email App</span>
+                  </a>
+                </div>
               </div>
 
             </div>
@@ -579,14 +595,23 @@ export default function OrderHistory() {
         const refundAmt = breakdown.refundAmount !== undefined ? breakdown.refundAmount : (breakdown.refund || Math.max(0, totalAmt - fee));
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-            <div className={`max-w-md w-full my-auto max-h-[92vh] overflow-y-auto p-5 sm:p-7 rounded-3xl border shadow-2xl space-y-4 ${
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+            <div className={`max-w-md w-full max-h-[88vh] flex flex-col rounded-3xl border shadow-2xl ${
               isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
             }`}>
               
-              <div className="flex items-start justify-between">
-                <div className="w-11 h-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center">
-                  <AlertTriangle className="w-5 h-5" />
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 pb-3 flex items-start justify-between border-b border-slate-800/40 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black leading-tight">
+                      Cancel Order #{cancellingOrder.orderId}?
+                    </h3>
+                    <p className="text-[11px] text-slate-400">Pre-dispatch cancellation</p>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -597,114 +622,108 @@ export default function OrderHistory() {
                 </button>
               </div>
 
-              <div className="space-y-1">
-                <h3 className="text-lg sm:text-xl font-black">
-                  Cancel Order #{cancellingOrder.orderId}?
-                </h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Are you sure you want to cancel this order before dispatch?
-                </p>
-              </div>
-
-              {/* High-visibility Refund & Deduction Breakdown Highlight Box */}
-              {isPrepaid ? (
-                <div className="space-y-2.5">
-                  <div className={`p-4 rounded-2xl border ${
-                    isDark ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-50 border-slate-200'
-                  }`}>
-                    <div className="flex items-center justify-between border-b pb-2.5 mb-2.5 border-slate-800/60">
-                      <div className="flex items-center gap-2">
-                        <Wallet className="w-4 h-4 text-emerald-400" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Refund Summary</span>
-                      </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                        Prepaid Order
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 text-xs">
-                      {/* Total Paid Amount */}
-                      <div className="flex items-center justify-between text-slate-400">
-                        <span>Total Paid by Customer</span>
-                        <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                          ₹{totalAmt.toLocaleString('en-IN')}
-                        </span>
-                      </div>
-
-                      {/* Deduction / Cancellation Fee */}
-                      <div className="flex items-center justify-between text-rose-400 font-semibold">
-                        <span className="flex items-center gap-1">
-                          <span>Cancellation & Handling Fee (Cut)</span>
-                        </span>
-                        <span className="font-bold font-mono">
-                          - ₹{fee.toLocaleString('en-IN')}
-                        </span>
-                      </div>
-
-                      {/* Net Refund Amount Returned */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                        <div>
-                          <p className="text-xs font-black text-emerald-400 uppercase tracking-wide">
-                            Total Refund Amount
-                          </p>
-                          <p className="text-[10px] text-slate-400">
-                            (Ye paisa aapke account mein wapas aayega)
-                          </p>
+              {/* Scrollable Content Inside Modal */}
+              <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
+                
+                {/* High-visibility Refund & Deduction Breakdown Highlight Box */}
+                {isPrepaid ? (
+                  <div className="space-y-2.5">
+                    <div className={`p-3.5 rounded-2xl border ${
+                      isDark ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-50 border-slate-200'
+                    }`}>
+                      <div className="flex items-center justify-between border-b pb-2 mb-2 border-slate-800/60">
+                        <div className="flex items-center gap-2">
+                          <Wallet className="w-4 h-4 text-emerald-400" />
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Refund Summary</span>
                         </div>
-                        <span className="text-base sm:text-lg font-black text-emerald-400 font-mono">
-                          ₹{refundAmt.toLocaleString('en-IN')}
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                          Prepaid Order
                         </span>
                       </div>
+
+                      <div className="space-y-1.5 text-xs">
+                        {/* Total Paid Amount */}
+                        <div className="flex items-center justify-between text-slate-400">
+                          <span>Total Paid by Customer</span>
+                          <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                            ₹{totalAmt.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+
+                        {/* Deduction / Cancellation Fee */}
+                        <div className="flex items-center justify-between text-rose-400 font-semibold">
+                          <span>Cancellation & Handling Fee (Cut)</span>
+                          <span className="font-bold font-mono">
+                            - ₹{fee.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+
+                        {/* Net Refund Amount Returned */}
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                          <div>
+                            <p className="text-xs font-black text-emerald-400 uppercase tracking-wide">
+                              Total Refund Amount
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              (Wapas aane wala amount)
+                            </p>
+                          </div>
+                          <span className="text-base sm:text-lg font-black text-emerald-400 font-mono">
+                            ₹{refundAmt.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Clarification Alert Pill */}
+                    <div className={`p-2.5 rounded-xl border text-[11px] leading-relaxed flex items-start gap-2 ${
+                      isDark ? 'bg-amber-500/10 border-amber-500/25 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-800'
+                    }`}>
+                      <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                      <p>
+                        <strong>Notice:</strong> <strong>₹{fee}</strong> cut hokar <strong>₹{refundAmt}</strong> aapke UPI / Card / Bank mein <strong>2-4 business days</strong> mein refund ho jayega.
+                      </p>
                     </div>
                   </div>
-
-                  {/* Clarification Alert Pill */}
-                  <div className={`p-3 rounded-xl border text-[11px] leading-relaxed flex items-start gap-2.5 ${
-                    isDark ? 'bg-amber-500/10 border-amber-500/25 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-800'
+                ) : (
+                  /* Cash on Delivery Notice */
+                  <div className={`p-3 rounded-2xl border text-xs flex items-center gap-2.5 ${
+                    isDark ? 'bg-slate-950 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
                   }`}>
-                    <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
-                    <p>
-                      <strong>Clear Notice:</strong> Cancellation charge <strong>₹{fee}</strong> cut hoga aur <strong>₹{refundAmt}</strong> aapke source payment method (UPI / Bank / Card) mein <strong>2 se 4 business days</strong> mein credit ho jayega.
-                    </p>
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center font-black flex-shrink-0 text-xs border border-amber-500/20">
+                      <AlertTriangle className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-white text-xs">Cash on Delivery Order</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        No payment has been collected yet. This order will be cancelled with zero penalty.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                /* Cash on Delivery Notice */
-                <div className={`p-3.5 rounded-2xl border text-xs flex items-center gap-3 ${
-                  isDark ? 'bg-slate-950 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
-                }`}>
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center font-black flex-shrink-0 text-xs border border-amber-500/20">
-                    <AlertTriangle className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-white text-xs">Cash on Delivery Order</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      No payment has been collected yet. This order will be cancelled with zero penalty.
-                    </p>
-                  </div>
-                </div>
-              )}
+                )}
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  Reason for cancellation:
-                </label>
-                <select
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                  className={`w-full p-2.5 sm:p-3 rounded-xl border text-xs font-medium focus:outline-none ${
-                    isDark
-                      ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-rose-500'
-                      : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-rose-600'
-                  }`}
-                >
-                  {cancelReasons.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Reason for cancellation:
+                  </label>
+                  <select
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    className={`w-full p-2.5 rounded-xl border text-xs font-medium focus:outline-none ${
+                      isDark
+                        ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-rose-500'
+                        : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-rose-600'
+                    }`}
+                  >
+                    {cancelReasons.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2">
+              {/* Modal Footer Actions */}
+              <div className="p-4 sm:p-5 pt-3 border-t border-slate-800/40 flex items-center justify-end gap-2.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => setCancellingOrder(null)}
@@ -720,7 +739,7 @@ export default function OrderHistory() {
                   type="button"
                   onClick={handleConfirmCancel}
                   disabled={isCancelling}
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-950/50 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-950/50 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <XCircle className={`w-4 h-4 ${isCancelling ? 'animate-spin' : ''}`} />
                   {isCancelling ? 'Cancelling...' : (isPrepaid ? `Confirm & Refund ₹${refundAmt}` : 'Cancel Order')}
