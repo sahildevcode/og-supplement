@@ -4,6 +4,7 @@ import { X, Star, ShoppingBag, Zap, ShieldCheck, Truck, RotateCcw } from 'lucide
 import { useProducts } from '../../context/ProductContext';
 import { useCart } from '../../context/CartContext';
 import StockBadge from './StockBadge';
+import ModalPortal from '../common/ModalPortal';
 
 export default function ProductQuickView() {
   const { quickViewProduct, setQuickViewProduct } = useProducts();
@@ -42,21 +43,17 @@ export default function ProductQuickView() {
   };
 
   return (
-    <div
-      onClick={() => setQuickViewProduct(null)}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+    <ModalPortal
+      isOpen={Boolean(quickViewProduct)}
+      onClose={() => setQuickViewProduct(null)}
+      maxWidth="max-w-3xl"
+      className="bg-slate-900 border-slate-700/80 overflow-hidden"
     >
-      
-      {/* Modal Card */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-3xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
-      >
-        
+      <div className="relative overflow-y-auto max-h-[calc(100dvh-32px)]">
         {/* Close Button */}
         <button
           onClick={() => setQuickViewProduct(null)}
-          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -249,6 +246,6 @@ export default function ProductQuickView() {
         </div>
 
       </div>
-    </div>
+    </ModalPortal>
   );
 }

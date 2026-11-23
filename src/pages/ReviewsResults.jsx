@@ -23,6 +23,7 @@ import { api } from '../services/api';
 import { socket } from '../services/socket';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
+import ModalPortal from '../components/common/ModalPortal';
 
 const GOAL_OPTIONS = [
   'All',
@@ -495,9 +496,13 @@ export default function ReviewsResults() {
       </section>
 
       {/* WRITE A REVIEW MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-xl max-h-[88vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 p-5 sm:p-8 text-slate-100 shadow-2xl">
+      <ModalPortal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        maxWidth="max-w-xl"
+        className="bg-slate-900 border-slate-800 text-slate-100"
+      >
+        <div className="relative p-5 sm:p-8 overflow-y-auto max-h-[calc(100dvh-32px)]">
             
             <button
               onClick={() => setIsModalOpen(false)}
@@ -664,8 +669,7 @@ export default function ReviewsResults() {
 
             </form>
           </div>
-        </div>
-      )}
+        </ModalPortal>
 
     </div>
   );

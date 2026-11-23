@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAdminToast } from '../context/AdminToastContext';
+import ModalPortal from '../components/ModalPortal';
 
 const GOAL_OPTIONS = [
   'Muscle Building',
@@ -458,27 +459,31 @@ export default function AdminTransformations() {
       )}
 
       {/* CREATE / EDIT MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 text-slate-100 shadow-2xl">
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
-            >
-              <X className="w-4 h-4" />
-            </button>
+      <ModalPortal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        maxWidth="max-w-2xl"
+        className="bg-slate-900 border-slate-800"
+      >
+        <div className="relative p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[calc(100dvh-32px)]">
+          <button
+            onClick={() => setIsModalOpen(false)}
+            className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
 
-            <div className="space-y-1 mb-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
-                {editingId ? 'Edit Transformation Story' : 'New Transformation / Review'}
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black text-white">
-                {editingId ? 'Update Customer Result' : 'Publish Customer Transformation'}
-              </h2>
-              <p className="text-xs text-slate-400">
-                Any changes made here reflect instantly across your homepage and the Customer Results page.
-              </p>
-            </div>
+          <div className="space-y-1 mb-6">
+            <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
+              {editingId ? 'Edit Transformation Story' : 'New Transformation / Review'}
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-white">
+              {editingId ? 'Update Customer Result' : 'Publish Customer Transformation'}
+            </h2>
+            <p className="text-xs text-slate-400">
+              Any changes made here reflect instantly across your homepage and the Customer Results page.
+            </p>
+          </div>
 
             <form onSubmit={handleSubmit} className="space-y-5 text-xs">
               
@@ -703,8 +708,7 @@ export default function AdminTransformations() {
 
             </form>
           </div>
-        </div>
-      )}
+        </ModalPortal>
     </div>
   );
 }

@@ -30,6 +30,7 @@ import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
+import ModalPortal from '../components/common/ModalPortal';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -1105,18 +1106,20 @@ export default function Checkout() {
       </div>
 
       {/* CHECKOUT MANDATORY EMAIL OTP VERIFICATION MODAL */}
-      {showCheckoutOtpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className={`relative w-full max-w-md rounded-3xl border p-6 sm:p-8 space-y-6 shadow-2xl ${
-            isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
-          }`}>
-            <button
-              type="button"
-              onClick={() => setShowCheckoutOtpModal(false)}
-              className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
+      <ModalPortal
+        isOpen={showCheckoutOtpModal}
+        onClose={() => setShowCheckoutOtpModal(false)}
+        maxWidth="max-w-md"
+        className={isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}
+      >
+        <div className="relative p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[calc(100dvh-32px)]">
+          <button
+            type="button"
+            onClick={() => setShowCheckoutOtpModal(false)}
+            className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
 
             <div className="text-center space-y-2">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-black flex items-center justify-center mx-auto shadow-lg shadow-emerald-950/50">
@@ -1236,13 +1239,16 @@ export default function Checkout() {
             </div>
 
           </div>
-        </div>
-      )}
+        </ModalPortal>
 
       {/* Razorpay Test Mode / Sandbox Simulation Modal */}
-      {showSandboxModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 space-y-4 sm:space-y-5 shadow-2xl animate-in zoom-in-95 duration-200 my-auto custom-scrollbar">
+      <ModalPortal
+        isOpen={showSandboxModal}
+        onClose={() => setShowSandboxModal(false)}
+        maxWidth="max-w-md"
+        className="bg-slate-900 border-emerald-500/40 text-white"
+      >
+        <div className="p-5 sm:p-7 space-y-4 sm:space-y-5 overflow-y-auto max-h-[calc(100dvh-32px)]">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-base border border-emerald-500/30">
@@ -1355,8 +1361,7 @@ export default function Checkout() {
               Once approved by Razorpay, your live Key ID will automatically open the official payment interface with real UPI PIN, GPay, PhonePe, and Card payments.
             </p>
           </div>
-        </div>
-      )}
+        </ModalPortal>
     </div>
   );
 }

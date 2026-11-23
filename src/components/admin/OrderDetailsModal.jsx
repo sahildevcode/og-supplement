@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Truck, User, Phone, Mail, MapPin, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { api } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import ModalPortal from '../common/ModalPortal';
 
 export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChanged }) {
   const { addToast } = useToast();
@@ -28,9 +29,13 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
   const statuses = ['Order Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-        
+    <ModalPortal
+      isOpen={isOpen && Boolean(order)}
+      onClose={onClose}
+      maxWidth="max-w-2xl"
+      className="bg-slate-900 border-slate-700/80"
+    >
+      <div className="relative p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[calc(100dvh-32px)]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
           <div>
@@ -152,6 +157,6 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
         </div>
 
       </div>
-    </div>
+    </ModalPortal>
   );
 }

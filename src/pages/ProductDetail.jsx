@@ -31,6 +31,7 @@ import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import StockBadge from '../components/product/StockBadge';
 import ProductCard from '../components/product/ProductCard';
+import ModalPortal from '../components/common/ModalPortal';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 
@@ -1560,30 +1561,27 @@ export default function ProductDetail() {
         )}
 
         {/* Fullscreen Photo Lightbox Modal */}
-        {selectedReviewImage && (
-          <div
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
-            onClick={() => setSelectedReviewImage(null)}
-          >
-            <div
-              className="relative max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl border border-slate-700"
-              onClick={(e) => e.stopPropagation()}
+        <ModalPortal
+          isOpen={Boolean(selectedReviewImage)}
+          onClose={() => setSelectedReviewImage(null)}
+          maxWidth="max-w-4xl"
+          className="border-slate-700 bg-transparent shadow-none"
+        >
+          <div className="relative max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl border border-slate-700 bg-black/90">
+            <button
+              type="button"
+              onClick={() => setSelectedReviewImage(null)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/70 hover:bg-rose-600 text-white transition-colors cursor-pointer"
             >
-              <button
-                type="button"
-                onClick={() => setSelectedReviewImage(null)}
-                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/70 hover:bg-rose-600 text-white transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <img
-                src={selectedReviewImage}
-                alt="Enlarged review photo"
-                className="w-full h-full object-contain max-h-[85vh] rounded-3xl"
-              />
-            </div>
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={selectedReviewImage}
+              alt="Enlarged review photo"
+              className="w-full h-full object-contain max-h-[85vh] rounded-3xl"
+            />
           </div>
-        )}
+        </ModalPortal>
 
         {/* You May Also Like / Recommended Products Section */}
         {products && products.length > 1 && (
@@ -1622,112 +1620,111 @@ export default function ProductDetail() {
         )}
 
         {/* EMI PLANS MODAL POPUP */}
-        {showEmiModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-            <div className={`relative w-full max-w-lg max-h-[88vh] flex flex-col rounded-3xl border shadow-2xl ${
-              isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
-            }`}>
-              {/* Header */}
-              <div className="p-4 sm:p-5 pb-3 flex items-center justify-between border-b border-slate-800 shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 shrink-0">
-                    <CreditCard className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-black">Credit Card Easy EMI Plans</h3>
-                    <p className="text-xs text-slate-400">Order Value: ₹{displayDiscountPrice.toLocaleString('en-IN')}</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowEmiModal(false)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+        <ModalPortal
+          isOpen={showEmiModal}
+          onClose={() => setShowEmiModal(false)}
+          maxWidth="max-w-lg"
+          className={isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}
+        >
+          {/* Header */}
+          <div className="p-4 sm:p-5 pb-3 flex items-center justify-between border-b border-slate-800 shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 shrink-0">
+                <CreditCard className="w-5 h-5" />
               </div>
-
-              {/* Scrollable Content */}
-              <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
-                <p className="text-xs text-slate-400">
-                  Select your preferred tenure at checkout under <strong>Razorpay (Cards / EMI)</strong>:
-                </p>
-
-                {/* 3 Months Plan */}
-                <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
-                  isDark ? 'bg-slate-950 border-purple-500/30' : 'bg-purple-50/50 border-purple-200'
-                }`}>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-black">3 Months Plan</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                        Most Popular
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 3).toLocaleString('en-IN')} x 3 months</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-base font-black text-purple-400">
-                      ₹{Math.round(displayDiscountPrice / 3).toLocaleString('en-IN')}/mo
-                    </span>
-                  </div>
-                </div>
-
-                {/* 6 Months Plan */}
-                <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
-                  isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
-                }`}>
-                  <div>
-                    <span className="text-sm font-black">6 Months Plan</span>
-                    <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 6).toLocaleString('en-IN')} x 6 months</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-base font-black text-purple-400">
-                      ₹{Math.round(displayDiscountPrice / 6).toLocaleString('en-IN')}/mo
-                    </span>
-                  </div>
-                </div>
-
-                {/* 9 Months Plan */}
-                <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
-                  isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
-                }`}>
-                  <div>
-                    <span className="text-sm font-black">9 Months Plan</span>
-                    <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 9).toLocaleString('en-IN')} x 9 months</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-base font-black text-purple-400">
-                      ₹{Math.round(displayDiscountPrice / 9).toLocaleString('en-IN')}/mo
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1.5 text-xs text-slate-400">
-                  <div className="flex items-center gap-2 text-slate-300 font-bold">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Supported Credit Cards:</span>
-                  </div>
-                  <p className="text-[11px] leading-relaxed">
-                    ICICI Bank, Axis Bank, HDFC Bank, Kotak Mahindra, IDFC FIRST, IndusInd, SBI & American Express. 
-                    Final interest rates or bank processing fees are applied dynamically by your card-issuing bank at checkout.
-                  </p>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="p-4 sm:p-5 pt-3 border-t border-slate-800 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setShowEmiModal(false)}
-                  className="w-full py-3 rounded-2xl font-black text-xs text-black bg-gradient-to-r from-purple-400 to-indigo-400 hover:from-purple-300 hover:to-indigo-300 transition-all cursor-pointer shadow-lg shadow-purple-950/40"
-                >
-                  Got It
-                </button>
+              <div>
+                <h3 className="text-base font-black">Credit Card Easy EMI Plans</h3>
+                <p className="text-xs text-slate-400">Order Value: ₹{displayDiscountPrice.toLocaleString('en-IN')}</p>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowEmiModal(false)}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-        )}
+
+          {/* Scrollable Content */}
+          <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
+            <p className="text-xs text-slate-400">
+              Select your preferred tenure at checkout under <strong>Razorpay (Cards / EMI)</strong>:
+            </p>
+
+            {/* 3 Months Plan */}
+            <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
+              isDark ? 'bg-slate-950 border-purple-500/30' : 'bg-purple-50/50 border-purple-200'
+            }`}>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black">3 Months Plan</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    Most Popular
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 3).toLocaleString('en-IN')} x 3 months</p>
+              </div>
+              <div className="text-right">
+                <span className="text-base font-black text-purple-400">
+                  ₹{Math.round(displayDiscountPrice / 3).toLocaleString('en-IN')}/mo
+                </span>
+              </div>
+            </div>
+
+            {/* 6 Months Plan */}
+            <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
+              isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div>
+                <span className="text-sm font-black">6 Months Plan</span>
+                <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 6).toLocaleString('en-IN')} x 6 months</p>
+              </div>
+              <div className="text-right">
+                <span className="text-base font-black text-purple-400">
+                  ₹{Math.round(displayDiscountPrice / 6).toLocaleString('en-IN')}/mo
+                </span>
+              </div>
+            </div>
+
+            {/* 9 Months Plan */}
+            <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
+              isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div>
+                <span className="text-sm font-black">9 Months Plan</span>
+                <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 9).toLocaleString('en-IN')} x 9 months</p>
+              </div>
+              <div className="text-right">
+                <span className="text-base font-black text-purple-400">
+                  ₹{Math.round(displayDiscountPrice / 9).toLocaleString('en-IN')}/mo
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1.5 text-xs text-slate-400">
+              <div className="flex items-center gap-2 text-slate-300 font-bold">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Supported Credit Cards:</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                ICICI Bank, Axis Bank, HDFC Bank, Kotak Mahindra, IDFC FIRST, IndusInd, SBI & American Express. 
+                Final interest rates or bank processing fees are applied dynamically by your card-issuing bank at checkout.
+              </p>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="p-4 sm:p-5 pt-3 border-t border-slate-800 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowEmiModal(false)}
+              className="w-full py-3 rounded-2xl font-black text-xs text-black bg-gradient-to-r from-purple-400 to-indigo-400 hover:from-purple-300 hover:to-indigo-300 transition-all cursor-pointer shadow-lg shadow-purple-950/40"
+            >
+              Got It
+            </button>
+          </div>
+        </ModalPortal>
 
       </div>
     </div>

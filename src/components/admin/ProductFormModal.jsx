@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Upload, Plus, Trash2, Check, AlertCircle, Sparkles } from 'lucide-react';
 import { api } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import ModalPortal from '../common/ModalPortal';
 
 export default function ProductFormModal({ isOpen, onClose, productToEdit, onSaved }) {
   const { addToast } = useToast();
@@ -156,8 +157,13 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, onSav
   const categories = ['Protein', 'Mass Gainer', 'Creatine', 'Pre-Workout', 'Supplements', 'Vitamins', 'Protein Bars'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
-      <div className="relative w-full max-w-3xl my-8 bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+    <ModalPortal
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="max-w-3xl"
+      className="bg-slate-900 border-slate-700/80"
+    >
+      <div className="relative p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[calc(100dvh-32px)]">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -428,6 +434,6 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, onSav
         </form>
 
       </div>
-    </div>
+    </ModalPortal>
   );
 }

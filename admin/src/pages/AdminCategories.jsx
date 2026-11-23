@@ -16,6 +16,7 @@ import {
 import { api } from '../services/api';
 import { socket } from '../services/socket';
 import { useAdminToast } from '../context/AdminToastContext';
+import ModalPortal from '../components/ModalPortal';
 
 const colorThemes = [
   { id: 'emerald', label: 'Emerald Green', bgClass: 'from-emerald-500/20 to-teal-500/5', borderClass: 'border-emerald-500/30' },
@@ -305,26 +306,30 @@ export default function AdminCategories() {
       )}
 
       {/* Edit / Add Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 my-8 shadow-2xl">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div>
-                <h2 className="text-xl font-black text-white">
-                  {editingCategory ? 'Edit Homepage Category Card' : 'Add New Homepage Category'}
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Customize image, titles, and visual theme for this homepage section.
-                </p>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+      <ModalPortal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        maxWidth="max-w-2xl"
+        className="bg-slate-900 border-slate-800"
+      >
+        <div className="p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[calc(100dvh-32px)]">
+          {/* Modal Header */}
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div>
+              <h2 className="text-xl font-black text-white">
+                {editingCategory ? 'Edit Homepage Category Card' : 'Add New Homepage Category'}
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Customize image, titles, and visual theme for this homepage section.
+              </p>
             </div>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
             <form onSubmit={handleSave} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -524,8 +529,7 @@ export default function AdminCategories() {
               </div>
             </form>
           </div>
-        </div>
-      )}
+        </ModalPortal>
     </div>
   );
 }

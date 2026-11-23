@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
+import ModalPortal from '../components/common/ModalPortal';
 
 export default function Signup() {
   const [name, setName] = useState('');
@@ -339,89 +340,90 @@ export default function Signup() {
         </div>
 
         {/* 6-DIGIT EMAIL OTP VERIFICATION MODAL */}
-        {showOtpModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-            <div className={`relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-3xl border p-5 sm:p-8 space-y-5 shadow-2xl ${
-              isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
-            }`}>
-              {/* Close Button */}
+        <ModalPortal
+          isOpen={showOtpModal}
+          onClose={() => setShowOtpModal(false)}
+          maxWidth="max-w-md"
+          className={isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}
+        >
+          <div className="p-5 sm:p-8 space-y-5 overflow-y-auto max-h-[calc(100dvh-32px)]">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowOtpModal(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Icon & Title */}
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-black flex items-center justify-center mx-auto shadow-lg shadow-emerald-950/50">
+                <KeyRound className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black tracking-tight">
+                Verify Your Email
+              </h3>
+              <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                We've sent a 6-digit verification code to <span className="font-bold text-emerald-400">{email}</span>
+              </p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleVerifyOtp} className="space-y-5">
+              <div className="space-y-2">
+                <label className="block text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Enter 6-Digit OTP Code
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={6}
+                  autoFocus
+                  placeholder="• • • • • •"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  className="w-full text-center tracking-[12px] text-2xl font-black py-3 rounded-2xl border bg-slate-950 border-slate-800 text-emerald-400 placeholder-slate-700 focus:outline-none focus:border-emerald-500 shadow-inner"
+                />
+                <span className="block text-center text-[11px] text-slate-500">
+                  Code is valid for 10 minutes
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={verifyingOtp || otp.length !== 6}
+                className="w-full py-3.5 rounded-2xl font-black text-sm text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-xl shadow-emerald-950/60 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 cursor-pointer"
+              >
+                {verifyingOtp ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Verifying Code...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Verify & Create Account</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Resend Link */}
+            <div className="pt-2 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
+              <span>Didn't receive the email?</span>
               <button
                 type="button"
-                onClick={() => setShowOtpModal(false)}
-                className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                disabled={resendingOtp}
+                onClick={handleResendOtp}
+                className="text-emerald-400 hover:text-emerald-300 font-bold underline cursor-pointer disabled:opacity-50"
               >
-                <X className="w-4 h-4" />
+                {resendingOtp ? 'Resending...' : 'Resend Code'}
               </button>
-
-              {/* Icon & Title */}
-              <div className="text-center space-y-2">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-black flex items-center justify-center mx-auto shadow-lg shadow-emerald-950/50">
-                  <KeyRound className="w-7 h-7" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-black tracking-tight">
-                  Verify Your Email
-                </h3>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                  We've sent a 6-digit verification code to <span className="font-bold text-emerald-400">{email}</span>
-                </p>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleVerifyOtp} className="space-y-5">
-                <div className="space-y-2">
-                  <label className="block text-center text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Enter 6-Digit OTP Code
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    autoFocus
-                    placeholder="• • • • • •"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full text-center tracking-[12px] text-2xl font-black py-3 rounded-2xl border bg-slate-950 border-slate-800 text-emerald-400 placeholder-slate-700 focus:outline-none focus:border-emerald-500 shadow-inner"
-                  />
-                  <span className="block text-center text-[11px] text-slate-500">
-                    Code is valid for 10 minutes
-                  </span>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={verifyingOtp || otp.length !== 6}
-                  className="w-full py-3.5 rounded-2xl font-black text-sm text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-xl shadow-emerald-950/60 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 cursor-pointer"
-                >
-                  {verifyingOtp ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Verifying Code...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Verify & Create Account</span>
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Resend Link */}
-              <div className="pt-2 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
-                <span>Didn't receive the email?</span>
-                <button
-                  type="button"
-                  disabled={resendingOtp}
-                  onClick={handleResendOtp}
-                  className="text-emerald-400 hover:text-emerald-300 font-bold underline cursor-pointer disabled:opacity-50"
-                >
-                  {resendingOtp ? 'Resending...' : 'Resend Code'}
-                </button>
-              </div>
-
             </div>
+
           </div>
-        )}
+        </ModalPortal>
 
       </div>
     </div>

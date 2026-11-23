@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import { api } from '../services/api';
+import ModalPortal from '../components/common/ModalPortal';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -256,33 +257,35 @@ export default function Login() {
       </div>
 
       {/* FORGOT PASSWORD MODAL */}
-      {showForgotModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className={`relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-3xl border p-5 sm:p-8 space-y-5 shadow-2xl ${
-            isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
-          }`}>
-            <div className="flex items-center justify-between border-b pb-4 border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <KeyRound className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-black">Reset Password</h3>
-                  <p className="text-xs text-slate-400">
-                    {forgotStep === 1 ? 'Step 1: Verify your registered email' : 'Step 2: Enter OTP & set new password'}
-                  </p>
-                </div>
+      <ModalPortal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        maxWidth="max-w-md"
+        className={isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}
+      >
+        <div className="p-5 sm:p-8 space-y-5 overflow-y-auto max-h-[calc(100dvh-32px)]">
+          <div className="flex items-center justify-between border-b pb-4 border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <KeyRound className="w-5 h-5" />
               </div>
-              <button
-                type="button"
-                onClick={() => setShowForgotModal(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div>
+                <h3 className="text-base font-black">Reset Password</h3>
+                <p className="text-xs text-slate-400">
+                  {forgotStep === 1 ? 'Step 1: Verify your registered email' : 'Step 2: Enter OTP & set new password'}
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowForgotModal(false)}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-            {forgotError && (
+          {forgotError && (
               <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-500 text-xs font-semibold">
                 {forgotError}
               </div>
@@ -424,8 +427,7 @@ export default function Login() {
               </form>
             )}
           </div>
-        </div>
-      )}
+        </ModalPortal>
 
     </div>
   );
