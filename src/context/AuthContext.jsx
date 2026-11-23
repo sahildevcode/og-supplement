@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      // 1. Try server API login
+      // Enforce strict server-side password validation
       const data = await api.login({ email, password });
       setUser(data.user);
       setToken(data.token);
@@ -41,55 +41,8 @@ export const AuthProvider = ({ children }) => {
       addToast(`Welcome back, ${data.user.name}!`, 'success');
       return data;
     } catch (error) {
-      // 2. Resilient Offline fallback (if server is not yet deployed or unreachable)
-      if (email.toLowerCase() === 'admin@ogsupplement.com' && password === 'adminpassword123') {
-        const adminUser = {
-          _id: 'admin_root',
-          id: 'admin_root',
-          name: 'Super Admin',
-          email: 'admin@ogsupplement.com',
-          role: 'admin',
-          phone: '+91 98765 43210',
-          address: 'Shop No. 4, Fitness Hub Arcade',
-          city: 'Mumbai',
-          state: 'Maharashtra',
-          pincode: '400001',
-          landmark: 'Opposite Central Gym'
-        };
-        const fakeToken = 'offline_admin_jwt_token_2026';
-        setUser(adminUser);
-        setToken(fakeToken);
-        localStorage.setItem('og_token', fakeToken);
-        localStorage.setItem('og_user', JSON.stringify(adminUser));
-        addToast('Welcome back, Super Admin!', 'success');
-        return { user: adminUser, token: fakeToken };
-      }
-
-      if (email && password.length >= 6) {
-        // Valid customer offline fallback
-        const customerUser = {
-          _id: 'cust_' + Date.now(),
-          id: 'cust_' + Date.now(),
-          name: email.split('@')[0].toUpperCase(),
-          email: email,
-          role: 'customer',
-          phone: '+91 99999 00000',
-          address: '',
-          city: '',
-          state: '',
-          pincode: '',
-          landmark: ''
-        };
-        const fakeToken = 'offline_customer_jwt_token_2026';
-        setUser(customerUser);
-        setToken(fakeToken);
-        localStorage.setItem('og_token', fakeToken);
-        localStorage.setItem('og_user', JSON.stringify(customerUser));
-        addToast(`Welcome, ${customerUser.name}!`, 'success');
-        return { user: customerUser, token: fakeToken };
-      }
-
-      addToast(error.message || 'Login failed', 'error');
+      // Re-throw server password errors strictly so user cannot bypass
+      addToast(error.message || 'Invalid email or password', 'error');
       throw error;
     }
   };
