@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   ShieldCheck,
   Truck,
@@ -17,7 +17,11 @@ import {
   QrCode,
   Smartphone,
   Copy,
-  ExternalLink
+  ExternalLink,
+  KeyRound,
+  CheckCircle2,
+  RefreshCw,
+  UserCheck
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCart } from '../context/CartContext';
@@ -55,10 +59,17 @@ export default function Checkout() {
     removeFromCart,
     clearCart
   } = useCart();
-  const { user } = useAuth();
+  const { user, verifyAndLogin } = useAuth();
   const { addToast } = useToast();
   const { isDark } = useTheme();
   const navigate = useNavigate();
+
+  // Checkout Email OTP Verification States for non-logged-in customers
+  const [showCheckoutOtpModal, setShowCheckoutOtpModal] = useState(false);
+  const [checkoutOtp, setCheckoutOtp] = useState('');
+  const [checkoutPassword, setCheckoutPassword] = useState('');
+  const [sendingCheckoutOtp, setSendingCheckoutOtp] = useState(false);
+  const [verifyingCheckoutOtp, setVerifyingCheckoutOtp] = useState(false);
 
   const [paymentSettings, setPaymentSettings] = useState(() => {
     try {
@@ -262,6 +273,45 @@ export default function Checkout() {
       return;
     }
 
+    // MANDATORY OTP VERIFICATION CHECK: Customer must be logged in & verified
+    if (!user) {
+      // Prompt user to verify via OTP before placing order
+      setSendingCheckoutOtp(true);
+      try {
+        const dummyPassword = checkoutPassword || `Og@${Math.floor(100000 + Math.random() * 900000)}`;
+        setCheckoutPassword(dummyPassword);
+
+        const otpRes = await api.sendRegisterOtp({
+          name: formData.customerName,
+          email: formData.email,
+          phone: formData.phone,
+          password: dummyPassword,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          landmark: formData.landmark
+        });
+
+        if (otpRes && otpRes.success) {
+          setShowCheckoutOtpModal(true);
+          addToast(`Verification code sent to ${formData.email}!`, 'success');
+        }
+      } catch (err) {
+        // If account already exists, prompt user to login
+        if (err.message && err.message.toLowerCase().includes('already exists')) {
+          setErrorMessage('An account with this email already exists. Please Sign In first.');
+          addToast('Please Sign In to complete checkout with your account.', 'warning');
+        } else {
+          setErrorMessage(err.message || 'Failed to send verification code. Please check your email.');
+          addToast(err.message || 'Verification error', 'error');
+        }
+      } finally {
+        setSendingCheckoutOtp(false);
+      }
+      return;
+    }
+
     // 1. Razorpay Automatic Online Payment
     if (formData.paymentMethod === 'Razorpay (Online)') {
       try {
@@ -425,6 +475,46 @@ export default function Checkout() {
             Complete your order with authentic, direct-from-warehouse dispatch
           </p>
         </div>
+
+        {/* Verification / Account Banner for non-logged in users */}
+        {!user && (
+          <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-transparent border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                <KeyRound className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-white flex items-center gap-1.5">
+                  Mandatory OTP Verification Required Before Order
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400">100% Free OTP</span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Enter your details below to receive a 6-digit OTP code on your email for authentic order dispatch.
+                </p>
+              </div>
+            </div>
+            <Link
+              to={`/login?redirect=${encodeURIComponent('/checkout')}`}
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-700 hover:border-emerald-500 text-slate-200 hover:text-white transition-all self-start sm:self-auto shrink-0 flex items-center gap-1.5"
+            >
+              <span>Already Have Account? Sign In</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
+
+        {/* Logged In User Verified Badge */}
+        {user && (
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs text-emerald-400">
+            <div className="flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-emerald-400" />
+              <span>Ordering as Verified Athlete: <strong className="text-white">{user.name}</strong> ({user.email})</span>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+              Verified ID
+            </span>
+          </div>
+        )}
 
         {/* Error Alert */}
         {errorMessage && (
@@ -1051,6 +1141,141 @@ export default function Checkout() {
         </div>
 
       </div>
+
+      {/* CHECKOUT MANDATORY EMAIL OTP VERIFICATION MODAL */}
+      {showCheckoutOtpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className={`relative w-full max-w-md rounded-3xl border p-6 sm:p-8 space-y-6 shadow-2xl ${
+            isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            <button
+              type="button"
+              onClick={() => setShowCheckoutOtpModal(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-black flex items-center justify-center mx-auto shadow-lg shadow-emerald-950/50">
+                <KeyRound className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black tracking-tight">
+                Verify Order Identity
+              </h3>
+              <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                We've sent a 6-digit verification code to <span className="font-bold text-emerald-400">{formData.email}</span>
+              </p>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!checkoutOtp || checkoutOtp.trim().length !== 6) {
+                  addToast('Please enter the complete 6-digit code', 'warning');
+                  return;
+                }
+
+                setVerifyingCheckoutOtp(true);
+                try {
+                  const res = await api.verifyRegisterOtp({
+                    email: formData.email,
+                    otp: checkoutOtp.trim()
+                  });
+
+                  if (res && res.success) {
+                    verifyAndLogin(res);
+                    setShowCheckoutOtpModal(false);
+                    addToast('Identity Verified! Placing your order now...', 'success');
+                    // Automatically trigger order placement now that user is verified & logged in
+                    setTimeout(() => {
+                      const formElem = document.getElementById('checkout-form');
+                      if (formElem) {
+                        formElem.requestSubmit();
+                      }
+                    }, 400);
+                  }
+                } catch (err) {
+                  addToast(err.message || 'Invalid or expired OTP code', 'error');
+                } finally {
+                  setVerifyingCheckoutOtp(false);
+                }
+              }}
+              className="space-y-5"
+            >
+              <div className="space-y-2">
+                <label className="block text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Enter 6-Digit OTP Code
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={6}
+                  autoFocus
+                  placeholder="• • • • • •"
+                  value={checkoutOtp}
+                  onChange={(e) => setCheckoutOtp(e.target.value.replace(/\D/g, ''))}
+                  className="w-full text-center tracking-[12px] text-2xl font-black py-3 rounded-2xl border bg-slate-950 border-slate-800 text-emerald-400 placeholder-slate-700 focus:outline-none focus:border-emerald-500 shadow-inner"
+                />
+                <span className="block text-center text-[11px] text-slate-500">
+                  Code is valid for 10 minutes
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={verifyingCheckoutOtp || checkoutOtp.length !== 6}
+                className="w-full py-3.5 rounded-2xl font-black text-sm text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-xl shadow-emerald-950/60 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 cursor-pointer"
+              >
+                {verifyingCheckoutOtp ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Verifying Code...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Verify & Place Order</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="pt-2 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
+              <span>Didn't receive code?</span>
+              <button
+                type="button"
+                disabled={sendingCheckoutOtp}
+                onClick={async () => {
+                  setSendingCheckoutOtp(true);
+                  try {
+                    await api.sendRegisterOtp({
+                      name: formData.customerName,
+                      email: formData.email,
+                      phone: formData.phone,
+                      password: checkoutPassword,
+                      address: formData.address,
+                      city: formData.city,
+                      state: formData.state,
+                      pincode: formData.pincode,
+                      landmark: formData.landmark
+                    });
+                    addToast('A new 6-digit OTP code has been sent to your email!', 'success');
+                  } catch (err) {
+                    addToast(err.message || 'Failed to resend code', 'error');
+                  } finally {
+                    setSendingCheckoutOtp(false);
+                  }
+                }}
+                className="text-emerald-400 hover:text-emerald-300 font-bold underline cursor-pointer disabled:opacity-50"
+              >
+                {sendingCheckoutOtp ? 'Resending...' : 'Resend Code'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* Razorpay Test Mode / Sandbox Simulation Modal */}
       {showSandboxModal && (

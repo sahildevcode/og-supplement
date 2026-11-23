@@ -1,7 +1,162 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { User } from '../models/User.js';
 import { generateToken } from '../middleware/authMiddleware.js';
-import { sendPasswordResetOtpEmail } from '../services/emailService.js';
+import { sendPasswordResetOtpEmail, sendVerificationOtpEmail } from '../services/emailService.js';
+
+// In-memory pending signups container for OTP verification
+// Format: email -> { name, email, password, phone, address, city, state, pincode, landmark, otp, expiresAt }
+const pendingVerifications = new Map();
+
+// Helper to clean expired OTPs every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of pendingVerifications.entries()) {
+    if (now > value.expiresAt) {
+      pendingVerifications.delete(key);
+    }
+  }
+}, 10 * 60 * 1000);
+
+// @route   POST /api/auth/send-register-otp
+// Step 1 of registration: validate fields, generate OTP, send email
+export const sendRegisterOtp = async (req, res) => {
+  try {
+    const { name, email, password, phone = '', address = '', city = '', state = '', pincode = '', landmark = '' } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Please provide Name, Email, and Password' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Check if email already registered
+    const userExists = await User.findOne({ email: cleanEmail });
+    if (userExists) {
+      return res.status(400).json({ success: false, message: 'An account with this email already exists. Please login.' });
+    }
+
+    // Generate random 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes validity
+
+    // Store in pendingVerifications map
+    pendingVerifications.set(cleanEmail, {
+      name: name.trim(),
+      email: cleanEmail,
+      password,
+      phone: phone.trim(),
+      address: address.trim(),
+      city: city.trim(),
+      state: state.trim(),
+      pincode: pincode.trim(),
+      landmark: landmark.trim(),
+      otp,
+      expiresAt
+    });
+
+    const emailResult = await sendVerificationOtpEmail(cleanEmail, otp, name.trim());
+
+    console.log(`\x1b[36m[Register OTP]\x1b[0m Sent 6-digit verification code to ${cleanEmail}`);
+
+    res.json({
+      success: true,
+      message: `Verification code sent to ${cleanEmail}. Please enter the 6-digit OTP to activate your account.`,
+      ...(emailResult.simulated ? { simulatedOtp: otp } : {})
+    });
+  } catch (error) {
+    console.error('[Send Register OTP Error]', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to send verification OTP' });
+  }
+};
+
+// @route   POST /api/auth/verify-register-otp
+// Step 2 of registration: verify OTP, create verified user, issue JWT token
+export const verifyRegisterOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: 'Email and 6-digit OTP are required' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const pending = pendingVerifications.get(cleanEmail);
+
+    if (!pending) {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending registration found for this email, or the OTP has expired. Please try again.'
+      });
+    }
+
+    if (Date.now() > pending.expiresAt) {
+      pendingVerifications.delete(cleanEmail);
+      return res.status(400).json({
+        success: false,
+        message: 'OTP has expired (valid for 10 minutes). Please request a new OTP.'
+      });
+    }
+
+    if (pending.otp !== otp.trim()) {
+      return res.status(400).json({ success: false, message: 'Invalid 6-digit OTP. Please check your email and try again.' });
+    }
+
+    // Double check email uniqueness before creation
+    const userExists = await User.findOne({ email: cleanEmail });
+    if (userExists) {
+      pendingVerifications.delete(cleanEmail);
+      return res.status(400).json({ success: false, message: 'An account with this email already exists' });
+    }
+
+    // Create verified customer account
+    const user = await User.create({
+      name: pending.name,
+      email: pending.email,
+      password: pending.password,
+      role: 'customer',
+      phone: pending.phone,
+      address: pending.address,
+      city: pending.city,
+      state: pending.state,
+      pincode: pending.pincode,
+      landmark: pending.landmark,
+      isEmailVerified: true
+    });
+
+    // Clean up memory
+    pendingVerifications.delete(cleanEmail);
+
+    const token = generateToken(user._id || user.id, user.role);
+
+    console.log(`\x1b[32m[User Verified & Created]\x1b[0m ${user.email} (${user.name})`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Account successfully verified and created! Welcome to OG Supplements.',
+      user: {
+        _id: user._id || user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        pincode: user.pincode || '',
+        landmark: user.landmark || ''
+      },
+      token
+    });
+  } catch (error) {
+    console.error('[Verify Register OTP Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // @route   POST /api/auth/register
 export const registerUser = async (req, res) => {

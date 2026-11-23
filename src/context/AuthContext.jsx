@@ -104,27 +104,18 @@ export const AuthProvider = ({ children }) => {
       addToast('Account created successfully!', 'success');
       return data;
     } catch (error) {
-      // Offline register fallback
-      const newUser = {
-        _id: 'cust_' + Date.now(),
-        id: 'cust_' + Date.now(),
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        address: userData.address || '',
-        city: userData.city || '',
-        state: userData.state || '',
-        pincode: userData.pincode || '',
-        landmark: userData.landmark || '',
-        role: 'customer'
-      };
-      const fakeToken = 'offline_token_' + Date.now();
-      setUser(newUser);
-      setToken(fakeToken);
-      localStorage.setItem('og_token', fakeToken);
-      localStorage.setItem('og_user', JSON.stringify(newUser));
-      addToast('Account created successfully!', 'success');
-      return { user: newUser, token: fakeToken };
+      addToast(error.message || 'Registration failed', 'error');
+      throw error;
+    }
+  };
+
+  const verifyAndLogin = (authData) => {
+    if (authData && authData.user && authData.token) {
+      setUser(authData.user);
+      setToken(authData.token);
+      localStorage.setItem('og_token', authData.token);
+      localStorage.setItem('og_user', JSON.stringify(authData.user));
+      addToast(`Welcome to OG Supplements, ${authData.user.name}!`, 'success');
     }
   };
 
@@ -185,6 +176,7 @@ export const AuthProvider = ({ children }) => {
         isAdmin: user?.role === 'admin',
         login,
         register,
+        verifyAndLogin,
         logout,
         demoLogin,
         updateProfile,

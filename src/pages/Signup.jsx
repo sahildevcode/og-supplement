@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, Mail, User, Phone, ArrowRight, Sparkles, Eye, EyeOff, MapPin } from 'lucide-react';
+import { Lock, Mail, User, Phone, ArrowRight, Sparkles, Eye, EyeOff, MapPin, KeyRound, CheckCircle2, RefreshCw, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../context/ToastContext';
+import { api } from '../services/api';
 
 export default function Signup() {
   const [name, setName] = useState('');
@@ -17,14 +19,22 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { register } = useAuth();
+  // OTP Verification Modal States
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [resendingOtp, setResendingOtp] = useState(false);
+
+  const { verifyAndLogin } = useAuth();
   const { isDark } = useTheme();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
   const searchParams = new URLSearchParams(location.search);
   const redirectTarget = searchParams.get('redirect') || '/';
 
+  // Step 1: Submit Form -> Send OTP to Email
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -36,7 +46,7 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      await register({
+      const res = await api.sendRegisterOtp({
         name,
         email,
         phone,
@@ -46,11 +56,65 @@ export default function Signup() {
         state: stateVal,
         pincode
       });
-      navigate(redirectTarget);
+
+      if (res && res.success) {
+        addToast(res.message || 'Verification OTP sent to your email!', 'success');
+        setShowOtpModal(true);
+      }
     } catch (err) {
-      setError(err.message || 'Registration failed. Try again.');
+      setError(err.message || 'Failed to send OTP. Please try again.');
+      addToast(err.message || 'Registration failed', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Step 2: Verify OTP and create user
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otp || otp.trim().length !== 6) {
+      addToast('Please enter the complete 6-digit verification code', 'warning');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    try {
+      const res = await api.verifyRegisterOtp({
+        email,
+        otp: otp.trim()
+      });
+
+      if (res && res.success) {
+        verifyAndLogin(res);
+        setShowOtpModal(false);
+        navigate(redirectTarget);
+      }
+    } catch (err) {
+      addToast(err.message || 'Invalid or expired OTP', 'error');
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  // Resend OTP
+  const handleResendOtp = async () => {
+    setResendingOtp(true);
+    try {
+      const res = await api.sendRegisterOtp({
+        name,
+        email,
+        phone,
+        password,
+        address,
+        city,
+        state: stateVal,
+        pincode
+      });
+      addToast('A new 6-digit OTP has been sent to your email!', 'success');
+    } catch (err) {
+      addToast(err.message || 'Failed to resend OTP', 'error');
+    } finally {
+      setResendingOtp(false);
     }
   };
 
@@ -250,9 +314,19 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-2xl font-black text-sm text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-xl shadow-emerald-950/60 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
+              className="w-full py-3.5 rounded-2xl font-black text-sm text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-xl shadow-emerald-950/60 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 cursor-pointer"
             >
-              {loading ? 'Creating Account...' : 'Join OG-Supplement'} <ArrowRight className="w-4 h-4" />
+              {loading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Sending Verification Code...</span>
+                </>
+              ) : (
+                <>
+                  <span>Join & Verify Email</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 
@@ -263,6 +337,91 @@ export default function Signup() {
             </Link>
           </div>
         </div>
+
+        {/* 6-DIGIT EMAIL OTP VERIFICATION MODAL */}
+        {showOtpModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+            <div className={`relative w-full max-w-md rounded-3xl border p-6 sm:p-8 space-y-6 shadow-2xl ${
+              isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+            }`}>
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setShowOtpModal(false)}
+                className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Icon & Title */}
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-black flex items-center justify-center mx-auto shadow-lg shadow-emerald-950/50">
+                  <KeyRound className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black tracking-tight">
+                  Verify Your Email
+                </h3>
+                <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                  We've sent a 6-digit verification code to <span className="font-bold text-emerald-400">{email}</span>
+                </p>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleVerifyOtp} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="block text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Enter 6-Digit OTP Code
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    autoFocus
+                    placeholder="• • • • • •"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    className="w-full text-center tracking-[12px] text-2xl font-black py-3 rounded-2xl border bg-slate-950 border-slate-800 text-emerald-400 placeholder-slate-700 focus:outline-none focus:border-emerald-500 shadow-inner"
+                  />
+                  <span className="block text-center text-[11px] text-slate-500">
+                    Code is valid for 10 minutes
+                  </span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={verifyingOtp || otp.length !== 6}
+                  className="w-full py-3.5 rounded-2xl font-black text-sm text-black bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-xl shadow-emerald-950/60 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 cursor-pointer"
+                >
+                  {verifyingOtp ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Verifying Code...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Verify & Create Account</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Resend Link */}
+              <div className="pt-2 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
+                <span>Didn't receive the email?</span>
+                <button
+                  type="button"
+                  disabled={resendingOtp}
+                  onClick={handleResendOtp}
+                  className="text-emerald-400 hover:text-emerald-300 font-bold underline cursor-pointer disabled:opacity-50"
+                >
+                  {resendingOtp ? 'Resending...' : 'Resend Code'}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
