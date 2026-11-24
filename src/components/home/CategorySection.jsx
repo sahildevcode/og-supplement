@@ -238,20 +238,17 @@ export default function CategorySection() {
         {/* Categories Grid with Responsive Layout */}
         <div className={`grid grid-cols-1 sm:grid-cols-2 ${categories.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
           {categories.map((cat, idx) => {
-            const isEven = idx % 2 === 0;
-            const slideAnim = isEven ? 'animate-slide-left' : 'animate-slide-right';
-            const delayClass = `delay-${(idx % 4 + 1) * 100}`;
             const theme = themePresets[cat.colorTheme] || themePresets.emerald;
 
             return (
               <div
                 key={cat._id || cat.id || cat.name || idx}
                 onClick={() => handleCategoryClick(cat.name)}
-                className={`group relative cursor-pointer rounded-[2rem] overflow-hidden border transition-all duration-500 flex flex-col justify-between ${
+                className={`group relative cursor-pointer rounded-[2rem] overflow-hidden border transition-transform duration-300 flex flex-col justify-between ${
                   isDark
                     ? 'bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-950 text-slate-100 shadow-xl hover:shadow-2xl'
                     : 'bg-white text-slate-900 shadow-md hover:shadow-2xl'
-                } ${theme.border} hover:-translate-y-2.5 hover:scale-[1.015] active:scale-95 ${slideAnim} ${delayClass}`}
+                } ${theme.border} hover:-translate-y-1.5 active:scale-[0.98]`}
               >
                 {/* TOP: Large Dedicated Visual Showcase Stage */}
                 <div className="relative w-full h-60 sm:h-64 overflow-hidden flex items-center justify-center p-5 bg-gradient-to-b from-slate-950/60 via-slate-900/20 to-transparent">
