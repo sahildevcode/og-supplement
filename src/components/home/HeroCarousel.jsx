@@ -145,7 +145,7 @@ export default function HeroCarousel() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Left Content Column */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left scroll-reveal reveal-active">
+            <div className="lg:col-span-6 space-y-6 text-center lg:text-left scroll-reveal reveal-active">
               
               {/* Badge & Discount Tag */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
@@ -168,7 +168,7 @@ export default function HeroCarousel() {
               </p>
 
               {/* Headline */}
-              <h1 className={`text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] ${
+              <h1 className={`text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-[1.1] ${
                 isDark ? 'text-white' : 'text-slate-900'
               }`}>
                 <span className="sr-only">OG Supplement — Buy Original Gym & Health Supplements Online India: </span>
@@ -220,18 +220,18 @@ export default function HeroCarousel() {
 
             </div>
 
-            {/* Right Hero Image Column with GSAP/CSS animations */}
-            <div className="lg:col-span-5 flex items-center justify-center relative scroll-reveal-scale reveal-active">
-              <div className="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96 flex items-center justify-center">
+            {/* Right Hero Image Column with enhanced large dimensions matching left text height */}
+            <div className="lg:col-span-6 flex items-center justify-center relative scroll-reveal-scale reveal-active">
+              <div className="relative w-full max-w-[540px] sm:max-w-[580px] lg:max-w-none h-[280px] sm:h-[360px] lg:h-[460px] xl:h-[480px] flex items-center justify-center p-2">
                 
                 {/* Glow ring */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-emerald-500/20 to-cyan-500/10 blur-3xl" />
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-emerald-500/20 via-cyan-500/15 to-transparent blur-3xl pointer-events-none" />
                 
                 <img
                   key={active.id}
                   src={active.image}
                   alt={active.title}
-                  className="relative z-10 max-h-full max-w-full object-contain filter drop-shadow-[0_20px_50px_rgba(16,185,129,0.25)] transition-all duration-700 animate-in zoom-in-95 hover:scale-105"
+                  className="relative z-10 w-full h-full object-contain rounded-2xl filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.35)] transition-all duration-700 animate-in zoom-in-95 hover:scale-[1.03]"
                 />
               </div>
             </div>
