@@ -342,19 +342,49 @@ export default function Checkout() {
           return;
         }
 
+        const isEmiOrder = formData.paymentMethod === 'Credit Card EMI';
+        const emiPerMonth = isEmiOrder ? Math.round(totalAmount / (selectedEmiTenure || 3)) : 0;
+
         const options = {
           key: orderRes.keyId,
           amount: orderRes.amount,
           currency: orderRes.currency || 'INR',
           name: paymentSettings.merchantName || 'OG Supplement Store',
-          description: 'Authentic Supplement Stack Order',
+          description: isEmiOrder
+            ? `Easy EMI Plan (${selectedEmiTenure} Months @ ₹${emiPerMonth.toLocaleString('en-IN')}/mo)`
+            : 'Authentic Supplement Stack Order',
           image: '/uploads/merchant_qr.jpg',
           order_id: orderRes.orderId && !orderRes.isDemo ? orderRes.orderId : undefined,
+          // Privacy protection: Do not prefill user's personal phone in the gateway dialog
           prefill: {
-            name: formData.customerName,
-            email: formData.email,
-            contact: formData.phone
+            name: '',
+            email: '',
+            contact: ''
           },
+          // Direct Razorpay to automatically open / filter to EMI when selected
+          ...(isEmiOrder ? {
+            config: {
+              display: {
+                blocks: {
+                  emi: {
+                    name: `Credit Card EMI (${selectedEmiTenure} Months Plan)`,
+                    instruments: [
+                      {
+                        method: 'emi'
+                      },
+                      {
+                        method: 'card'
+                      }
+                    ]
+                  }
+                },
+                sequence: ['block.emi'],
+                preferences: {
+                  show_default_blocks: true
+                }
+              }
+            }
+          } : {}),
           theme: {
             color: '#10b981'
           },
