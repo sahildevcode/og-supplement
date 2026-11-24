@@ -68,6 +68,10 @@ export const CartProvider = ({ children }) => {
         const liveGstApplicable = live.isGstApplicable !== false;
         const liveGstRate = live.gstRate !== undefined ? Number(live.gstRate) : 18;
         const liveTaxLabel = live.taxLabel || `${liveGstRate}% GST`;
+        const liveIsEmiAvailable = live.isEmiAvailable !== undefined ? Boolean(live.isEmiAvailable) : (liveDiscountPrice >= 2500);
+        const liveIsCancellationFeeApplicable = live.isCancellationFeeApplicable !== false;
+        const liveCancellationFeeType = live.cancellationFeeType || 'percentage';
+        const liveCancellationFeeValue = live.cancellationFeeValue !== undefined ? Number(live.cancellationFeeValue) : 5;
 
         if (
           item.price !== livePrice ||
@@ -76,7 +80,11 @@ export const CartProvider = ({ children }) => {
           item.shippingCost !== liveShipping ||
           item.isGstApplicable !== liveGstApplicable ||
           item.gstRate !== liveGstRate ||
-          item.taxLabel !== liveTaxLabel
+          item.taxLabel !== liveTaxLabel ||
+          item.isEmiAvailable !== liveIsEmiAvailable ||
+          item.isCancellationFeeApplicable !== liveIsCancellationFeeApplicable ||
+          item.cancellationFeeType !== liveCancellationFeeType ||
+          item.cancellationFeeValue !== liveCancellationFeeValue
         ) {
           changed = true;
           return {
@@ -88,6 +96,10 @@ export const CartProvider = ({ children }) => {
             isGstApplicable: liveGstApplicable,
             gstRate: liveGstRate,
             taxLabel: liveTaxLabel,
+            isEmiAvailable: liveIsEmiAvailable,
+            isCancellationFeeApplicable: liveIsCancellationFeeApplicable,
+            cancellationFeeType: liveCancellationFeeType,
+            cancellationFeeValue: liveCancellationFeeValue,
           };
         }
         return item;
@@ -153,6 +165,10 @@ export const CartProvider = ({ children }) => {
           isGstApplicable: product.isGstApplicable !== undefined ? product.isGstApplicable : true,
           gstRate: product.gstRate || 18,
           taxLabel: product.taxLabel || '18% GST',
+          isEmiAvailable: product.isEmiAvailable !== undefined ? Boolean(product.isEmiAvailable) : ((product.discountPrice || product.price) >= 2500),
+          isCancellationFeeApplicable: product.isCancellationFeeApplicable !== false,
+          cancellationFeeType: product.cancellationFeeType || 'percentage',
+          cancellationFeeValue: product.cancellationFeeValue !== undefined ? Number(product.cancellationFeeValue) : 5,
         };
 
         addToast(`Added "${product.name}" to cart`, 'success');

@@ -677,13 +677,20 @@ export default function Checkout() {
             {/* Step 2: Payment Method Section */}
             {(() => {
               const emiThreshold = paymentSettings.emiMinAmount !== undefined ? Number(paymentSettings.emiMinAmount) : 2500;
-              const hasEmiProduct = cartItems.some(
-                (item) => item.isEmiAvailable === true || Number(item.discountPrice || item.price) >= emiThreshold
-              );
+              // Check if all items in cart permit EMI. If ANY item in cart has EMI disabled (isEmiAvailable === false), EMI is NOT allowed.
+              const allItemsAllowEmi = cartItems.length > 0 && cartItems.every((item) => {
+                // If item explicitly has isEmiAvailable set to false, reject EMI
+                if (item.isEmiAvailable === false) return false;
+                // If isEmiAvailable is true, allow
+                if (item.isEmiAvailable === true) return true;
+                // Fallback default: allowed if price meets minimum
+                return Number(item.discountPrice || item.price) >= emiThreshold || totalAmount >= emiThreshold;
+              });
+
               const isEmiOptionAvailable =
                 paymentSettings.isRazorpayEnabled !== false &&
                 paymentSettings.isEmiEnabled !== false &&
-                hasEmiProduct &&
+                allItemsAllowEmi &&
                 totalAmount >= emiThreshold;
 
               return (
@@ -1049,23 +1056,51 @@ export default function Checkout() {
                 </p>
 
                 {/* Cancellation & Refund Disclaimer Note */}
-                <div className={`p-3.5 rounded-2xl border text-xs space-y-1.5 transition-colors ${
-                  isDark
-                    ? 'bg-amber-950/30 border-amber-500/30 text-amber-200'
-                    : 'bg-amber-50 border-amber-200 text-slate-800'
-                }`}>
-                  <div className={`flex items-center gap-1.5 font-black text-xs ${
-                    isDark ? 'text-amber-400' : 'text-amber-800'
-                  }`}>
-                    <ShieldCheck className={`w-4 h-4 shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
-                    <span>Cancellation & Handling Policy:</span>
-                  </div>
-                  <p className={`text-[11px] leading-relaxed font-medium ${
-                    isDark ? 'text-slate-300' : 'text-slate-700'
-                  }`}>
-                    Order dispatch hone se pehle aap kabhi bhi cancel kar sakte hain. Payment gateway handling aur transaction charges ke liye <strong className={isDark ? 'text-amber-300' : 'text-slate-900 font-bold'}>5% fee cut</strong> hokar baaki pura refund aapke bank account mein credit ho jayega.
-                  </p>
-                </div>
+                {(() => {
+                  let estimatedFee = 0;
+                  let feeDescriptions = [];
+
+                  cartItems.forEach((item) => {
+                    if (item.isCancellationFeeApplicable !== false) {
+                      const itemTotal = Number(item.discountPrice || item.price || 0) * Number(item.quantity || 1);
+                      const type = item.cancellationFeeType || 'percentage';
+                      const val = Number(item.cancellationFeeValue !== undefined ? item.cancellationFeeValue : 5);
+
+                      if (type === 'flat') {
+                        const fee = Math.round(val * Number(item.quantity || 1));
+                        estimatedFee += fee;
+                        feeDescriptions.push(`₹${val} Flat per item`);
+                      } else {
+                        const fee = Math.round((itemTotal * val) / 100);
+                        estimatedFee += fee;
+                        feeDescriptions.push(`${val}%`);
+                      }
+                    }
+                  });
+
+                  const uniqueDescs = Array.from(new Set(feeDescriptions));
+                  const feeDisplayText = uniqueDescs.length === 1 ? uniqueDescs[0] : (estimatedFee > 0 ? `approx. ₹${estimatedFee}` : '5%');
+
+                  return (
+                    <div className={`p-3.5 rounded-2xl border text-xs space-y-1.5 transition-colors ${
+                      isDark
+                        ? 'bg-amber-950/30 border-amber-500/30 text-amber-200'
+                        : 'bg-amber-50 border-amber-200 text-slate-800'
+                    }`}>
+                      <div className={`flex items-center gap-1.5 font-black text-xs ${
+                        isDark ? 'text-amber-400' : 'text-amber-800'
+                      }`}>
+                        <ShieldCheck className={`w-4 h-4 shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
+                        <span>Cancellation & Handling Policy:</span>
+                      </div>
+                      <p className={`text-[11px] leading-relaxed font-medium ${
+                        isDark ? 'text-slate-300' : 'text-slate-700'
+                      }`}>
+                        Order dispatch hone se pehle aap kabhi bhi cancel kar sakte hain. Payment gateway handling aur transaction charges ke liye <strong className={isDark ? 'text-amber-300' : 'text-slate-900 font-bold'}>{feeDisplayText} fee cut</strong> hokar baaki pura refund aapke bank account mein credit ho jayega.
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Submit CTA */}

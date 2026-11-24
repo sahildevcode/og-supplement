@@ -200,8 +200,8 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
 
                 <div className="p-3 rounded-xl bg-slate-950/80 border border-rose-500/30 space-y-0.5">
                   <span className="text-[10px] text-rose-400 font-bold uppercase">Fee Cut / Deducted</span>
-                  <p className="text-sm font-black text-rose-400">- ₹{(order.cancellationFee || Math.round(order.totalAmount * 0.05)).toLocaleString('en-IN')}</p>
-                  <span className="text-[10px] text-slate-400">5% Handling & Gateway Fee</span>
+                  <p className="text-sm font-black text-rose-400">- ₹{(order.cancellationFee !== undefined ? order.cancellationFee : Math.round(order.totalAmount * 0.05)).toLocaleString('en-IN')}</p>
+                  <span className="text-[10px] text-slate-400">Handling & Cancellation Fee</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 space-y-0.5">
@@ -225,7 +225,7 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
                   <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <div className="text-[11px] text-slate-300 leading-relaxed space-y-1">
                     <p>
-                      <strong>Paisa kis wajah se cut hua?</strong> Razorpay payment gateway handling, processing charges aur banking network fees ke liye policy ke mutabiq 5% fee cut ki gayi hai.
+                      <strong>Paisa kis wajah se cut hua?</strong> Razorpay payment gateway handling, processing charges aur order cancellation policy ke mutabiq handling fee cut ki gayi hai.
                     </p>
                     <p>
                       <strong>Refund kab aayega?</strong> ₹{(order.refundAmount !== undefined ? order.refundAmount : (order.totalAmount - (order.cancellationFee || Math.round(order.totalAmount * 0.05)))).toLocaleString('en-IN')} ka refund aapke usi payment account (Google Pay / PhonePe / Card / Bank) par <strong>2 se 4 business days</strong> mein credit ho jayega.
