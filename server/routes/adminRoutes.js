@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { getAdminStats } from '../controllers/adminController.js';
+import { getAdminStats, getAdminCustomers, updateCustomerStatus } from '../controllers/adminController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -61,5 +61,9 @@ router.post('/upload', upload.single('image'), (req, res) => {
 
 // Stats Endpoint
 router.get('/stats', getAdminStats);
+
+// Customers Activity & Management Endpoint
+router.get('/customers', getAdminCustomers);
+router.patch('/customers/:id/status', updateCustomerStatus);
 
 export default router;

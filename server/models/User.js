@@ -15,6 +15,16 @@ const userSchema = new mongoose.Schema(
     state: { type: String, default: '' },
     pincode: { type: String, default: '' },
     landmark: { type: String, default: '' },
+    status: { type: String, enum: ['active', 'blocked', 'inactive'], default: 'active' },
+    lastLogin: { type: Date },
+    loginHistory: [
+      {
+        timestamp: { type: Date, default: Date.now },
+        ip: { type: String, default: '' },
+        userAgent: { type: String, default: '' },
+        status: { type: String, default: 'success' }
+      }
+    ],
     resetOtp: { type: String, default: null },
     resetOtpExpires: { type: Date, default: null }
   },
@@ -24,6 +34,16 @@ const userSchema = new mongoose.Schema(
 const MongooseUser = mongoose.models.User || mongoose.model('User', userSchema);
 
 export const User = {
+  async find(query = {}) {
+    if (isConnectedToMongo) {
+      return await MongooseUser.find(query).select('-password').sort({ createdAt: -1 });
+    }
+    return localStore.users.map(u => {
+      const { password, ...safe } = u;
+      return safe;
+    });
+  },
+
   async findOne(query) {
     if (isConnectedToMongo) {
       return await MongooseUser.findOne(query);

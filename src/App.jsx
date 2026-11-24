@@ -13,6 +13,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import ScrollToTop from './components/common/ScrollToTop';
+import SupportChatWidget from './components/common/SupportChatWidget';
 
 // Customer Pages
 import Home from './pages/Home';
@@ -180,6 +181,7 @@ export default function App() {
                   <Route path="*" element={<Navigate to="/" replace />} />
 
                 </Routes>
+                <SupportChatWidget />
                 </NotificationProvider>
               </CartProvider>
             </ProductProvider>

@@ -9,7 +9,14 @@ import {
   ArrowRight,
   Package,
   Plus,
-  RefreshCw
+  RefreshCw,
+  CreditCard,
+  Clock,
+  CheckCircle,
+  XCircle,
+  RotateCcw,
+  ShieldCheck,
+  DollarSign
 } from 'lucide-react';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
@@ -194,6 +201,122 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+      </div>
+
+      {/* Payment & Settlement Accounting Section (8 Master Metrics) */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-black text-white flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-cyan-400" />
+              <span>Payment & Settlement Accounting</span>
+            </h2>
+            <p className="text-xs text-slate-400">
+              Live automated accounting: Pending, Settled, Reserved, and Refund tracking
+            </p>
+          </div>
+          <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            Real-Time Bank Accounting
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {/* 1. Total Monthly Payments */}
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold">1. Monthly Payments</span>
+              <DollarSign className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div className="text-xl font-black text-white font-mono">
+              ₹{(stats?.paymentAccounting?.totalMonthlyPayments || 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-cyan-400">This current calendar month</p>
+          </div>
+
+          {/* 2. Total Pending Payments */}
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/20 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-amber-300">2. Pending Payments</span>
+              <Clock className="w-4 h-4 text-amber-400" />
+            </div>
+            <div className="text-xl font-black text-amber-400 font-mono">
+              ₹{(stats?.paymentAccounting?.totalPendingPayments || 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-amber-300/80">Pending settlement / verification</p>
+          </div>
+
+          {/* 3. Total Due Amount */}
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-rose-500/20 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-rose-300">3. Due Amount</span>
+              <AlertTriangle className="w-4 h-4 text-rose-400" />
+            </div>
+            <div className="text-xl font-black text-rose-400 font-mono">
+              ₹{(stats?.paymentAccounting?.totalDueAmount || 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-rose-300/80">COD & uncollected balance</p>
+          </div>
+
+          {/* 4. Total Reserved Payments */}
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-purple-500/20 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-purple-300">4. Reserved Payments</span>
+              <ShieldCheck className="w-4 h-4 text-purple-400" />
+            </div>
+            <div className="text-xl font-black text-purple-400 font-mono">
+              ₹{(stats?.paymentAccounting?.totalReservedPayments || 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-purple-300/80">Paid orders in fulfillment pipeline</p>
+          </div>
+
+          {/* 5. Total Received Payments */}
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/20 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-emerald-300">5. Received Payments</span>
+              <CheckCircle className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="text-xl font-black text-emerald-400 font-mono">
+              ₹{(stats?.paymentAccounting?.totalReceivedPayments || 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-emerald-300/80">Confirmed gateway received</p>
+          </div>
+
+          {/* 6. Total Cancelled Amount */}
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold">6. Cancelled Amount</span>
+              <XCircle className="w-4 h-4 text-rose-400" />
+            </div>
+            <div className="text-xl font-black text-slate-300 font-mono">
+              ₹{(stats?.paymentAccounting?.totalCancelledAmount || 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-slate-400">Total gross cancelled orders</p>
+          </div>
+
+          {/* 7. Total Refund Amount */}
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-indigo-500/20 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-indigo-300">7. Refund Amount</span>
+              <RotateCcw className="w-4 h-4 text-indigo-400" />
+            </div>
+            <div className="text-xl font-black text-indigo-400 font-mono">
+              ₹{(stats?.paymentAccounting?.totalRefundAmount || 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-indigo-300/80">Total refunds calculated</p>
+          </div>
+
+          {/* 8. Total Successfully Refunded Amount */}
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-teal-500/20 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-teal-300">8. Successfully Refunded</span>
+              <CheckCircle className="w-4 h-4 text-teal-400" />
+            </div>
+            <div className="text-xl font-black text-teal-400 font-mono">
+              ₹{(stats?.paymentAccounting?.totalSuccessfullyRefundedAmount || 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-teal-300/80">Credited back to bank/cards</p>
+          </div>
+        </div>
       </div>
 
       {/* Two Column Section: Urgent Stock & Recent Orders */}

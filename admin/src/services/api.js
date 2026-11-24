@@ -68,6 +68,8 @@ export const api = {
 
   // Analytics & Stats
   getAdminStats: () => apiRequest('/admin/stats'),
+  getCustomers: () => apiRequest('/admin/customers'),
+  updateCustomerStatus: (id, status) => apiRequest(`/admin/customers/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   uploadImage: (formData) => apiRequest('/admin/upload', { method: 'POST', body: formData }),
 
   // Categories & Homepage Management

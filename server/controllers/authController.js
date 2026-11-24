@@ -226,6 +226,24 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
+    // Record login activity
+    const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+    const userAgent = req.headers['user-agent'] || '';
+    try {
+      const targetId = user._id || user.id;
+      await User.findByIdAndUpdate(targetId, {
+        lastLogin: new Date(),
+        $push: {
+          loginHistory: {
+            $each: [{ timestamp: new Date(), ip: String(clientIp).split(',')[0].trim(), userAgent: userAgent.slice(0, 150), status: 'success' }],
+            $slice: -20
+          }
+        }
+      });
+    } catch (e) {
+      console.warn('[Login History Update Notice]', e.message);
+    }
+
     const token = generateToken(user._id || user.id, user.role);
 
     res.json({

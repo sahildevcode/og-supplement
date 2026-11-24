@@ -1,6 +1,7 @@
 import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
 import { PaymentSettings } from '../models/PaymentSettings.js';
+import { sendOrderConfirmationEmail, sendOrderCancelledEmail } from '../services/emailService.js';
 
 const getIO = (req) => req.app.get('io');
 
@@ -153,6 +154,18 @@ export const createOrder = async (req, res) => {
     if (io) {
       io.emit('order:created', newOrder);
       console.log(`\x1b[35m[Socket.IO Broadcast]\x1b[0m order:created => Order ID: ${newOrder.orderId} (₹${newOrder.totalAmount})`);
+    }
+
+    // 4. Send Confirmation Email if Email Notifications are enabled
+    try {
+      const pSettings = await PaymentSettings.get();
+      if (pSettings?.isEmailNotificationsEnabled !== false) {
+        sendOrderConfirmationEmail(newOrder).catch((err) =>
+          console.warn('[Order Email Failed]', err.message)
+        );
+      }
+    } catch (e) {
+      console.warn('[Order Settings Lookup Failed]', e.message);
     }
 
     res.status(201).json({
@@ -653,6 +666,19 @@ export const cancelOrder = async (req, res) => {
         updatedAt: updated.updatedAt
       });
       io.emit('order:cancelled', updated);
+    }
+
+    // Send Cancellation Email if Email Notifications are enabled
+    try {
+      const pSettings = await PaymentSettings.get();
+      if (pSettings?.isEmailNotificationsEnabled !== false) {
+        sendOrderCancelledEmail(updated, {
+          feeDeducted: breakdown.cancellationFee,
+          refundAmount: breakdown.refundAmount
+        }).catch((err) => console.warn('[Cancel Email Failed]', err.message));
+      }
+    } catch (e) {
+      console.warn('[Cancel Email Settings Lookup Failed]', e.message);
     }
 
     res.json({

@@ -26,7 +26,7 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
     bestSellerRank: 1,
     description: '',
     ingredients: '',
-    images: ['', '', '', ''],
+    images: ['', '', '', '', '', ''],
     variants: ['Standard 1kg'],
     flavours: ['Chocolate'],
     variantDetails: { flavours: {}, sizes: {} }
@@ -74,9 +74,9 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
     }
   };
 
-  const ensureFourImages = (imgs) => {
+  const ensureSixImages = (imgs) => {
     const list = Array.isArray(imgs) ? imgs.filter(Boolean) : [];
-    while (list.length < 4) {
+    while (list.length < 6) {
       list.push('');
     }
     return list;
@@ -136,7 +136,7 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
         cancellationFeeValue: product.cancellationFeeValue !== undefined ? product.cancellationFeeValue : 5,
         description: product.description || '',
         ingredients: product.ingredients || '',
-        images: ensureFourImages(product.images),
+        images: ensureSixImages(product.images),
         variants: loadedVariants,
         flavours: loadedFlavours,
         variantDetails: {
@@ -847,16 +847,16 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
             </div>
           </div>
 
-          {/* Product Images: 4 Angle Slots */}
+          {/* Product Images: 6+ Angle Slots */}
           <div className="space-y-3 pt-2 border-t border-slate-800">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <label className="font-bold text-slate-200 text-xs uppercase tracking-wider">
-                Product Image Angles (Minimum 3-4 Images)
+                Product Image Angles (5-6+ Images Supported)
               </label>
-              <span className="text-[11px] text-cyan-400 font-medium">Front, Nutrition Label, Powder Scoop & Packaging</span>
+              <span className="text-[11px] text-cyan-400 font-medium">Front, Back, Nutrition Label, Powder Scoop, Packaging & Certifications</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {formData.images.map((img, idx) => (
                 <div key={idx} className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-xs">
@@ -872,9 +872,13 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                         ? 'Scoop / Powder Serving'
                         : idx === 3
                         ? 'Authenticity Seal / Box'
+                        : idx === 4
+                        ? 'Back View / Directions'
+                        : idx === 5
+                        ? 'Batch / Lab Report'
                         : `Angle Image ${idx + 1}`}
                     </span>
-                    {formData.images.length > 4 && (
+                    {formData.images.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeArrayItem('images', idx)}
@@ -894,8 +898,8 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                     className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 text-xs"
                   />
 
-                  {/* Live Image Preview */}
-                  <div className="w-full h-24 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-center overflow-hidden">
+                  {/* Live Image Preview & Upload / Replace Button */}
+                  <div className="relative w-full h-24 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-center overflow-hidden group">
                     {img ? (
                       <img
                         src={img}
@@ -908,6 +912,23 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                     ) : (
                       <span className="text-[11px] text-slate-600 font-medium">No Image URL</span>
                     )}
+                    <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-[11px] text-cyan-300 font-bold gap-1">
+                      <Upload className="w-3.5 h-3.5" /> Replace Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = (uploadEvent) => {
+                            handleArrayChange('images', idx, uploadEvent.target.result);
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
                   </div>
                 </div>
               ))}

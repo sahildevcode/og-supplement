@@ -21,6 +21,7 @@ import AdminCustomers from './pages/AdminCustomers';
 import AdminBestSellers from './pages/AdminBestSellers';
 import AdminHeroBanners from './pages/AdminHeroBanners';
 import AdminTransformations from './pages/AdminTransformations';
+import AdminSupport from './pages/AdminSupport';
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
                 <Route path="stock" element={<AdminStock />} />
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="customers" element={<AdminCustomers />} />
+                <Route path="support" element={<AdminSupport />} />
               </Route>
 
               {/* Catch-All */}

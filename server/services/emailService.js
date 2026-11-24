@@ -244,3 +244,141 @@ export const sendVerificationOtpEmail = async (toEmail, otp, customerName = 'Ath
   console.log(`\x1b[32m[Email Sent]\x1b[0m Verification OTP sent to ${toEmail}. Message ID: ${info.messageId}`);
   return { sent: true, messageId: info.messageId };
 };
+
+/**
+ * Sends Order Confirmation Email to Customer
+ */
+export const sendOrderConfirmationEmail = async (order) => {
+  if (!order || !order.email) return;
+
+  const itemsHtml = (order.products || []).map((p) => `
+    <tr>
+      <td style="padding: 10px 0; border-bottom: 1px solid #334155; font-size: 13px; color: #f1f5f9;">
+        <strong>${p.name}</strong><br/>
+        <span style="font-size: 11px; color: #94a3b8;">Qty: ${p.quantity || 1} ${p.flavour ? `| Flavour: ${p.flavour}` : ''} ${p.variant ? `| Size: ${p.variant}` : ''}</span>
+      </td>
+      <td style="padding: 10px 0; border-bottom: 1px solid #334155; font-size: 13px; color: #10b981; text-align: right; font-weight: bold;">
+        ₹${((p.price || 0) * (p.quantity || 1)).toLocaleString('en-IN')}
+      </td>
+    </tr>
+  `).join('');
+
+  const htmlContent = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 580px; margin: 0 auto; background-color: #0b0f19; color: #f8fafc; border-radius: 16px; overflow: hidden; border: 1px solid #1e293b;">
+      <div style="background: linear-gradient(135deg, #10b981, #06b6d4); padding: 24px; text-align: center;">
+        <h1 style="margin: 0; color: #022c22; font-size: 24px; font-weight: 900;">OG SUPPLEMENTS</h1>
+        <p style="margin: 4px 0 0 0; color: #064e3b; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;">Order Confirmation</p>
+      </div>
+      <div style="padding: 28px;">
+        <h2 style="margin: 0 0 8px 0; font-size: 18px; color: #ffffff;">Order Placed Successfully! 🎉</h2>
+        <p style="margin: 0 0 20px 0; font-size: 13px; color: #94a3b8;">
+          Thank you for choosing OG Supplements, <strong>${order.customerName || 'Valued Customer'}</strong>! Your order <strong>#${order.orderId || order._id}</strong> has been received and is being prepared.
+        </p>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+          <thead>
+            <tr>
+              <th style="text-align: left; padding-bottom: 8px; font-size: 11px; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #334155;">Product</th>
+              <th style="text-align: right; padding-bottom: 8px; font-size: 11px; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #334155;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+
+        <div style="background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; color: #cbd5e1; margin-bottom: 6px;">
+            <span>Payment Method:</span>
+            <strong style="color: #38bdf8;">${order.paymentMethod || 'Online Payment'}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px; color: #cbd5e1; margin-bottom: 6px;">
+            <span>Payment Status:</span>
+            <strong style="color: ${order.paymentStatus === 'Paid' ? '#34d399' : '#f59e0b'};">${order.paymentStatus || 'Pending'}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; color: #ffffff; border-top: 1px solid #334155; padding-top: 8px; margin-top: 8px;">
+            <span>Total Payable:</span>
+            <span style="color: #34d399;">₹${(order.totalAmount || 0).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+
+        <div style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
+          <strong>Shipping Address:</strong><br/>
+          ${order.address || ''}, ${order.city || ''}, ${order.state || ''} - ${order.pincode || ''}<br/>
+          Contact: ${order.phone || ''}
+        </div>
+      </div>
+      <div style="border-top: 1px solid #1e293b; padding: 14px 28px; text-align: center; font-size: 11px; color: #64748b;">
+        &copy; ${new Date().getFullYear()} OG Supplements India. 100% Genuine Direct From Importer.
+      </div>
+    </div>
+  `;
+
+  if (BREVO_API_KEY) {
+    try {
+      return await sendViaBrevo(order.email, order.customerName, `✅ Order Confirmed: #${order.orderId || order._id} (₹${(order.totalAmount || 0).toLocaleString('en-IN')})`, htmlContent);
+    } catch (e) {
+      console.warn('[Order Email Brevo Fallback]', e.message);
+    }
+  }
+
+  const transporter = getTransporter();
+  if (transporter) {
+    const sender = process.env.SMTP_FROM || process.env.SMTP_USER || process.env.GMAIL_USER || DEFAULT_GMAIL_USER;
+    return await transporter.sendMail({
+      from: `"OG Supplements" <${sender}>`,
+      to: order.email,
+      subject: `✅ Order Confirmed: #${order.orderId || order._id}`,
+      html: htmlContent
+    });
+  }
+};
+
+/**
+ * Sends Order Cancellation & Refund Email
+ */
+export const sendOrderCancelledEmail = async (order, cancellationDetails = {}) => {
+  if (!order || !order.email) return;
+
+  const htmlContent = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 580px; margin: 0 auto; background-color: #0b0f19; color: #f8fafc; border-radius: 16px; overflow: hidden; border: 1px solid #1e293b;">
+      <div style="background: linear-gradient(135deg, #ef4444, #f97316); padding: 24px; text-align: center;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 900;">OG SUPPLEMENTS</h1>
+        <p style="margin: 4px 0 0 0; color: #fee2e2; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;">Order Cancellation & Refund Notice</p>
+      </div>
+      <div style="padding: 28px;">
+        <h2 style="margin: 0 0 8px 0; font-size: 18px; color: #ffffff;">Order #${order.orderId || order._id} Cancelled</h2>
+        <p style="margin: 0 0 20px 0; font-size: 13px; color: #94a3b8;">
+          Dear <strong>${order.customerName || 'Customer'}</strong>, your cancellation request has been processed.
+        </p>
+
+        <div style="background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; color: #cbd5e1; margin-bottom: 6px;">
+            <span>Order Value:</span>
+            <strong>₹${(order.totalAmount || 0).toLocaleString('en-IN')}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px; color: #f87171; margin-bottom: 6px;">
+            <span>Cancellation & Handling Fee:</span>
+            <strong>- ₹${(cancellationDetails.feeDeducted || order.cancellationFeeDeducted || 0).toLocaleString('en-IN')}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; color: #34d399; border-top: 1px solid #334155; padding-top: 8px; margin-top: 8px;">
+            <span>Net Refund Amount:</span>
+            <span>₹${(cancellationDetails.refundAmount || order.netRefundAmount || (order.totalAmount - (cancellationDetails.feeDeducted || 0))).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">
+          Refunds to UPI / Cards usually reflect in your bank account within 3-5 business days according to standard banking protocols.
+        </p>
+      </div>
+    </div>
+  `;
+
+  if (BREVO_API_KEY) {
+    try {
+      return await sendViaBrevo(order.email, order.customerName, `❌ Order Cancelled & Refund Initiated: #${order.orderId || order._id}`, htmlContent);
+    } catch (e) {
+      console.warn('[Cancel Email Brevo Fallback]', e.message);
+    }
+  }
+};

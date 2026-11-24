@@ -51,6 +51,14 @@ const paymentSettingsSchema = new mongoose.Schema(
     instructions: {
       type: String,
       default: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
+    },
+    isEmailNotificationsEnabled: {
+      type: Boolean,
+      default: true
+    },
+    adminNotificationEmail: {
+      type: String,
+      default: 'sahildevcode@gmail.com'
     }
   },
   { timestamps: true }
@@ -70,7 +78,9 @@ export const defaultSettings = {
   razorpayKeyId: 'rzp_test_TkDCf1hSSdbjJC',
   razorpayKeySecret: 'HYANv2AAhXJiPKG1zveHNzZS',
   razorpayMode: 'test',
-  instructions: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.'
+  instructions: 'Scan this QR code using PhonePe, Google Pay, Paytm, or any UPI app. Complete the payment and enter your 12-digit UPI UTR / Transaction Reference Number below.',
+  isEmailNotificationsEnabled: true,
+  adminNotificationEmail: 'sahildevcode@gmail.com'
 };
 
 export const PaymentSettings = {

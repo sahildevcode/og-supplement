@@ -16,7 +16,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, onSav
     discountPrice: '',
     stock: '20',
     lowStockThreshold: '10',
-    images: [''],
+    images: ['', '', '', '', '', ''],
     variants: '1 kg, 2 kg',
     flavours: 'Rich Chocolate, Vanilla',
     ingredients: '',

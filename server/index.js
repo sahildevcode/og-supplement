@@ -20,6 +20,7 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import inquiryRoutes from './routes/inquiryRoutes.js';
 import { PaymentSettings } from './models/PaymentSettings.js';
 import { Review } from './models/Review.js';
 import { initialReviews } from './data/seedReviews.js';
@@ -60,6 +61,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/inquiries', inquiryRoutes);
 
 // Health Check API
 app.get('/api/health', (req, res) => {
