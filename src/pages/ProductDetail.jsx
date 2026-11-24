@@ -1663,11 +1663,14 @@ export default function ProductDetail() {
                     Most Popular
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 3).toLocaleString('en-IN')} x 3 months</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  ₹{Math.round((displayDiscountPrice + Math.round(displayDiscountPrice * 0.16 * 0.25 * 0.52)) / 3).toLocaleString('en-IN')} x 3 months
+                  <span className="text-amber-400 font-medium ml-1.5">(+₹{Math.round(displayDiscountPrice * 0.16 * 0.25 * 0.52)} extra bank interest)</span>
+                </p>
               </div>
               <div className="text-right">
                 <span className="text-base font-black text-purple-400">
-                  ₹{Math.round(displayDiscountPrice / 3).toLocaleString('en-IN')}/mo
+                  ₹{Math.round((displayDiscountPrice + Math.round(displayDiscountPrice * 0.16 * 0.25 * 0.52)) / 3).toLocaleString('en-IN')}/mo
                 </span>
               </div>
             </div>
@@ -1678,11 +1681,14 @@ export default function ProductDetail() {
             }`}>
               <div>
                 <span className="text-sm font-black">6 Months Plan</span>
-                <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 6).toLocaleString('en-IN')} x 6 months</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  ₹{Math.round((displayDiscountPrice + Math.round(displayDiscountPrice * 0.16 * 0.5 * 0.52)) / 6).toLocaleString('en-IN')} x 6 months
+                  <span className="text-amber-400 font-medium ml-1.5">(+₹{Math.round(displayDiscountPrice * 0.16 * 0.5 * 0.52)} extra bank interest)</span>
+                </p>
               </div>
               <div className="text-right">
                 <span className="text-base font-black text-purple-400">
-                  ₹{Math.round(displayDiscountPrice / 6).toLocaleString('en-IN')}/mo
+                  ₹{Math.round((displayDiscountPrice + Math.round(displayDiscountPrice * 0.16 * 0.5 * 0.52)) / 6).toLocaleString('en-IN')}/mo
                 </span>
               </div>
             </div>
@@ -1693,11 +1699,14 @@ export default function ProductDetail() {
             }`}>
               <div>
                 <span className="text-sm font-black">9 Months Plan</span>
-                <p className="text-xs text-slate-400 mt-0.5">Approx. ₹{Math.round(displayDiscountPrice / 9).toLocaleString('en-IN')} x 9 months</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  ₹{Math.round((displayDiscountPrice + Math.round(displayDiscountPrice * 0.16 * 0.75 * 0.52)) / 9).toLocaleString('en-IN')} x 9 months
+                  <span className="text-amber-400 font-medium ml-1.5">(+₹{Math.round(displayDiscountPrice * 0.16 * 0.75 * 0.52)} extra bank interest)</span>
+                </p>
               </div>
               <div className="text-right">
                 <span className="text-base font-black text-purple-400">
-                  ₹{Math.round(displayDiscountPrice / 9).toLocaleString('en-IN')}/mo
+                  ₹{Math.round((displayDiscountPrice + Math.round(displayDiscountPrice * 0.16 * 0.75 * 0.52)) / 9).toLocaleString('en-IN')}/mo
                 </span>
               </div>
             </div>

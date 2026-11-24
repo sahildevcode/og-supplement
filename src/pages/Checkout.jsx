@@ -881,15 +881,21 @@ export default function Checkout() {
 
                       {/* Interactive Tenure Selector */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                        {[3, 6, 9, 12].map((tenure) => {
-                          const perMonth = Math.round(totalAmount / tenure);
+                        {[
+                          { tenure: 3, rate: 16, bankInterest: Math.round(totalAmount * (16 / 100) * (3 / 12) * 0.52) },
+                          { tenure: 6, rate: 16, bankInterest: Math.round(totalAmount * (16 / 100) * (6 / 12) * 0.52) },
+                          { tenure: 9, rate: 16, bankInterest: Math.round(totalAmount * (16 / 100) * (9 / 12) * 0.52) },
+                          { tenure: 12, rate: 16, bankInterest: Math.round(totalAmount * (16 / 100) * (12 / 12) * 0.52) }
+                        ].map(({ tenure, bankInterest }) => {
+                          const totalWithInterest = totalAmount + bankInterest;
+                          const perMonth = Math.round(totalWithInterest / tenure);
                           const isSelected = selectedEmiTenure === tenure;
                           return (
                             <button
                               key={tenure}
                               type="button"
                               onClick={() => setSelectedEmiTenure(tenure)}
-                              className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                              className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col justify-between ${
                                 isSelected
                                   ? 'bg-purple-600/30 border-purple-400 shadow-md ring-1 ring-purple-400'
                                   : isDark
@@ -897,25 +903,61 @@ export default function Checkout() {
                                   : 'bg-white border-slate-200 hover:border-purple-300'
                               }`}
                             >
-                              <span className={`block text-[10px] uppercase font-black ${isSelected ? 'text-purple-300' : 'text-slate-400'}`}>
-                                {tenure} Months
+                              <div>
+                                <span className={`block text-[10px] uppercase font-black ${isSelected ? 'text-purple-300' : 'text-slate-400'}`}>
+                                  {tenure} Months Plan
+                                </span>
+                                <p className={`text-sm font-black mt-0.5 ${isSelected ? 'text-white' : isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                                  ₹{perMonth.toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-400">/mo</span>
+                                </p>
+                              </div>
+                              <span className="text-[9px] text-amber-400 font-medium block mt-1.5 pt-1 border-t border-slate-800/60">
+                                +₹{bankInterest} extra bank interest
                               </span>
-                              <p className={`text-sm font-black mt-0.5 ${isSelected ? 'text-white' : isDark ? 'text-slate-200' : 'text-slate-900'}`}>
-                                ₹{perMonth.toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-400">/mo</span>
-                              </p>
                             </button>
                           );
                         })}
                       </div>
 
-                      <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[11px] text-slate-300 space-y-1">
-                        <p className="font-semibold text-purple-300">
-                          Selected Plan: <strong>{selectedEmiTenure} Months @ ₹{Math.round(totalAmount / selectedEmiTenure).toLocaleString('en-IN')}/month</strong>
-                        </p>
-                        <p className="text-slate-400 text-[10px]">
-                          Supported Credit Cards: ICICI, HDFC, SBI, Axis, Kotak, IDFC. Total order amount ₹{totalAmount.toLocaleString('en-IN')} will be split across {selectedEmiTenure} monthly installments.
-                        </p>
-                      </div>
+                      {(() => {
+                        const rate = 16;
+                        const factor = 0.52;
+                        const approxInterest = Math.round(totalAmount * (rate / 100) * (selectedEmiTenure / 12) * factor);
+                        const totalWithInterest = totalAmount + approxInterest;
+                        const monthlyInstallment = Math.round(totalWithInterest / selectedEmiTenure);
+
+                        return (
+                          <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80 text-[11px] text-slate-300 space-y-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-slate-800">
+                              <span className="font-bold text-white text-xs">
+                                Breakdown for {selectedEmiTenure} Months Plan:
+                              </span>
+                              <span className="text-purple-400 font-mono font-bold text-xs">
+                                ₹{monthlyInstallment.toLocaleString('en-IN')}/month x {selectedEmiTenure} Months
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[10px]">
+                              <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
+                                <span className="text-slate-400 block">Original Cart Total:</span>
+                                <span className="font-bold text-white font-mono">₹{totalAmount.toLocaleString('en-IN')}</span>
+                              </div>
+                              <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
+                                <span className="text-slate-400 block">Approx. Bank Interest:</span>
+                                <span className="font-bold text-amber-400 font-mono">+ ₹{approxInterest.toLocaleString('en-IN')} (~16% p.a.)</span>
+                              </div>
+                              <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 col-span-2 sm:col-span-1">
+                                <span className="text-slate-400 block">Total You Pay Over {selectedEmiTenure} Mo:</span>
+                                <span className="font-bold text-emerald-400 font-mono">₹{totalWithInterest.toLocaleString('en-IN')}</span>
+                              </div>
+                            </div>
+
+                            <p className="text-slate-400 text-[10px] leading-relaxed pt-1">
+                              💡 <strong>No Hidden Fees from OG Supplements:</strong> Ye extra interest bank ka standard 16% p.a. reducing rate hota hai. Credit Card swipe par full amount block hokar monthly installments me convert ho jayega.
+                            </p>
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
 

@@ -780,9 +780,57 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
               </div>
 
               {formData.isEmiAvailable ? (
-                <p className="text-[11px] text-purple-300 bg-purple-950/30 p-2.5 rounded-xl border border-purple-500/30">
-                  ⚡ <strong>EMI Active:</strong> Customer ko product detail aur checkout dono jagah Easy Monthly Installments (Credit Card EMI) ka option dikhega.
-                </p>
+                <div className="space-y-2.5 pt-1">
+                  <p className="text-[11px] text-purple-300 bg-purple-950/30 p-2.5 rounded-xl border border-purple-500/30">
+                    ⚡ <strong>EMI Active:</strong> Customer ko product detail aur checkout dono jagah Easy Monthly Installments (Credit Card EMI) ka option dikhega.
+                  </p>
+
+                  {/* Real-time Student & Customer EMI Cost Simulator for Admin */}
+                  {(() => {
+                    const priceNum = Number(formData.discountPrice || formData.price || 0);
+                    if (priceNum <= 0) return null;
+
+                    const emiPlans = [
+                      { months: 3, rate: 16, interest: Math.round(priceNum * (16 / 100) * (3 / 12) * 0.52) },
+                      { months: 6, rate: 16, interest: Math.round(priceNum * (16 / 100) * (6 / 12) * 0.52) },
+                      { months: 9, rate: 16, interest: Math.round(priceNum * (16 / 100) * (9 / 12) * 0.52) },
+                      { months: 12, rate: 16, interest: Math.round(priceNum * (16 / 100) * (12 / 12) * 0.52) }
+                    ];
+
+                    return (
+                      <div className="p-3 rounded-xl bg-slate-950 border border-purple-500/30 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-white flex items-center gap-1.5">
+                            📊 Student / Buyer EMI Cost Simulator (Based on Price ₹{priceNum.toLocaleString('en-IN')})
+                          </span>
+                          <span className="text-[10px] text-purple-300">Standard ~16% p.a. bank rate</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                          {emiPlans.map((p) => {
+                            const total = priceNum + p.interest;
+                            const monthly = Math.round(total / p.months);
+                            return (
+                              <div key={p.months} className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center space-y-1">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block">{p.months} Months</span>
+                                <div className="text-sm font-black text-white font-mono">
+                                  ₹{monthly.toLocaleString('en-IN')}<span className="text-[10px] text-slate-400 font-normal">/mo</span>
+                                </div>
+                                <span className="text-[10px] text-amber-400 font-medium block">
+                                  +₹{p.interest.toLocaleString('en-IN')} extra
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <p className="text-[10px] text-slate-400">
+                          💡 <strong>Pricing Tip:</strong> Agar aap chahte hain ki student ko 3-month EMI sirf ~₹1,000/mo pade to product price ₹3,000 ke aas-paas set karein.
+                        </p>
+                      </div>
+                    );
+                  })()}
+                </div>
               ) : (
                 <p className="text-[11px] text-slate-400 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                   🔒 <strong>EMI Disabled:</strong> Is product ke liye checkout par EMI ka option nahi dikhega (Sirf Full Online ya COD rahega).

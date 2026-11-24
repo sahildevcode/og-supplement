@@ -320,6 +320,48 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, onSav
             </label>
           </div>
 
+          {/* Real-time Student & Customer EMI Cost Simulator for Admin */}
+          {formData.isEmiAvailable && (() => {
+            const priceNum = Number(formData.discountPrice || formData.price || 0);
+            if (priceNum <= 0) return null;
+
+            const emiPlans = [
+              { months: 3, rate: 16, interest: Math.round(priceNum * (16 / 100) * (3 / 12) * 0.52) },
+              { months: 6, rate: 16, interest: Math.round(priceNum * (16 / 100) * (6 / 12) * 0.52) },
+              { months: 9, rate: 16, interest: Math.round(priceNum * (16 / 100) * (9 / 12) * 0.52) },
+              { months: 12, rate: 16, interest: Math.round(priceNum * (16 / 100) * (12 / 12) * 0.52) }
+            ];
+
+            return (
+              <div className="p-3.5 rounded-2xl bg-purple-950/30 border border-purple-500/30 space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-white">
+                    📊 Student / Buyer EMI Simulator (Product Price ₹{priceNum.toLocaleString('en-IN')})
+                  </span>
+                  <span className="text-[10px] text-purple-300 font-medium">Standard ~16% p.a. bank rate</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  {emiPlans.map((p) => {
+                    const total = priceNum + p.interest;
+                    const monthly = Math.round(total / p.months);
+                    return (
+                      <div key={p.months} className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center space-y-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">{p.months} Months</span>
+                        <div className="text-sm font-black text-white font-mono">
+                          ₹{monthly.toLocaleString('en-IN')}<span className="text-[10px] text-slate-400 font-normal">/mo</span>
+                        </div>
+                        <span className="text-[10px] text-amber-400 font-medium block">
+                          +₹{p.interest.toLocaleString('en-IN')} extra
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Description */}
           <div className="space-y-1.5">
             <label className="font-bold text-slate-300 uppercase tracking-wider text-xs">Product Description *</label>
