@@ -816,8 +816,8 @@ export default function ProductFormModal({ isOpen, onClose, product, onSave }) {
                                 <div className="text-sm font-black text-white font-mono">
                                   ₹{monthly.toLocaleString('en-IN')}<span className="text-[10px] text-slate-400 font-normal">/mo</span>
                                 </div>
-                                <span className="text-[10px] text-amber-400 font-medium block">
-                                  +₹{p.interest.toLocaleString('en-IN')} extra
+                                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-200 border border-slate-700">
+                                  +₹{p.interest.toLocaleString('en-IN')} Bank Int.
                                 </span>
                               </div>
                             );
