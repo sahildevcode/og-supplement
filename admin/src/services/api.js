@@ -55,6 +55,7 @@ export const api = {
   getProductById: (id) => apiRequest(`/products/${id}`),
   createProduct: (data) => apiRequest('/products', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (id, data) => apiRequest(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  bulkUpdateProducts: (productIds, updates) => apiRequest('/products/bulk-update', { method: 'POST', body: JSON.stringify({ productIds, updates }) }),
   updateStock: (id, stockData) => apiRequest(`/products/${id}/stock`, { method: 'PATCH', body: JSON.stringify(stockData) }),
   deleteProduct: (id) => apiRequest(`/products/${id}`, { method: 'DELETE' }),
 

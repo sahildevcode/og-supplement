@@ -280,3 +280,72 @@ export const syncBestSellers = async (req, res) => {
   }
 };
 
+// @route   POST /api/products/bulk-update
+export const bulkUpdateProducts = async (req, res) => {
+  try {
+    const { productIds, updates } = req.body;
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'productIds array is required' });
+    }
+    if (!updates || typeof updates !== 'object') {
+      return res.status(400).json({ success: false, message: 'updates object is required' });
+    }
+
+    // Allowed bulk fields for security & consistency
+    const allowedKeys = [
+      'isEmiAvailable',
+      'isCancellationFeeApplicable',
+      'cancellationFeeType',
+      'cancellationFeeValue',
+      'isBestSeller',
+      'status'
+    ];
+
+    const safeUpdates = {};
+    for (const key of allowedKeys) {
+      if (updates[key] !== undefined) {
+        if (key === 'isEmiAvailable' || key === 'isCancellationFeeApplicable' || key === 'isBestSeller') {
+          safeUpdates[key] = Boolean(updates[key]);
+        } else if (key === 'cancellationFeeValue') {
+          safeUpdates[key] = Number(updates[key]) || 0;
+        } else if (key === 'cancellationFeeType') {
+          safeUpdates[key] = updates[key] === 'flat' ? 'flat' : 'percentage';
+        } else if (key === 'status') {
+          safeUpdates[key] = updates[key];
+        }
+      }
+    }
+
+    if (Object.keys(safeUpdates).length === 0) {
+      return res.status(400).json({ success: false, message: 'No valid update fields provided' });
+    }
+
+    const updatedList = [];
+    for (const id of productIds) {
+      const updated = await Product.findByIdAndUpdate(id, safeUpdates, { new: true });
+      if (updated) {
+        updatedList.push(updated);
+      }
+    }
+
+    const io = getIO(req);
+    if (io) {
+      for (const prod of updatedList) {
+        io.emit('product:updated', prod);
+      }
+      io.emit('products:bulkUpdated', { count: updatedList.length, updates: safeUpdates });
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully updated ${updatedList.length} products`,
+      count: updatedList.length,
+      products: updatedList
+    });
+  } catch (error) {
+    console.error('[Bulk Update Products Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+

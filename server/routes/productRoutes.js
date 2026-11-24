@@ -8,13 +8,15 @@ import {
   deleteProduct,
   addProductReview,
   toggleBestSeller,
-  syncBestSellers
+  syncBestSellers,
+  bulkUpdateProducts
 } from '../controllers/productController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Specific and bulk routes
+router.post('/bulk-update', bulkUpdateProducts);
 router.post('/best-sellers/sync', syncBestSellers);
 
 // Public routes
