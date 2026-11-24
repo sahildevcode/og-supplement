@@ -301,8 +301,10 @@ export default function AdminOrders() {
     // 5. Total Refund Footprint (Completed + Processing)
     const totalRefundedSum = totalRefundCompleted + totalRefundProcessing;
 
-    // 6. Net Revenue (Received - Refunded)
-    const netRevenue = Math.max(0, totalReceived - totalRefundCompleted);
+    // 6. Net Revenue (Actual Merchant Earning)
+    // When an order is cancelled with a fee (e.g. ₹6 paid, ₹1 refunded, ₹5 retained by merchant):
+    // The merchant's actual net earning is: Active Orders Revenue + Retained Cancellation Fees.
+    const netRevenue = Math.max(0, totalReceived - totalRefundCompleted - totalRefundProcessing);
 
     // All Time Totals for quick reference
     const allTimeReceived = orders
@@ -742,12 +744,12 @@ export default function AdminOrders() {
                 ₹{financialMetrics.netRevenue.toLocaleString('en-IN')}
               </h2>
               <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-300">
-                <span>Received minus Refunds</span>
+                <span>Received minus Pending/Completed Refunds</span>
               </div>
             </div>
 
             <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
-              <span>Formula: <strong className="text-cyan-300">₹{financialMetrics.totalReceived} - ₹{financialMetrics.totalRefundCompleted}</strong></span>
+              <span>Formula: <strong className="text-cyan-300">₹{financialMetrics.totalReceived} - ₹{financialMetrics.totalRefundCompleted + financialMetrics.totalRefundProcessing} = ₹{financialMetrics.netRevenue}</strong></span>
             </div>
           </div>
 
