@@ -33,9 +33,13 @@ const GOAL_OPTIONS = [
   'Daily Fitness & Stamina'
 ];
 
+// Fallback images if uploaded image link fails or is unavailable
+const FALLBACK_BEFORE = 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&auto=format&fit=crop&q=80';
+const FALLBACK_AFTER = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80';
+
 // Helper to resolve image URL if it's relative
-const resolveImg = (src) => {
-  if (!src) return '';
+const resolveImg = (src, fallback = FALLBACK_AFTER) => {
+  if (!src) return fallback;
   if (src.startsWith('data:') || src.startsWith('http://') || src.startsWith('https://')) {
     return src;
   }
@@ -270,9 +274,13 @@ export default function ReviewsResults() {
                   <div className="relative grid grid-cols-2 gap-1 p-2 bg-slate-950">
                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
                       <img
-                        src={resolveImg(rev.beforeImage)}
+                        src={resolveImg(rev.beforeImage, FALLBACK_BEFORE)}
                         alt="Before Transformation"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_BEFORE;
+                        }}
                       />
                       <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-black/80 text-slate-300">
                         Before
@@ -281,9 +289,13 @@ export default function ReviewsResults() {
 
                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900">
                       <img
-                        src={resolveImg(rev.afterImage)}
+                        src={resolveImg(rev.afterImage, FALLBACK_AFTER)}
                         alt="After Transformation"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_AFTER;
+                        }}
                       />
                       <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-black">
                         After ({rev.duration || '12 Wks'})
@@ -295,9 +307,13 @@ export default function ReviewsResults() {
                   <div className="relative p-2 bg-slate-950">
                     <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center">
                       <img
-                        src={resolveImg(rev.beforeImage || rev.afterImage)}
+                        src={resolveImg(rev.beforeImage || rev.afterImage, FALLBACK_AFTER)}
                         alt="Customer Transformation"
                         className="w-full h-full object-cover sm:object-contain"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_AFTER;
+                        }}
                       />
                       <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500 text-black shadow-md">
                         {rev.duration || 'Verified Result'}
@@ -316,10 +332,10 @@ export default function ReviewsResults() {
                   <div>
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-white text-sm">{rev.customerName}</span>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" title="Verified Buyer" />
+                        <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{rev.customerName}</span>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" title="Verified Buyer" />
                       </div>
-                      <span className="text-[11px] text-slate-400 font-semibold">{rev.city}</span>
+                      <span className={`text-[11px] font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{rev.city}</span>
                     </div>
 
                     <div className="flex items-center gap-2 mt-1">
@@ -328,25 +344,31 @@ export default function ReviewsResults() {
                           <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
                         ))}
                       </div>
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${
+                        isDark ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                      }`}>
                         {rev.transformationGoal}
                       </span>
                     </div>
 
                     {rev.title && (
-                      <h4 className="font-bold text-white text-sm mt-2 line-clamp-1">{rev.title}</h4>
+                      <h4 className={`font-bold text-sm mt-2 line-clamp-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{rev.title}</h4>
                     )}
 
-                    <p className="text-xs text-slate-300 leading-relaxed mt-1 line-clamp-3">
+                    <p className={`text-xs leading-relaxed mt-1 line-clamp-3 font-medium ${
+                      isDark ? 'text-slate-200' : 'text-slate-800'
+                    }`}>
                       "{rev.comment}"
                     </p>
                   </div>
 
                   {/* Supplement Used Card */}
-                  <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between gap-2 text-xs">
+                  <div className={`pt-3 border-t flex items-center justify-between gap-2 text-xs ${
+                    isDark ? 'border-slate-800/60' : 'border-slate-200'
+                  }`}>
                     <div className="min-w-0">
-                      <span className="text-[10px] text-slate-400 block font-semibold">Supplement Stack:</span>
-                      <span className="font-bold text-amber-400 truncate block text-xs">{rev.productUsed}</span>
+                      <span className={`text-[10px] block font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Supplement Stack:</span>
+                      <span className={`font-bold truncate block text-xs ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>{rev.productUsed}</span>
                     </div>
 
                     <button
@@ -354,7 +376,9 @@ export default function ReviewsResults() {
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                         likedMap[rev._id || rev.id]
                           ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                          : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                          : isDark
+                            ? 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                            : 'bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
                       <Heart className={`w-3.5 h-3.5 ${likedMap[rev._id || rev.id] ? 'fill-rose-500 text-rose-500' : ''}`} />
@@ -431,13 +455,13 @@ export default function ReviewsResults() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-sm">{rev.customerName}</span>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{rev.customerName}</span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                           Verified Purchase
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                      <div className={`flex items-center gap-2 text-[11px] mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                         <span className="flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-slate-500" />
                           {rev.city || 'India'}
@@ -456,31 +480,39 @@ export default function ReviewsResults() {
 
                   {/* Product Tag */}
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-slate-950 border border-slate-800 text-amber-400">
+                    <span className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold border ${
+                      isDark ? 'bg-slate-950 border-slate-800 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-800'
+                    }`}>
                       📦 {rev.productUsed}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-slate-950 border border-slate-800 text-slate-300">
+                    <span className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold border ${
+                      isDark ? 'bg-slate-950 border-slate-800 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'
+                    }`}>
                       🎯 {rev.transformationGoal}
                     </span>
                   </div>
 
                   {/* Title & Comment */}
                   {rev.title && (
-                    <h4 className="font-bold text-white text-sm mt-3">{rev.title}</h4>
+                    <h4 className={`font-bold text-sm mt-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>{rev.title}</h4>
                   )}
-                  <p className="text-xs text-slate-300 leading-relaxed mt-1">
+                  <p className={`text-xs leading-relaxed mt-1 font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                     "{rev.comment}"
                   </p>
 
                   {/* Footer / Likes */}
-                  <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+                  <div className={`mt-4 pt-3 border-t flex items-center justify-between text-xs ${
+                    isDark ? 'border-slate-800/60 text-slate-400' : 'border-slate-200 text-slate-600'
+                  }`}>
                     <span className="text-[11px]">Was this review helpful?</span>
                     <button
                       onClick={() => handleLike(rev._id || rev.id)}
                       className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all ${
                         likedMap[rev._id || rev.id]
                           ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                          : 'bg-slate-800 hover:bg-slate-750 text-slate-300'
+                          : isDark
+                            ? 'bg-slate-800 hover:bg-slate-750 text-slate-300'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
                       }`}
                     >
                       <ThumbsUp className="w-3.5 h-3.5" />
