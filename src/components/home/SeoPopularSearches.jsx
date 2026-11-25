@@ -95,7 +95,7 @@ export default function SeoPopularSearches() {
               Popular Supplement Searches, Fitness Goals & Buying Guides
             </h2>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             <span>100% Verified Authentic Direct Imports</span>
           </div>
@@ -204,19 +204,23 @@ export default function SeoPopularSearches() {
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                    isDark ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                  }`}>
                     {article.badge}
                   </span>
-                  <span className="text-[11px] font-bold text-emerald-500 group-hover:translate-x-1 transition-transform">
+                  <span className={`text-[11px] font-bold group-hover:translate-x-1 transition-transform ${
+                    isDark ? 'text-emerald-400' : 'text-emerald-700'
+                  }`}>
                     Explore Products →
                   </span>
                 </div>
-                <h4 className={`text-sm font-black group-hover:text-emerald-400 transition-colors ${
+                <h4 className={`text-sm font-black group-hover:text-emerald-500 transition-colors ${
                   isDark ? 'text-white' : 'text-slate-900'
                 }`}>
                   {article.title}
                 </h4>
-                <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                <p className={`text-xs mt-1.5 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                   {article.desc}
                 </p>
               </Link>
@@ -239,7 +243,7 @@ export default function SeoPopularSearches() {
                   {b.name}
                 </h3>
               </div>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              <p className={`text-xs mt-2 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                 {b.desc}
               </p>
             </div>

@@ -518,11 +518,11 @@ export default function Checkout() {
                 <KeyRound className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-black text-white flex items-center gap-1.5">
+                <h4 className={`text-sm font-black flex items-center gap-1.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   Mandatory OTP Verification Required Before Order
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400">100% Free OTP</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-800'}`}>100% Free OTP</span>
                 </h4>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                   Enter your details below to receive a 6-digit OTP code on your email for authentic order dispatch.
                 </p>
               </div>
@@ -539,12 +539,16 @@ export default function Checkout() {
 
         {/* Logged In User Verified Badge */}
         {user && (
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs text-emerald-400">
+          <div className={`p-3.5 sm:p-4 rounded-2xl border flex items-center justify-between text-xs ${
+            isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+          }`}>
             <div className="flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-emerald-400" />
-              <span>Ordering as Verified Athlete: <strong className="text-white">{user.name}</strong> ({user.email})</span>
+              <UserCheck className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+              <span>Ordering as Verified Athlete: <strong className={isDark ? 'text-white' : 'text-slate-900'}>{user.name}</strong> ({user.email})</span>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+              isDark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-200/70 text-emerald-900'
+            }`}>
               Verified ID
             </span>
           </div>
@@ -1082,8 +1086,8 @@ export default function Checkout() {
               </div>
 
               {/* Totals */}
-              <div className={`space-y-2.5 text-xs sm:text-sm text-slate-400 border-t pt-3 ${
-                isDark ? 'border-slate-800' : 'border-slate-100'
+              <div className={`space-y-2.5 text-xs sm:text-sm border-t pt-3 ${
+                isDark ? 'border-slate-800 text-slate-300' : 'border-slate-200 text-slate-600'
               }`}>
                 <div className="flex justify-between">
                   <span>Subtotal ({totalItems} items):</span>
@@ -1115,14 +1119,18 @@ export default function Checkout() {
                 </div>
 
                 {/* GST Breakdown Line calculated and added to Payable */}
-                <div className="flex justify-between items-center py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-black text-[10px]">
+                <div className={`flex justify-between items-center py-2 px-3 rounded-xl border text-xs ${
+                  isDark ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'
+                }`}>
+                  <span className={`flex items-center gap-1.5 font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                    <span className={`px-1.5 py-0.5 rounded font-black text-[10px] ${
+                      isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-200/80 text-emerald-800'
+                    }`}>
                       GST
                     </span>
                     GST / Tax Charges:
                   </span>
-                  <span className="font-black text-emerald-400 text-sm">
+                  <span className={`font-black text-sm ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
                     {totalGst > 0 ? `+ ₹${totalGst.toLocaleString('en-IN')}` : '₹0 (Tax Exempt)'}
                   </span>
                 </div>

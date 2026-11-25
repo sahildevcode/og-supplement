@@ -138,7 +138,7 @@ export default function Login() {
           }`}>
             Customer Sign In
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400">
+          <p className={`text-xs sm:text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
             Sign in to access your orders, saved stack, and faster checkout
           </p>
         </div>
@@ -215,7 +215,7 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+            <div className={`flex items-center justify-between text-xs pt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -246,7 +246,7 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="pt-2 text-center text-xs text-slate-400">
+          <div className={`pt-2 text-center text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
             New to OG-Supplement?{' '}
             <Link to={`/signup${location.search}`} className="text-emerald-500 font-bold hover:underline">
               Create a free customer account

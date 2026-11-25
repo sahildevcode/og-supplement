@@ -6,8 +6,12 @@
     --bg-surface: rgba(15, 23, 42, 0.85);
     --bg-card: rgba(17, 24, 39, 0.85);
     --border-color: rgba(255, 255, 255, 0.08);
-    --text-main: #f9fafb;
-    --text-muted: #9ca3af;
+    --text-main: #f8fafc;
+    --text-body: #e2e8f0;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --accent-green: #34d399;
+    --accent-purple: #c084fc;
     --glass-bg: rgba(15, 23, 42, 0.8);
   }
 
@@ -17,7 +21,11 @@
     --bg-card: rgba(255, 255, 255, 0.95);
     --border-color: rgba(15, 23, 42, 0.1);
     --text-main: #0f172a;
+    --text-body: #1e293b;
+    --text-secondary: #475569;
     --text-muted: #64748b;
+    --accent-green: #047857;
+    --accent-purple: #7e22ce;
     --glass-bg: rgba(255, 255, 255, 0.85);
   }
 

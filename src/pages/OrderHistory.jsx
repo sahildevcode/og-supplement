@@ -239,7 +239,7 @@ export default function OrderHistory() {
             }`}>
               Order History
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Track live packing, dispatch and delivery statuses for all your supplement orders
             </p>
           </div>
@@ -274,7 +274,7 @@ export default function OrderHistory() {
                 <Clock className="w-4 h-4" />
               </div>
               <p className="text-xs sm:text-sm text-slate-300">
-                Want to sync and track all your orders across any phone or laptop? <span className="font-bold text-white">Sign in to your account</span>.
+                Want to sync and track all your orders across any phone or laptop? <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Sign in to your account</span>.
               </p>
             </div>
             <Link
@@ -305,7 +305,7 @@ export default function OrderHistory() {
               <Package className="w-8 h-8 text-emerald-500" />
             </div>
             <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>No Orders Found</h3>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className={`text-xs sm:text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               We couldn't find any recent orders associated with your account or search email.
             </p>
             <Link

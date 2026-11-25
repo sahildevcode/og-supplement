@@ -124,7 +124,7 @@ export default function ProductDetail() {
       <div className={`min-h-[70vh] flex items-center justify-center ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-slate-400 text-sm">Loading supplement details...</p>
+          <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Loading supplement details...</p>
         </div>
       </div>
     );
@@ -454,7 +454,7 @@ export default function ProductDetail() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+        <nav className={`flex items-center gap-2 text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
           <Link to="/" className="hover:text-emerald-500 transition-colors">Home</Link>
           <ChevronRight className="w-3.5 h-3.5" />
           <Link to="/products" className="hover:text-emerald-500 transition-colors">Supplements</Link>

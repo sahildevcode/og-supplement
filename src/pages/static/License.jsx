@@ -21,7 +21,7 @@ export default function License() {
           }`}>
             Licenses & Statutory Certifications
           </h1>
-          <p className="text-sm text-slate-400 max-w-xl mx-auto">
+          <p className={`text-sm max-w-xl mx-auto ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
             OG-Supplement operates under strict compliance with statutory food safety, nutraceutical import, and retail licenses in India.
           </p>
         </div>
@@ -38,7 +38,7 @@ export default function License() {
             </div>
             <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>FSSAI Central Food Safety License</h3>
             <p className="text-xs font-mono text-emerald-500 font-bold">Lic. No: 10024011009842</p>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Certified for storage, import and online distribution of sports nutrition, protein supplements and dietary vitamins.
             </p>
           </div>
@@ -52,7 +52,7 @@ export default function License() {
             </div>
             <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Good Manufacturing Practice (GMP)</h3>
             <p className="text-xs font-mono text-cyan-500 font-bold">Registration: GMP-IND-2026-990</p>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Climate-controlled warehousing adhering to WHO-GMP standards for hygroscopic powders and heat-sensitive amino acids.
             </p>
           </div>
@@ -66,7 +66,7 @@ export default function License() {
             </div>
             <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>NABL Lab Testing Protocol</h3>
             <p className="text-xs font-mono text-amber-500 font-bold">Standard: ISO/IEC 17025</p>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Every production lot undergoes mandatory Kjeldahl protein nitrogen verification and heavy metal profiling.
             </p>
           </div>
@@ -80,7 +80,7 @@ export default function License() {
             </div>
             <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Brand Importer Agreements</h3>
             <p className="text-xs font-mono text-purple-500 font-bold">Authorized Direct Distributor</p>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Direct distribution agreements with official Indian importers for Optimum Nutrition, Dymatize, MuscleTech and Cellucor.
             </p>
           </div>

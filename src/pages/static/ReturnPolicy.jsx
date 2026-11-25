@@ -17,15 +17,17 @@ export default function ReturnPolicy() {
           <h1 className={`text-3xl sm:text-4xl font-black tracking-tight mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Return & Replacement Policy
           </h1>
-          <p className="text-xs text-slate-400 mt-1">3-Day Return & Free Replacement Guarantee (Strictly No Cash Refunds)</p>
+          <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>3-Day Return & Free Replacement Guarantee (Strictly No Cash Refunds)</p>
         </div>
 
         {/* Important Banner: No Refund, Replacement Only */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3.5">
-          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+        <div className={`p-4 sm:p-5 rounded-2xl border flex items-start gap-3.5 ${
+          isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-300'
+        }`}>
+          <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${isDark ? 'text-amber-500' : 'text-amber-700'}`} />
           <div className="space-y-1 text-xs sm:text-sm">
-            <p className="font-black text-amber-400 uppercase tracking-wider">Strict Replacement Only Policy — No Money Refunds</p>
-            <p className="text-slate-300 leading-relaxed">
+            <p className={`font-black uppercase tracking-wider ${isDark ? 'text-amber-400' : 'text-amber-800'}`}>Strict Replacement Only Policy — No Money Refunds</p>
+            <p className={`leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-800'}`}>
               We provide <strong>100% Free Product Replacement</strong> for verified damaged or spoiled supplements. <strong>Cash/bank refunds are NOT available</strong> under any circumstances. If your return request is approved, a fresh, brand-new replacement product will be shipped to you immediately.
             </p>
           </div>
@@ -60,7 +62,7 @@ export default function ReturnPolicy() {
             <p>
               To claim a return or replacement, you <strong>MUST record an uncut, continuous unboxing video</strong> starting from when you first receive and open the parcel:
             </p>
-            <ul className="list-disc pl-5 space-y-1.5 text-slate-400 text-xs sm:text-sm">
+            <ul className={`list-disc pl-5 space-y-1.5 text-xs sm:text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
               <li>The video must clearly show the unopened outer courier packaging and the printed shipping label with your address & tracking number.</li>
               <li>The unboxing video must be continuous without cuts, pauses, or video edits.</li>
               <li>The defect (spoiled powder, damaged tub, broken seal, or leaked packaging) must be clearly shown on camera in the video.</li>
@@ -79,7 +81,7 @@ export default function ReturnPolicy() {
             <p>
               Return and replacement is accepted strictly under the following conditions:
             </p>
-            <ul className="list-disc pl-5 space-y-1 text-slate-400 text-xs sm:text-sm">
+            <ul className={`list-disc pl-5 space-y-1 text-xs sm:text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
               <li><strong>Spoiled or Defective Protein:</strong> The supplement powder is clumpy, foul-smelling, spoiled, or contaminated.</li>
               <li><strong>Transit Damage:</strong> The tub, pouch, or seal was completely punctured, broken, or leaking during shipping.</li>
               <li><strong>Wrong Item Received:</strong> The product received differs in brand, flavor, or weight from what was ordered.</li>
@@ -95,7 +97,7 @@ export default function ReturnPolicy() {
                 4. What Does NOT Qualify?
               </h2>
             </div>
-            <ul className="list-disc pl-5 space-y-1 text-slate-400 text-xs sm:text-sm">
+            <ul className={`list-disc pl-5 space-y-1 text-xs sm:text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
               <li>Personal taste, flavor preference, or mixability dislikes.</li>
               <li>Tubs opened or consumed without a defect unboxing video.</li>
               <li>Requests submitted after 3 days of delivery.</li>

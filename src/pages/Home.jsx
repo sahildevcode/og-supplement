@@ -7,10 +7,12 @@ import FeaturedSection from '../components/home/FeaturedSection';
 import HomeTransformations from '../components/home/HomeTransformations';
 import SeoPopularSearches from '../components/home/SeoPopularSearches';
 import ProductQuickView from '../components/product/ProductQuickView';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Home() {
+  const { isDark } = useTheme();
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <HeroCarousel />
       <BrandTrust />
       <CategorySection />

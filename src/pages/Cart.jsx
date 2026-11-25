@@ -38,7 +38,7 @@ export default function Cart() {
           </div>
           <div className="space-y-2">
             <h2 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Your Cart is Empty</h2>
-            <p className="text-sm text-slate-400">
+            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Looks like you haven't added any performance supplements to your stack yet.
             </p>
           </div>
@@ -73,8 +73,8 @@ export default function Cart() {
             }`}>
               Shopping Cart
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              You have <span className="text-emerald-500 font-bold">{totalItems} items</span> in your cart
+            <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              You have <span className={`font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>{totalItems} items</span> in your cart
             </p>
           </div>
 
@@ -228,7 +228,7 @@ export default function Cart() {
                 Order Summary
               </h3>
 
-              <div className="space-y-2.5 text-xs sm:text-sm text-slate-400">
+              <div className={`space-y-2.5 text-xs sm:text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                 <div className="flex justify-between">
                   <span>Total MRP:</span>
                   <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>₹{totalMRP.toLocaleString('en-IN')}</span>
@@ -292,7 +292,7 @@ export default function Cart() {
                 Proceed to Checkout <ArrowRight className="w-4 h-4" />
               </button>
 
-              <p className="text-[11px] text-center text-slate-400">
+              <p className={`text-[11px] text-center ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 🔒 Safe and Secure 256-Bit SSL Checkout
               </p>
             </div>

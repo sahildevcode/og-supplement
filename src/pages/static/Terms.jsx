@@ -17,7 +17,7 @@ export default function Terms() {
           <h1 className={`text-3xl sm:text-4xl font-black tracking-tight mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Terms & Conditions
           </h1>
-          <p className="text-xs text-slate-400 mt-1">Last Updated: January 2026</p>
+          <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Last Updated: January 2026</p>
         </div>
 
         {/* Content */}

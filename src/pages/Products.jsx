@@ -49,7 +49,7 @@ export default function Products() {
             }`}>
               {selectedCategory === 'All' ? 'All Performance Supplements' : `${selectedCategory} Collection`}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Showing {filteredProducts.length} premium laboratory-tested supplements
             </p>
           </div>
@@ -97,7 +97,7 @@ export default function Products() {
         <div className="space-y-4">
           {/* Categories with Horizontal Slide Flow */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none animate-slide-left">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap mr-1">
+            <span className={`text-xs font-bold uppercase tracking-wider whitespace-nowrap mr-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
               Category:
             </span>
             {categories.map((cat, idx) => (
@@ -119,7 +119,7 @@ export default function Products() {
 
           {/* Brands with Horizontal Slide Flow */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none animate-slide-right">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap mr-1">
+            <span className={`text-xs font-bold uppercase tracking-wider whitespace-nowrap mr-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
               Brand:
             </span>
             {brands.map((brand) => (
@@ -128,10 +128,12 @@ export default function Products() {
                 onClick={() => setSelectedBrand(brand)}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all duration-200 active:scale-95 cursor-pointer ${
                   selectedBrand.toLowerCase() === brand.toLowerCase()
-                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 scale-105'
+                    ? isDark
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 scale-105'
+                      : 'bg-cyan-50 text-cyan-700 border border-cyan-400 scale-105'
                     : isDark
-                    ? 'bg-slate-900/60 text-slate-400 hover:text-slate-200 hover:scale-105 border border-slate-800'
-                    : 'bg-white text-slate-600 hover:text-slate-900 hover:scale-105 border border-slate-200 shadow-sm'
+                    ? 'bg-slate-900/60 text-slate-300 hover:text-white hover:scale-105 border border-slate-800'
+                    : 'bg-white text-slate-700 hover:text-slate-900 hover:scale-105 border border-slate-200 shadow-sm'
                 }`}
               >
                 {brand}

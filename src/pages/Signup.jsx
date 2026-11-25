@@ -135,7 +135,7 @@ export default function Signup() {
           }`}>
             Create Your Account
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400">
+          <p className={`text-xs sm:text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
             Join the OG-Supplement athlete network for faster checkout and exclusive deals
           </p>
         </div>

@@ -407,7 +407,7 @@ export default function Navbar() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black tracking-tight">OG-SUPPLEMENT</h3>
-                  <p className="text-[10px] text-slate-400">Navigation & Customer Care</p>
+                  <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Navigation & Customer Care</p>
                 </div>
               </div>
 
@@ -483,11 +483,15 @@ export default function Navbar() {
                         }`}
                       >
                         <p className={`font-bold ${
-                          notif.type === 'order' ? 'text-cyan-400' : notif.type === 'offer' ? 'text-amber-500 font-black' : 'text-emerald-400'
+                          notif.type === 'order'
+                            ? isDark ? 'text-cyan-400' : 'text-cyan-700'
+                            : notif.type === 'offer'
+                            ? isDark ? 'text-amber-400 font-black' : 'text-amber-700 font-black'
+                            : isDark ? 'text-emerald-400' : 'text-emerald-700'
                         }`}>
                           {notif.title}
                         </p>
-                        <p className="text-slate-300 text-[10px] mt-0.5 leading-snug">{notif.message}</p>
+                        <p className={`text-[10px] mt-0.5 leading-snug ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{notif.message}</p>
                       </div>
                     ))
                   )}
@@ -496,7 +500,7 @@ export default function Navbar() {
               
               {/* Primary Actions: Order History & Store */}
               <div className="space-y-1.5">
-                <p className="text-[10px] font-black uppercase tracking-wider text-emerald-400 px-2">Quick Navigation</p>
+                <p className={`text-[10px] font-black uppercase tracking-wider px-2 ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Quick Navigation</p>
                 
                 <Link
                   to="/"
@@ -540,7 +544,7 @@ export default function Navbar() {
                     <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
                     <div>
                       <span className="font-bold">Best Selling Products</span>
-                      <p className="text-[10px] text-slate-400">Top selling supplements & formulas</p>
+                      <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Top selling supplements & formulas</p>
                     </div>
                   </div>
                   <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-black">HOT</span>
@@ -557,7 +561,7 @@ export default function Navbar() {
                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                     <div>
                       <span className="font-bold">Happy Customers & Results</span>
-                      <p className="text-[10px] text-slate-400">Before/after results & 4.9★ reviews</p>
+                      <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Before/after results & 4.9★ reviews</p>
                     </div>
                   </div>
                   <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500 text-black">RESULTS</span>
@@ -574,7 +578,7 @@ export default function Navbar() {
                     <User className="w-4 h-4 text-emerald-400" />
                     <div>
                       <span className="font-black">My Profile & Account</span>
-                      <p className="text-[10px] text-slate-400">Name, Address, Email, Password</p>
+                      <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Name, Address, Email, Password</p>
                     </div>
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
@@ -591,7 +595,7 @@ export default function Navbar() {
                     <Clock className="w-4 h-4 text-emerald-400" />
                     <div>
                       <span className="font-black">Order History & Tracking</span>
-                      <p className="text-[10px] text-slate-400">Track live courier updates & delivery status</p>
+                      <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Track live courier updates & delivery status</p>
                     </div>
                   </div>
                   <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500 text-black">Live</span>
@@ -599,8 +603,8 @@ export default function Navbar() {
               </div>
 
               {/* Categories Direct Links */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800/60">
-                <p className="text-[10px] font-black uppercase tracking-wider text-cyan-400 px-2">Top Categories</p>
+              <div className={`space-y-1.5 pt-2 border-t ${isDark ? 'border-slate-800/60' : 'border-slate-200'}`}>
+                <p className={`text-[10px] font-black uppercase tracking-wider px-2 ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}>Top Categories</p>
                 <div className="grid grid-cols-2 gap-1.5">
                   {categories.map((c) => (
                     <button
@@ -622,8 +626,8 @@ export default function Navbar() {
               </div>
 
               {/* Information & Store Policies (Moved INSIDE Side Navbar) */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800/60">
-                <p className="text-[10px] font-black uppercase tracking-wider text-amber-400 px-2">Information & Policies</p>
+              <div className={`space-y-1.5 pt-2 border-t ${isDark ? 'border-slate-800/60' : 'border-slate-200'}`}>
+                <p className={`text-[10px] font-black uppercase tracking-wider px-2 ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>Information & Policies</p>
                 <div className="space-y-1">
                   
                   <Link
@@ -735,7 +739,7 @@ export default function Navbar() {
                   <Mail className="w-4 h-4 text-emerald-400" />
                   <span className="font-bold text-xs">Customer Support</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                   Koi sawaal ya order enquiry ke liye direct email karein:
                 </p>
                 <a
@@ -749,8 +753,8 @@ export default function Navbar() {
             </div>
 
             {/* Drawer Footer */}
-            <div className={`p-4 border-t text-center text-[10px] text-slate-500 ${
-              isDark ? 'border-slate-800/80 bg-slate-950' : 'border-slate-200 bg-white'
+            <div className={`p-4 border-t text-center text-[10px] ${
+              isDark ? 'border-slate-800/80 bg-slate-950 text-slate-400' : 'border-slate-200 bg-white text-slate-600'
             }`}>
               OG-SUPPLEMENT • 100% Authentic Gym Nutrition
             </div>

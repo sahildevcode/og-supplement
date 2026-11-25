@@ -145,8 +145,8 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
                 <XCircle className="w-5 h-5" />
               </div>
               <div className="text-xs">
-                <p className="font-bold text-white text-sm">Order Cancelled</p>
-                <p className="text-slate-400 text-[11px] mt-0.5">
+                <p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>Order Cancelled</p>
+                <p className={`text-[11px] mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                   This order was cancelled prior to warehouse dispatch. Need assistance or replacement inquiry?
                 </p>
               </div>
@@ -178,14 +178,14 @@ export default function OrderTrackerTimeline({ order, isDark = true }) {
             <div className={`p-4 sm:p-5 rounded-2xl border space-y-4 animate-in fade-in duration-200 ${
               isDark ? 'bg-slate-900/90 border-slate-700/80 text-white' : 'bg-slate-100 border-slate-300 text-slate-900'
             }`}>
-              <div className="flex items-center justify-between border-b pb-3 border-slate-800">
+              <div className={`flex items-center justify-between border-b pb-3 ${isDark ? 'border-slate-800' : 'border-slate-300'}`}>
                 <div className="flex items-center gap-2">
-                  <RotateCcw className="w-4 h-4 text-emerald-400" />
-                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                  <RotateCcw className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`} />
+                  <h4 className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
                     Payment & Cancellation Breakdown
                   </h4>
                 </div>
-                <span className="text-[11px] font-mono text-slate-400">
+                <span className={`text-[11px] font-mono ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                   {order.cancelledAt ? new Date(order.cancelledAt).toLocaleString('en-IN') : 'Recently Cancelled'}
                 </span>
               </div>

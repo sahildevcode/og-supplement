@@ -43,8 +43,8 @@ export default function Footer() {
             <h4 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="hover:text-emerald-500 transition-colors">Home</Link></li>
-              <li><Link to="/best-sellers" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5"><span className="text-amber-400">🔥</span> Best Sellers</Link></li>
-              <li><Link to="/reviews" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5"><span className="text-emerald-400">🌟</span> Customer Reviews & Results</Link></li>
+              <li><Link to="/best-sellers" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5"><span className={isDark ? 'text-amber-400' : 'text-amber-600'}>🔥</span> Best Sellers</Link></li>
+              <li><Link to="/reviews" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5"><span className={isDark ? 'text-emerald-400' : 'text-emerald-600'}>🌟</span> Customer Reviews & Results</Link></li>
               <li><Link to="/products" className="hover:text-emerald-500 transition-colors">All Supplements</Link></li>
               <li><Link to="/about" className="hover:text-emerald-500 transition-colors">About OG-Supplement</Link></li>
               <li><Link to="/license" className="hover:text-emerald-500 transition-colors">Licenses & Lab Reports</Link></li>
@@ -78,7 +78,7 @@ export default function Footer() {
 
         {/* Popular Trending Supplement Searches for Google Search Indexing */}
         <div className={`py-6 border-b text-xs space-y-2 leading-relaxed ${
-          isDark ? 'border-slate-800/80 text-slate-500' : 'border-slate-200 text-slate-500'
+          isDark ? 'border-slate-800/80 text-slate-400' : 'border-slate-200 text-slate-600'
         }`}>
           <div className="flex items-center gap-2">
             <span className={`font-bold uppercase tracking-wider text-[11px] ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
@@ -102,7 +102,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        <div className={`pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
           <p>© {new Date().getFullYear()} OG-Supplement Sports Nutrition Pvt. Ltd. All rights reserved.</p>
           <div className="flex items-center gap-1">
             <span>Crafted for Peak Human Performance</span>

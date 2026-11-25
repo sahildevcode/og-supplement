@@ -21,7 +21,7 @@ export default function About() {
           }`}>
             About OG-Supplement
           </h1>
-          <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
+          <p className={`text-sm sm:text-base max-w-2xl mx-auto ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
             Empowering athletes, bodybuilders, and fitness enthusiasts across India with 100% authentic, high-potency sports nutrition.
           </p>
         </div>
@@ -45,7 +45,7 @@ export default function About() {
               <ShieldCheck className="w-6 h-6" />
             </div>
             <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Direct Importer Sourcing</h3>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               We eliminate third-party middle-men. Every item comes with original importer holographic seals (GMC, Bright, Glanbia).
             </p>
           </div>
@@ -57,7 +57,7 @@ export default function About() {
               <Award className="w-6 h-6" />
             </div>
             <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>NABL Accredited Testing</h3>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Random batch laboratory certificates ensuring protein content claims match exactly with real testing data.
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function About() {
               <Target className="w-6 h-6" />
             </div>
             <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Real-Time Inventory Control</h3>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Powered by real-time WebSocket inventory sync, guaranteeing that what you buy is fresh and available in warehouse.
             </p>
           </div>
@@ -81,7 +81,7 @@ export default function About() {
               <Users className="w-6 h-6" />
             </div>
             <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Expert Nutrition Advisory</h3>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Access guidance on personalized stacks whether you want pure lean hypertrophy, explosive endurance, or clean bulking.
             </p>
           </div>

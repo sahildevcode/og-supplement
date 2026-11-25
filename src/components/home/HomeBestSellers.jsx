@@ -36,7 +36,9 @@ export default function HomeBestSellers() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30 mb-2">
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border mb-2 ${
+              isDark ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-300'
+            }`}>
               <Flame className="w-3.5 h-3.5 fill-amber-400 animate-pulse" />
               <span>Official Leaderboard • Athlete's #1 Choice</span>
             </div>
@@ -45,7 +47,7 @@ export default function HomeBestSellers() {
             }`}>
               Best Selling <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent">Supplements</span>
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+            <p className={`text-xs sm:text-sm mt-1 max-w-xl ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               India's highest re-ordered proteins, gainers, and pre-workouts with 100% genuine importer hologram verification.
             </p>
           </div>
@@ -111,10 +113,10 @@ export default function HomeBestSellers() {
               <TrendingUp className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-sm sm:text-base font-bold text-white">
+              <h4 className={`text-sm sm:text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 Live Sales Rank Updated in Real Time
               </h4>
-              <p className="text-xs text-slate-400">
+              <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                 Rankings automatically update based on confirmed customer purchases and admin recommendations.
               </p>
             </div>

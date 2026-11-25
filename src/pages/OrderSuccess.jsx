@@ -3,11 +3,13 @@ import { useLocation, useParams, Link } from 'react-router-dom';
 import { CheckCircle2, Package, ArrowRight, Truck, Home, ShieldCheck } from 'lucide-react';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
+import { useTheme } from '../context/ThemeContext';
 import OrderTrackerTimeline from '../components/common/OrderTrackerTimeline';
 
 export default function OrderSuccess() {
   const { id } = useParams();
   const location = useLocation();
+  const { isDark } = useTheme();
   const [order, setOrder] = useState(location.state?.order || null);
 
   useEffect(() => {
@@ -38,19 +40,25 @@ export default function OrderSuccess() {
   const activeOrderId = id || order?.orderId || order?._id;
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center bg-slate-950 py-12 px-4">
-      <div className="max-w-2xl w-full bg-slate-900/90 border border-slate-800 p-6 sm:p-10 rounded-3xl text-center space-y-6 shadow-2xl">
+    <div className={`min-h-[85vh] flex items-center justify-center py-12 px-4 transition-colors duration-300 ${
+      isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+    }`}>
+      <div className={`max-w-2xl w-full border p-6 sm:p-10 rounded-3xl text-center space-y-6 shadow-2xl ${
+        isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200'
+      }`}>
         
         {/* Success Icon */}
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-950/60 animate-in zoom-in-50 duration-500">
+        <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border flex items-center justify-center mx-auto shadow-xl animate-in zoom-in-50 duration-500 ${
+          isDark ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-emerald-950/60' : 'bg-emerald-50 border-emerald-300 text-emerald-600 shadow-emerald-500/10'
+        }`}>
           <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10" />
         </div>
 
         {/* Title */}
         <div className="space-y-1.5">
-          <span className="text-xs font-black uppercase tracking-widest text-emerald-400">Order Confirmed</span>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">Thank You For Your Order!</h1>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto">
+          <span className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Order Confirmed</span>
+          <h1 className={`text-2xl sm:text-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Thank You For Your Order!</h1>
+          <p className={`text-xs sm:text-sm max-w-md mx-auto ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
             Your supplement stack is confirmed and preparing for 2-day express delivery right to your doorstep.
           </p>
         </div>
@@ -58,40 +66,42 @@ export default function OrderSuccess() {
         {/* Flipkart-Style 4-Stage Tracker Component */}
         {order && (
           <div className="text-left">
-            <OrderTrackerTimeline order={order} isDark={true} />
+            <OrderTrackerTimeline order={order} isDark={isDark} />
           </div>
         )}
 
         {/* Order Details Summary */}
-        <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-3 text-xs sm:text-sm">
-          <div className="flex justify-between border-b border-slate-800 pb-2">
-            <span className="text-slate-400">Order ID:</span>
-            <span className="font-mono font-bold text-cyan-400">{activeOrderId}</span>
+        <div className={`p-5 rounded-2xl border text-left space-y-3 text-xs sm:text-sm ${
+          isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+        }`}>
+          <div className={`flex justify-between border-b pb-2 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+            <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Order ID:</span>
+            <span className={`font-mono font-bold ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}>{activeOrderId}</span>
           </div>
           {order && (
             <>
               <div className="flex justify-between">
-                <span className="text-slate-400">Recipient:</span>
-                <span className="font-semibold text-slate-200">{order.customerName}</span>
+                <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Recipient:</span>
+                <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{order.customerName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Payment:</span>
+                <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Payment:</span>
                 <div className="text-right">
-                  <span className="font-semibold text-slate-200">{order.paymentMethod}</span>
+                  <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{order.paymentMethod}</span>
                   {order.transactionId && (
-                    <span className="block text-[11px] text-emerald-400 font-mono mt-0.5">
+                    <span className={`block text-[11px] font-mono mt-0.5 ${isDark ? 'text-emerald-400' : 'text-emerald-700 font-bold'}`}>
                       UTR: {order.transactionId}
                     </span>
                   )}
                 </div>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Total Amount:</span>
-                <span className="font-bold text-white">₹{order.totalAmount?.toLocaleString('en-IN')}</span>
+                <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Total Amount:</span>
+                <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{order.totalAmount?.toLocaleString('en-IN')}</span>
               </div>
             </>
           )}
-          <div className="flex items-center gap-2 pt-2 text-xs text-emerald-400 font-semibold">
+          <div className={`flex items-center gap-2 pt-2 text-xs font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
             <Truck className="w-4 h-4" />
             <span>Guaranteed Express Delivery: Arriving in 2 Days</span>
           </div>
@@ -101,14 +111,22 @@ export default function OrderSuccess() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <Link
             to="/orders"
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500 hover:text-black transition-all flex items-center justify-center gap-2"
+            className={`w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-2 ${
+              isDark
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500 hover:text-black'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-600 hover:text-white'
+            }`}
           >
             <Package className="w-4 h-4" />
             View in Order History
           </Link>
           <Link
             to="/"
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white transition-all flex items-center justify-center gap-2"
+            className={`w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 ${
+              isDark
+                ? 'bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+            }`}
           >
             <Home className="w-4 h-4" />
             Back to Home

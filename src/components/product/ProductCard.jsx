@@ -143,17 +143,19 @@ export default function ProductCard({ product, priority = false }) {
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                 {revCount > 0 && (
                   <>
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[11px] font-bold">
+                    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded border text-[11px] font-bold ${
+                      isDark ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-amber-50 border-amber-300 text-amber-800'
+                    }`}>
                       <span>{avgRat}</span>
                       <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
                     </div>
-                    <span className="text-[11px] text-slate-400">
+                    <span className={`text-[11px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                       ({revCount})
                     </span>
-                    <span className="text-slate-600 text-[10px]">•</span>
+                    <span className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>•</span>
                   </>
                 )}
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-orange-400">
+                <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold ${isDark ? 'text-orange-400' : 'text-orange-700'}`}>
                   <Flame className="w-2.5 h-2.5 fill-orange-400 text-orange-400" />
                   <span>{soldUnits.toLocaleString('en-IN')} sold</span>
                 </span>
@@ -172,12 +174,12 @@ export default function ProductCard({ product, priority = false }) {
                 ₹{product.discountPrice ? product.discountPrice.toLocaleString('en-IN') : product.price}
               </span>
               {product.price > (product.discountPrice || product.price) && (
-                <span className="text-[10px] text-slate-400 line-through font-medium">
+                <span className={`text-[10px] line-through font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   ₹{product.price.toLocaleString('en-IN')}
                 </span>
               )}
             </div>
-            <p className="text-[9px] text-slate-400 font-medium">Inclusive of GST</p>
+            <p className={`text-[9px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Inclusive of GST</p>
           </div>
 
           {/* Add to Cart CTA */}

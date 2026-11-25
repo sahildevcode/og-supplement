@@ -45,7 +45,7 @@ export default function FAQ() {
           }`}>
             Frequently Asked Questions
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
             Answers to common questions about authenticity, shipping, returns and nutrition stacks
           </p>
         </div>
@@ -88,7 +88,7 @@ export default function FAQ() {
           isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
         }`}>
           <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Still need assistance?</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+          <p className={`text-xs max-w-sm mx-auto ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
             Our certified nutritionists and customer support agents are ready to help you 7 days a week.
           </p>
           <div className="pt-2 flex justify-center">

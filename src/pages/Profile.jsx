@@ -164,12 +164,12 @@ export default function Profile() {
         
         {/* Header Breadcrumb & Title */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
+          <div className={`flex items-center gap-2 text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
             <Link to="/" className="hover:text-emerald-500">Home</Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span className={isDark ? 'text-slate-200' : 'text-slate-700'}>Account</span>
+            <span className={isDark ? 'text-slate-200' : 'text-slate-800'}>Account</span>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-emerald-500 font-bold">My Profile</span>
+            <span className={`font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>My Profile</span>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -177,7 +177,7 @@ export default function Profile() {
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-2.5">
                 <span>My Profile & Account</span>
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                 Manage your personal details, delivery addresses, security credentials, and orders.
               </p>
             </div>

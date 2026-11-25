@@ -82,7 +82,7 @@ export default function MegaMenu({ isOpen, onClose, onMouseEnter, onMouseLeave }
                         {item.name}
                         <ChevronRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
+                      <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{item.desc}</p>
                     </div>
                   </Link>
                 );
@@ -156,8 +156,8 @@ export default function MegaMenu({ isOpen, onClose, onMouseEnter, onMouseLeave }
                   ? 'bg-gradient-to-br from-emerald-950/40 to-slate-900 border-emerald-500/20'
                   : 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200'
               }`}>
-                <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Always 100% Free Shipping</p>
-                <p className={`text-xs mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                <p className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Always 100% Free Shipping</p>
+                <p className={`text-xs mt-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                   Enjoy 100% free express delivery on all orders across India with zero minimum cart value!
                 </p>
               </div>
