@@ -9,7 +9,8 @@ import {
   addProductReview,
   toggleBestSeller,
   syncBestSellers,
-  bulkUpdateProducts
+  bulkUpdateProducts,
+  recordOfflineSale
 } from '../controllers/productController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
@@ -17,6 +18,7 @@ const router = express.Router();
 
 // Specific and bulk routes
 router.post('/bulk-update', bulkUpdateProducts);
+router.post('/record-offline-sale', recordOfflineSale);
 router.post('/best-sellers/sync', syncBestSellers);
 
 // Public routes

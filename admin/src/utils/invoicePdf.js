@@ -177,6 +177,8 @@ export const generateOfflineInvoicePdf = (bill) => {
 
   const discount = Number(bill.discount || 0);
   const grandTotal = Math.max(0, subtotal - discount);
+  const paidAmount = bill.paidAmount !== undefined ? Number(bill.paidAmount) : (bill.paymentMethod?.includes('Due') ? 0 : grandTotal);
+  const dueAmount = bill.dueAmount !== undefined ? Number(bill.dueAmount) : Math.max(0, grandTotal - paidAmount);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9.5);
@@ -197,8 +199,22 @@ export const generateOfflineInvoicePdf = (bill) => {
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('GRAND TOTAL PAID:', 119, y + 1.5);
+  doc.text(dueAmount > 0 ? 'TOTAL BILL:' : 'GRAND TOTAL PAID:', 119, y + 1.5);
   doc.text(formatCurrency(grandTotal), 192, y + 1.5, { align: 'right' });
+
+  if (dueAmount > 0 || bill.paymentMethod?.includes('Due')) {
+    y += 12;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(16, 185, 129);
+    doc.text('Amount Paid Now:', 120, y);
+    doc.text(formatCurrency(paidAmount), 192, y, { align: 'right' });
+
+    y += 6;
+    doc.setTextColor(225, 29, 72);
+    doc.text('BALANCE DUE (PAY LATER):', 120, y);
+    doc.text(formatCurrency(dueAmount), 192, y, { align: 'right' });
+  }
 
   drawFooter(doc, y + 25);
 

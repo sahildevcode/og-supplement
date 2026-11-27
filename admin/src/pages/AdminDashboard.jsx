@@ -16,7 +16,8 @@ import {
   XCircle,
   RotateCcw,
   ShieldCheck,
-  DollarSign
+  DollarSign,
+  Receipt
 } from 'lucide-react';
 import { api } from '../services/api';
 import { socket } from '../services/socket';
@@ -28,8 +29,51 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [offlineBills, setOfflineBills] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('og_admin_offline_bills') || '[]');
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
   const { addToast } = useAdminToast();
   const isFirstLoad = useRef(true);
+
+  useEffect(() => {
+    const syncOfflineBills = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('og_admin_offline_bills') || '[]');
+        setOfflineBills(Array.isArray(saved) ? saved : []);
+      } catch {
+        setOfflineBills([]);
+      }
+    };
+    window.addEventListener('storage', syncOfflineBills);
+    window.addEventListener('og_offline_bills_updated', syncOfflineBills);
+    return () => {
+      window.removeEventListener('storage', syncOfflineBills);
+      window.removeEventListener('og_offline_bills_updated', syncOfflineBills);
+    };
+  }, []);
+
+  const offlineMetrics = offlineBills.reduce(
+    (acc, bill) => {
+      const total = Number(bill.grandTotal || 0);
+      const paid = bill.paidAmount !== undefined
+        ? Number(bill.paidAmount)
+        : (bill.paymentMethod?.includes('Due') ? 0 : total);
+      const due = bill.dueAmount !== undefined
+        ? Number(bill.dueAmount)
+        : Math.max(0, total - paid);
+      acc.totalSelling += total;
+      acc.totalReceived += paid;
+      acc.totalDue += due;
+      acc.count += 1;
+      return acc;
+    },
+    { totalSelling: 0, totalReceived: 0, totalDue: 0, count: 0 }
+  );
 
   const fetchStats = async () => {
     try {
@@ -315,6 +359,74 @@ export default function AdminDashboard() {
               ₹{(stats?.paymentAccounting?.totalSuccessfullyRefundedAmount || 0).toLocaleString('en-IN')}
             </div>
             <p className="text-[10px] text-teal-300/80">Credited back to bank/cards</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Offline Store Selling & Billing Accounting Box */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-black text-white flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-emerald-400" />
+              <span>Offline Store Selling & Direct Billing</span>
+            </h2>
+            <p className="text-xs text-slate-400">
+              Store par direct billing karne par aapki offline selling aur due balance ka live calculation
+            </p>
+          </div>
+          <Link
+            to="/billing"
+            className="text-xs font-bold px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 self-start sm:self-auto transition-all"
+          >
+            <span>Open Offline Billing</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/30 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-emerald-300">Offline Total Selling</span>
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="text-xl font-black text-white font-mono">
+              ₹{offlineMetrics.totalSelling.toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-emerald-400">Total walk-in store sales</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-cyan-500/20 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-cyan-300">Offline Received (Cash/UPI)</span>
+              <CheckCircle className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div className="text-xl font-black text-cyan-400 font-mono">
+              ₹{offlineMetrics.totalReceived.toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-cyan-300/80">Collected at store counter</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-rose-500/20 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-rose-300">Offline Due (Udhaar)</span>
+              <AlertTriangle className="w-4 h-4 text-rose-400" />
+            </div>
+            <div className="text-xl font-black text-rose-400 font-mono">
+              ₹{offlineMetrics.totalDue.toLocaleString('en-IN')}
+            </div>
+            <p className="text-[10px] text-rose-300/80">Pay later balance due</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-purple-500/20 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span className="font-semibold text-purple-300">Offline Receipts</span>
+              <Receipt className="w-4 h-4 text-purple-400" />
+            </div>
+            <div className="text-xl font-black text-purple-400 font-mono">
+              {offlineMetrics.count}
+            </div>
+            <p className="text-[10px] text-purple-300/80">Total store bills generated</p>
           </div>
         </div>
       </div>

@@ -348,4 +348,56 @@ export const bulkUpdateProducts = async (req, res) => {
   }
 };
 
+// @route   POST /api/products/record-offline-sale
+export const recordOfflineSale = async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'items array is required' });
+    }
+
+    const io = getIO(req);
+    const updatedProducts = [];
+
+    for (const item of items) {
+      const pid = item.productId;
+      const qty = Math.max(1, Number(item.quantity || 1));
+      if (!pid || String(pid).startsWith('custom_') || pid === '__NEW_CUSTOM__') continue;
+
+      const dbProduct = await Product.findById(pid);
+      if (!dbProduct) continue;
+
+      const newStock = Math.max(0, Number(dbProduct.stock || 0) - qty);
+      const newSalesCount = Number(dbProduct.salesCount || 0) + qty;
+
+      const updated = await Product.findByIdAndUpdate(
+        dbProduct._id || dbProduct.id,
+        { stock: newStock, salesCount: newSalesCount },
+        { new: true }
+      );
+
+      if (updated) {
+        updatedProducts.push(updated);
+        if (io) {
+          io.emit('product:stockUpdated', {
+            productId: updated._id || updated.id,
+            stock: updated.stock,
+            status: updated.status
+          });
+          io.emit('product:updated', updated);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Synced ${updatedProducts.length} product(s) stock & sales count in real time`,
+      products: updatedProducts
+    });
+  } catch (error) {
+    console.error('[Record Offline Sale Error]', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
