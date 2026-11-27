@@ -25,9 +25,11 @@ import {
   Trash2,
   Tag,
   SlidersHorizontal,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { api } from '../services/api';
+import { generateOnlineOrderPdf } from '../utils/invoicePdf';
 import { socket } from '../services/socket';
 import { useAdminToast } from '../context/AdminToastContext';
 import OrderDetailsModal from '../components/OrderDetailsModal';
@@ -1205,6 +1207,14 @@ export default function AdminOrders() {
                               <span>Refund</span>
                             </button>
                           )}
+                          <button
+                            onClick={() => generateOnlineOrderPdf(ord)}
+                            title="Download Order Billing PDF"
+                            className="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-300 hover:text-emerald-100 text-xs font-bold inline-flex items-center gap-1 transition-all cursor-pointer"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>PDF</span>
+                          </button>
                           <button
                             onClick={() => {
                               setSelectedOrder(ord);

@@ -14,6 +14,7 @@ import {
   Flame,
   Sparkles,
   MessageSquare,
+  Receipt,
   X
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -41,6 +42,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
     { name: 'Payment & QR Code', path: '/payment-settings', icon: QrCode },
     { name: 'Live Stock Control', path: '/stock', icon: Boxes },
     { name: 'Orders Fulfillment', path: '/orders', icon: ShoppingCart },
+    { name: 'Offline Billing & PDF', path: '/billing', icon: Receipt },
     { name: 'Customers Directory', path: '/customers', icon: Users },
     { name: 'Support & Inquiries', path: '/support', icon: MessageSquare },
   ];

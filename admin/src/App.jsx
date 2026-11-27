@@ -22,6 +22,7 @@ import AdminBestSellers from './pages/AdminBestSellers';
 import AdminHeroBanners from './pages/AdminHeroBanners';
 import AdminTransformations from './pages/AdminTransformations';
 import AdminSupport from './pages/AdminSupport';
+import AdminBilling from './pages/AdminBilling';
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
                 <Route path="payment-settings" element={<AdminPaymentSettings />} />
                 <Route path="stock" element={<AdminStock />} />
                 <Route path="orders" element={<AdminOrders />} />
+                <Route path="billing" element={<AdminBilling />} />
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route path="support" element={<AdminSupport />} />
               </Route>

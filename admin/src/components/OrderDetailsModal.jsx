@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, Package, Truck, Clock, MapPin, Phone, Mail, User, RotateCcw, AlertTriangle, Trash2 } from 'lucide-react';
+import { X, CheckCircle, Package, Truck, Clock, MapPin, Phone, Mail, User, RotateCcw, AlertTriangle, Trash2, Download } from 'lucide-react';
 import { api } from '../services/api';
 import { useAdminToast } from '../context/AdminToastContext';
 import ModalPortal from './ModalPortal';
+import { generateOnlineOrderPdf } from '../utils/invoicePdf';
 
 export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChange }) {
   const { addToast } = useAdminToast();
@@ -422,7 +423,7 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
         ) : null}
 
         {/* Modal Footer Actions */}
-        <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+        <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
           <button
             type="button"
             onClick={handleDelete}
@@ -433,13 +434,24 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
             <span>{deleting ? 'Deleting Order...' : 'Delete Order'}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
-          >
-            Close
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => generateOnlineOrderPdf(order)}
+              className="px-4 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 hover:text-emerald-100 text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Download Invoice PDF</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
         </div>
 
       </div>
