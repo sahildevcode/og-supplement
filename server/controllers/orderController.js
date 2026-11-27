@@ -361,11 +361,18 @@ export const refundOrder = async (req, res) => {
     }
 
     const paymentId = existingOrder.transactionId || existingOrder.razorpayPaymentId;
-    const isRazorpay = existingOrder.paymentMethod === 'Razorpay (Online)' || (paymentId && paymentId.startsWith('pay_'));
+    const isRazorpay = existingOrder.paymentMethod?.includes('Razorpay') || (paymentId && paymentId.startsWith('pay_'));
+
+    // Calculate net refund after deducting product-level cancellation/handling fee (e.g. ₹100 flat or %)
+    const breakdown = await calculateCancellationBreakdown(existingOrder);
+    const netRefundAmount = breakdown.isPaid
+      ? breakdown.refundAmount
+      : Math.max(0, Number(existingOrder.totalAmount || 0) - breakdown.cancellationFee);
+    const feeDeducted = breakdown.cancellationFee;
 
     let refundData = null;
 
-    if (isRazorpay && paymentId && paymentId.startsWith('pay_')) {
+    if (isRazorpay && paymentId && paymentId.startsWith('pay_') && netRefundAmount > 0) {
       const settings = await PaymentSettings.get();
       const keyId = settings.razorpayKeyId || process.env.RAZORPAY_KEY_ID;
       const keySecret = settings.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
@@ -375,7 +382,7 @@ export const refundOrder = async (req, res) => {
       }
 
       const authHeader = 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64');
-      const refundAmountPaise = Math.round(Number(existingOrder.totalAmount) * 100);
+      const refundAmountPaise = Math.round(Number(netRefundAmount) * 100);
 
       const rzpResponse = await fetch(`https://api.razorpay.com/v1/payments/${paymentId}/refund`, {
         method: 'POST',
@@ -387,6 +394,8 @@ export const refundOrder = async (req, res) => {
           amount: refundAmountPaise,
           notes: {
             orderId: existingOrder.orderId,
+            totalPaid: existingOrder.totalAmount,
+            cancellationFee: feeDeducted,
             reason: req.body.reason || 'Admin initiated refund from portal'
           }
         })
@@ -403,10 +412,10 @@ export const refundOrder = async (req, res) => {
         });
       }
     } else {
-      // Manual / COD / simulated refund
+      // Manual / COD / simulated refund or full fee-absorbed refund (netRefundAmount === 0)
       refundData = {
-        id: `rfnd_manual_${Date.now().toString(36)}`,
-        amount: Math.round(Number(existingOrder.totalAmount) * 100),
+        id: netRefundAmount <= 0 ? `rfnd_fee_absorbed_${Date.now().toString(36)}` : `rfnd_manual_${Date.now().toString(36)}`,
+        amount: Math.round(Number(netRefundAmount) * 100),
         status: 'processed'
       };
     }
@@ -439,7 +448,8 @@ export const refundOrder = async (req, res) => {
       paymentStatus: 'Refunded',
       orderStatus: 'Refunded',
       refundId: refundData.id || '',
-      refundAmount: refundData.amount ? (refundData.amount / 100) : existingOrder.totalAmount,
+      cancellationFee: feeDeducted,
+      refundAmount: netRefundAmount,
       refundStatus: refundData.status || 'processed'
     }, { new: true });
 
@@ -451,17 +461,22 @@ export const refundOrder = async (req, res) => {
         orderStatus: updated.orderStatus,
         paymentStatus: updated.paymentStatus,
         refundId: updated.refundId,
+        refundAmount: updated.refundAmount,
+        cancellationFee: updated.cancellationFee,
         updatedAt: updated.updatedAt
       });
       io.emit('order:refunded', updated);
-      console.log(`\x1b[35m[Socket.IO Broadcast]\x1b[0m order:refunded => Order ${updated.orderId} (₹${updated.totalAmount}) Refund ID: ${updated.refundId}`);
+      console.log(`\x1b[35m[Socket.IO Broadcast]\x1b[0m order:refunded => Order ${updated.orderId} (Refund: ₹${netRefundAmount}, Fee Deducted: ₹${feeDeducted}) Refund ID: ${updated.refundId}`);
     }
 
     res.json({
       success: true,
-      message: `Refund of ₹${existingOrder.totalAmount} processed successfully!`,
+      message: feeDeducted > 0
+        ? `Refund of ₹${netRefundAmount} processed successfully (₹${feeDeducted} cancellation fee deducted).`
+        : `Refund of ₹${netRefundAmount} processed successfully!`,
       refund: refundData,
-      order: updated
+      order: updated,
+      breakdown
     });
   } catch (error) {
     console.error('[Refund Order Error]', error);
@@ -471,7 +486,10 @@ export const refundOrder = async (req, res) => {
 
 export const calculateCancellationBreakdown = async (order) => {
   const isCOD = order.paymentMethod === 'Cash on Delivery';
-  const isPaid = !isCOD && (order.paymentStatus === 'Paid' || (order.paymentMethod === 'Razorpay (Online)' && order.transactionId));
+  const isPaid = !isCOD && (
+    order.paymentStatus === 'Paid' ||
+    (order.paymentMethod?.includes('Razorpay') && (order.transactionId || order.razorpayPaymentId))
+  );
   const totalAmount = Number(order.totalAmount || 0);
 
   if (!isPaid) {

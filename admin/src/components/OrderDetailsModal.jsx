@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, Package, Truck, Clock, MapPin, Phone, Mail, User, RotateCcw, AlertTriangle, Trash2 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAdminToast } from '../context/AdminToastContext';
@@ -13,8 +13,58 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
   const [deleting, setDeleting] = useState(false);
   const [updatingRefund, setUpdatingRefund] = useState(false);
   const [showConfirmRefund, setShowConfirmRefund] = useState(false);
+  const [refundPreview, setRefundPreview] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen || !order) return;
+    setCurrentStatus(order.orderStatus || 'Order Placed');
+    setRefundStatus(order.refundStatus || '');
+    setShowConfirmRefund(false);
+
+    const id = order.orderId || order._id;
+    api.getCancellationPreview(id)
+      .then((res) => {
+        if (res && res.success) {
+          setRefundPreview(res);
+        }
+      })
+      .catch(() => setRefundPreview(null));
+  }, [isOpen, order]);
 
   if (!isOpen || !order) return null;
+
+  // Compute local fallback if preview hasn't loaded yet
+  const computeLocalRefundSummary = () => {
+    const total = Number(order.totalAmount || 0);
+    if (refundPreview && refundPreview.isPaid !== undefined) {
+      return {
+        totalAmount: total,
+        cancellationFee: Number(refundPreview.cancellationFee || 0),
+        refundAmount: Number(refundPreview.refundAmount !== undefined ? refundPreview.refundAmount : total)
+      };
+    }
+    let totalFee = 0;
+    (order.products || []).forEach((item) => {
+      if (item.isCancellationFeeApplicable !== false) {
+        const type = item.cancellationFeeType || 'percentage';
+        const val = Number(item.cancellationFeeValue !== undefined ? item.cancellationFeeValue : 5);
+        const qty = Number(item.quantity || 1);
+        if (type === 'percentage') {
+          totalFee += Math.round((Number(item.price || 0) * qty * val) / 100);
+        } else {
+          totalFee += Math.round(val * qty);
+        }
+      }
+    });
+    totalFee = Math.min(total, Math.max(0, totalFee));
+    return {
+      totalAmount: total,
+      cancellationFee: totalFee,
+      refundAmount: Math.max(0, total - totalFee)
+    };
+  };
+
+  const refundSummary = computeLocalRefundSummary();
 
   const handleDelete = async () => {
     const id = order.orderId || order._id;
@@ -326,7 +376,10 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
                   className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs flex items-center gap-1.5 shadow-lg shadow-rose-950/50 transition-all active:scale-95 cursor-pointer shrink-0"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>Refund Customer (₹{order.totalAmount})</span>
+                  <span>
+                    Refund Customer (₹{refundSummary.refundAmount})
+                    {refundSummary.cancellationFee > 0 ? ` [-₹${refundSummary.cancellationFee} Fee]` : ''}
+                  </span>
                 </button>
               )}
             </div>
@@ -337,7 +390,11 @@ export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChan
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
                   <p className="text-xs text-slate-200">
-                    Confirm: Kya aap <strong className="text-white">₹{order.totalAmount}</strong> customer <strong className="text-white">({order.customerName})</strong> ke account me wapas refund karna chahte hain?
+                    Confirm: Kya aap <strong className="text-white">₹{refundSummary.refundAmount}</strong>
+                    {refundSummary.cancellationFee > 0 && (
+                      <span className="text-amber-300"> (₹{refundSummary.totalAmount} - ₹{refundSummary.cancellationFee} fee)</span>
+                    )}{' '}
+                    customer <strong className="text-white">({order.customerName})</strong> ke account me wapas refund karna chahte hain?
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
